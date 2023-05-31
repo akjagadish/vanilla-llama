@@ -25,7 +25,7 @@ def act(text=None, run_gpt=False, action_letters=['1', '2']):
         #     max_tokens = 1,
         #     temperature = 0.0,
         # )
-        raw_response = llama.generate([text], temperature=0., max_length=250)[0][0]#[len(text):]
+        raw_response = llama.generate([text], temperature=0.1, max_length=250)[0][0]#[len(text):]
 
         #raw_response = llama.generate([text], temperature=temp, top_p=1, max_length=10, stop_words=["\n", ";"])[0][0][len(text):]
         #response = raw_response.replace(' ', '').replace(',', '').rstrip('\n').rstrip(';')
@@ -66,18 +66,60 @@ if __name__ == "__main__":
         actions = []
         #env.reset()
         num_trials = 1 #env.max_steps
+        
+        ## original prompt used on GPT-3
         # instructions = 'A classification problem consists of a list of input-target pairs.\
         #                 Each input is a vector of length 2, each entry takes continuous values between 0 and 1. \
         #                 The target is a function of the input vector and takes values of either A or B. \
         #                 Please generate 10 input-target pairs:'
-        #TODO:
-        # sample example inputs using random functions
-        instructions = 'A classification problem consists of a list of input-target pairs. Each input is a vector of length 2, each entry takes continuous values between 0 and 1. The target is a function of the input vector and takes values of either A or B. Please generate 10 new input-target pairs in the same format as the example. Here are the input-target pairs for an example classification problem: 1. Input: [0.5, 0.5], Target: A; 2. Input: [0.35, 0.31], Target: B; 3. Input: [0.12, 0.45], Target: B; 10. Input: [0.23, 0.46], Target: A; Your output: 1. Input:' # 3. Input: [0.34, 0.56], Target: B;'
+
+        ## output in the form of tuples (doesn't work)
         # instructions = 'A classification problem consists of a list of input-target pairs.\
         #                 Each input is a vector of length 2, each entry takes continuous values between 0 and 1. \
         #                 The target is a function of the input vector and takes values of either A or B. \
         #                 Please generate 100 example input-target pairs in the form of tuples:'
-    
+        
+       
+        ## WORKING PROMPT, which provides some novel examples
+        #instructions = 'A classification problem consists of a list of input-target pairs. Each input is a vector of length 2, each entry takes continuous values between 0 and 1. The target is a function of the input vector and takes values of either A or B. Please generate 10 new input-target pairs in the same format as the example. Here are the input-target pairs for an example classification problem: 1. Input: [0.5, 0.5], Target: A; 2. Input: [0.35, 0.31], Target: B; 3. Input: [0.12, 0.45], Target: B; 10. Input: [0.23, 0.46], Target: A; Your output: 1. Input:' # 3. Input: [0.34, 0.56], Target: B;'
+        
+        ## same as above but with sampled random numbers provided as input pairs
+        instructions = f'A classification problem consists of a list of input-target pairs. Each input is a vector of length 2, each entry takes continuous values between 0 and 1. The target is a function of the input vector and takes values of either A or B. Please generate 10 new input-target pairs in the same format as the example. Here are the input-target pairs for an example classification problem: 1. Input: [{round(np.random.rand(1)[0],2)}, {round(np.random.rand(1)[0],2)}], Target: A; 2. Input: [{round(np.random.rand(1)[0],2)}, {round(np.random.rand(1)[0],2)}], Target: B; 3. Input: [{round(np.random.rand(1)[0],2)}, {round(np.random.rand(1)[0],2)}], Target: B; 10. Input: [{round(np.random.rand(1)[0],2)}, {round(np.random.rand(1)[0],2)}], Target: A; Your output: 1. Input:' # 3. Input: [0.34, 0.56], Target: B;'
+        
+        # reformat above the way below doesn't seem yield the same results
+        # instructions = """
+        #                 A classification problem consists of a list of input-target pairs. 
+        #                 Each input is a vector of length 2, each entry takes continuous values between 0 and 1. 
+        #                 The target is a function of the input vector and takes values of either A or B. 
+        #                 Please generate 10 new input-target pairs in the same format as the example.
+        #                 Here are the input-target pairs for an example classification problem: 
+        #                 1. Input: [0.5, 0.5], Target: A; 
+        #                 2. Input: [0.35, 0.31], Target: B; 
+        #                 3. Input: [0.12, 0.45], Target: B; 
+        #                 10. Input: [0.23, 0.46], Target: A; 
+        #                 Your output: 
+        #                 1. Input: 
+        #                 """
+                        # 3. Input: [0.34, 0.56], Target: B;'
+        
+        # This one interestingly generates code for generate data points
+        # instructions = """ 
+        #                 A classification problem consists of a list of input-target pairs. 
+        #                 Each input is a vector of length 2, each entry takes continuous values between 0 and 1. 
+        #                 The target is a function of the input vector and takes values of either A or B. 
+        #                 Here are the input-target pairs from an example classification problem delimited by triple backticks: 
+        #                 ```
+        #                    1. Input: [0.5, 0.5], Target: A; 
+        #                    2. Input: [0.35, 0.31], Target: B; 
+        #                    3. Input: [0.12, 0.45], Target: B; 
+        #                    …
+        #                    10. Input: [0.23, 0.46], Target: A;
+        #                 ``` 
+        #                 Please generate 10 new input-target pairs in the same format as the example. 
+        #                 Your output: 
+        #                 1. Input:
+        #                 """
+
         for t in range(num_trials):
             prompt = instructions 
             print('Prompt:')

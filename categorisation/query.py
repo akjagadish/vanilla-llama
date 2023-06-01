@@ -157,6 +157,14 @@ if __name__ == "__main__":
                         " The target, y, is a function of the input vector and takes values of either y=A or y=B.\n\n"\
                         " The following is 10 generated input-target pairs for one such classification problem:\n"\
                         "x=["
+
+        # extend it to 5 features
+        instructions = f"Each classification problem consists of a collection of input-target pairs."\
+                        " Each input, x, is a vector of length 5, x=[x1, x2, x3,...,x5], containing inputs features, with each feature taking continuous values between 0 and 1."\
+                        " The target, y, is a function of the input vector and takes values of either y=A or y=B.\n\n"\
+                        " The following is 10 generated input-target pairs for one such classification problem:\n"\
+                        "x=["
+
         import ipdb; ipdb.set_trace()
 
         for t in range(num_trials):

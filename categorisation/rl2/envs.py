@@ -7,7 +7,7 @@ class CategorisationTask(nn.Module):
     """
     Categorisation task inspired by Shepard et al. (1961)
     """
-    def __init__(self, data, max_steps=8, num_dims=3, batch_size=64): 
+    def __init__(self, data, max_steps=8, num_dims=3, batch_size=64, mode='train', split=[0.8, 0.1, 0.1]): 
         """ 
         Initialise the environment
         Args: 
@@ -22,6 +22,21 @@ class CategorisationTask(nn.Module):
         self.max_steps = max_steps
         self.batch_size = batch_size
         self.num_dims = num_dims
+        self.mode = mode
+        self.split = (torch.tensor([split[0], split[0]+split[1], split[0]+split[1]+split[2]]) * self.data.task_id.nunique()).int()
+
+    def return_tasks(self, mode=None):
+        mode = self.mode if mode is None else mode
+        if mode == 'train':
+            tasks = np.random.choice(self.data.task_id.unique()[:self.split[0]], self.batch_size, replace=True)
+        elif mode == 'val':
+            self.batch_size = self.split[1] - self.split[0]
+            tasks = self.data.task_id.unique()[self.split[0]:self.split[1]]
+        elif mode == 'test':
+            self.batch_size = self.split[2] - self.split[1]
+            tasks = self.data.task_id.unique()[self.split[1]:]
+        
+        return tasks
 
     def reset(self):
         """
@@ -32,10 +47,7 @@ class CategorisationTask(nn.Module):
             done: whether the episode is done
             info: additional information
         """
-        tasks = np.random.choice(self.data.task_id.unique(), self.batch_size, replace=False)
-        # make tasks in torch format
-        #tasks = torch.from_numpy(tasks)
-        data = self.data[self.data.task_id.isin(tasks)]
+        data = self.data[self.data.task_id.isin(self.return_tasks())]
         inputs = torch.from_numpy(np.stack([eval(val) for val in data.input.values]))
         targets = torch.from_numpy(np.stack([0. if val=='A' else 1. for val in data.target.values]))
 

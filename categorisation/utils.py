@@ -76,7 +76,7 @@ def pool_generated_tasks(path, models, dims, data, tasks, runs, proc_ids):
                                 return_generated_task(path, model, dim, num_data, num_tasks, run, proc_id)], ignore_index=True)
                 # save the pooled dataframe to csv
                 df = df.query('target == "A" or target == "B"')
-                df['task_id'] = np.int64(np.arange(len(df))/num_data) + 1 
+                df['task_id'] = np.int64(np.arange(len(df))/num_data) #+ 1 
                 df.to_csv(f"{path}/llama_generated_tasks_params{model}_dim{dim}_data{num_data}_tasks{total_tasks}.csv")
     
     return df

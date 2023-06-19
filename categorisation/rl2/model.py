@@ -7,19 +7,22 @@ class RL2(nn.Module):
 
     def __init__(self, num_input, num_output, num_hidden, num_layers=1) -> None:
         super(RL2, self).__init__()
-        self.num_input = num_input
+        self.num_input = num_input + num_output
         self.num_output = num_output
         self.num_hidden = num_hidden
         self.num_layers = num_layers
-        self.lstm = nn.LSTM(num_input, num_hidden, num_layers, batch_first=True)
+        self.lstm = nn.LSTM(num_input + num_output, num_hidden, num_layers, batch_first=True)
         self.linear = nn.Linear(num_hidden, num_output)  
         #self.init_weights()
 
     def forward(self, x, h, c):
-        x, (h, c) = self.lstm(x, (h, c))
-        x = self.linear(x)
-        x = F.softmax(x, dim=-1)
-        return x, h, c
+        y, (h, c) = self.lstm(x, (h, c))
+        y = self.linear(y)
+        y = F.softmax(y, dim=-1)
+        return y, h, c
+    
+    def make_inputs(self, inputs, prev_choices):
+        return torch.cat([inputs.unsqueeze(1), F.one_hot(prev_choices, num_classes=self.num_output).unsqueeze(1)], dim=-1)
     
     # def init_weights(self):
     #     for name, param in self.named_parameters():

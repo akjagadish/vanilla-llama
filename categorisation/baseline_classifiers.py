@@ -43,8 +43,8 @@ class SVMModel:
     def score(self, X, y):
         return self.model.score(X, y)
     
-# benchmark baseline models on llm generated data
-def benchmark_baseline_models(num_tasks, data):
+# benchmark baseline models on 2 dimensional llm generated data
+def benchmark_baseline_models_2d(num_tasks, data):
     performance = []
     num_tasks = num_tasks if num_tasks<data.TaskID.max() else data.TaskID.max()
     for task_id in range(1,num_tasks+1):
@@ -56,11 +56,12 @@ def benchmark_baseline_models(num_tasks, data):
         performance.append([lr.score(X, y), svm.score(X, y)])
     return np.stack(performance)
 
+# benchmark baseline models only regex parsed dataset which might include no samples from other classes or wierd datapoints etc
 def benchmark_baseline_models_regex_parsed(num_tasks, data):
     performance = []
     num_tasks = range(1,int(num_tasks)+1) if num_tasks<data.task_id.max() else data.task_id
     for task_id in num_tasks:
-        X = np.stack([eval(val)  for val in data[data.task_id==task_id].input.values])
+        X = np.stack([eval(val) for val in data[data.task_id==task_id].input.values])
         assert X.shape[0]>0, "task {} has no data".format(task_id)
         y = np.stack([val for val in data[data.task_id==task_id].target.values])
         try:

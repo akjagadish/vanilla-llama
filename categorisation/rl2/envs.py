@@ -7,7 +7,7 @@ class CategorisationTask(nn.Module):
     """
     Categorisation task inspired by Shepard et al. (1961)
     """
-    def __init__(self, data, max_steps=8, num_dims=3, batch_size=64, mode='train', split=[0.8, 0.1, 0.1], device='cpu'): 
+    def __init__(self, data, max_steps=8, num_dims=3, batch_size=64, mode='train', split=[0.8, 0.1, 0.1], device='cpu', synthetic_data=False): 
         """ 
         Initialise the environment
         Args: 
@@ -25,7 +25,9 @@ class CategorisationTask(nn.Module):
         self.num_dims = num_dims
         self.mode = mode
         self.split = (torch.tensor([split[0], split[0]+split[1], split[0]+split[1]+split[2]]) * self.data.task_id.nunique()).int()
-        
+        self.synthetic_data = synthetic_data
+        if synthetic_data:
+            self.generate_synthetic_data()
 
     def return_tasks(self, mode=None):
         mode = self.mode if mode is None else mode
@@ -39,6 +41,32 @@ class CategorisationTask(nn.Module):
             tasks = self.data.task_id.unique()[self.split[1]:]
         
         return tasks
+    
+    def generate_synthetic_data(self, num_tasks=10000, split=[0.8, 0.1, 0.1]):
+        self.num_tasks = num_tasks
+        self.x = torch.randn(self.max_steps, self.num_tasks, self.num_dims)
+        self.w = torch.randn(self.num_tasks, self.num_dims)
+        self.c = torch.sigmoid((self.x * self.w).sum(-1)).round()
+        self.split = (torch.tensor([split[0], split[0]+split[1], split[0]+split[1]+split[2]]) * num_tasks).int()
+    
+    def get_synthetic_data(self, mode=None):
+        num_tasks = self.num_tasks
+        tasks = np.arange(num_tasks)[:self.split[0]] if self.mode == 'train' else np.arange(num_tasks)[self.split[0]:self.split[1]] if self.mode == 'val' else np.arange(num_tasks)[self.split[1]:]
+        ## randomize the order of the tasks
+        #np.random.shuffle(tasks)
+    
+        # get batched data 
+        mode = self.mode if mode is None else mode
+        if mode == 'train':
+            tasks = np.random.choice(tasks, self.batch_size, replace=False)
+        elif mode == 'val':
+            self.batch_size = self.split[1] - self.split[0]
+        elif mode == 'test':
+            self.batch_size = self.split[2] - self.split[1]
+        inputs = self.x.permute(1, 0, 2)[tasks]
+        targets = self.c.permute(1, 0)[tasks]
+
+        return inputs, targets
 
     def reset(self):
         """
@@ -49,9 +77,13 @@ class CategorisationTask(nn.Module):
             done: whether the episode is done
             info: additional information
         """
-        data = self.data[self.data.task_id.isin(self.return_tasks())]
-        inputs = torch.from_numpy(np.stack([eval(val) for val in data.input.values]))
-        targets = torch.from_numpy(np.stack([0. if val=='A' else 1. for val in data.target.values]))
+        if self.synthetic_data:
+            inputs, targets = self.get_synthetic_data()
+        else: 
+            data = self.data[self.data.task_id.isin(self.return_tasks())]
+            inputs =  torch.from_numpy(np.stack([eval(val) for val in data.input.values]))
+            targets = torch.from_numpy(np.stack([0. if val=='A' else 1. for val in data.target.values]))
+            
         self.inputs = inputs.reshape(self.batch_size, self.max_steps, self.num_dims)
         self.targets = targets.reshape(self.batch_size, self.max_steps).long()
         self.time = 0

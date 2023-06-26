@@ -76,6 +76,7 @@ if __name__ == "__main__":
     parser.add_argument('--env-name', default='llama_generated_tasks_params65B_dim3_data8_tasks14500', help='name of the environment')
     parser.add_argument('--env-dir', default='raven/u/ajagadish/vanilla-llama/categorisation/data', help='name of the environment')
     parser.add_argument('--save-dir', default='trained_models/', help='directory to save models')
+    parser.add_argument('--test', action='store_true', default=False, help='test runs')
 
     args = parser.parse_args()
     use_cuda = not args.no_cuda and torch.cuda.is_available()
@@ -83,5 +84,9 @@ if __name__ == "__main__":
     env_name = f'/{args.env_dir}/{args.env_name}.csv'# if args.env_name is None else args.env_name
 
     for i in range(args.runs):
-         save_dir = f'{args.save_dir}env={args.env_name}_num_episodes{str(args.num_episodes)}_num_hidden={str(args.num_hidden)}_lr{str(args.lr)}_run={str(args.first_run_id + i)}.pt'
-         run(env_name, args.num_episodes, args.print_every, args.save_every, args.num_hidden, save_dir, device, args.lr)
+        if args.test:
+            save_dir = f'{args.save_dir}env={args.env_name}_num_episodes{str(args.num_episodes)}_num_hidden={str(args.num_hidden)}_lr{str(args.lr)}_run={str(args.first_run_id + i)}_test.pt'
+        else:
+            save_dir = f'{args.save_dir}env={args.env_name}_num_episodes{str(args.num_episodes)}_num_hidden={str(args.num_hidden)}_lr{str(args.lr)}_run={str(args.first_run_id + i)}.pt'
+        
+        run(env_name, args.num_episodes, args.print_every, args.save_every, args.num_hidden, save_dir, device, args.lr)

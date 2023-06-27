@@ -41,12 +41,17 @@ def parse_generated_tasks(path, file_name, num_datapoints=8):
             df = pd.DataFrame({'input': inputs, 'target': targets, 'task_id': np.ones((len(inputs),))*(task_id)}) if df is None else pd.concat([df, \
                  pd.DataFrame({'input': inputs, 'target': targets, 'task_id': np.ones((len(inputs),))*(task_id)})], ignore_index=True)
             task_id+=1
+        else:
+            print(f'dataset did not have {num_datapoints} datapoints but instead had {len(inputs)} datapoints')
 
     # save data frame to csv
-    df.to_csv(f'{path}/{file_name}.csv')
+    if df is not None:
+        df.to_csv(f'{path}/{file_name}.csv')
+    else:
+        print(f'no datasets were successfully parsed')
 
 def return_generated_task(path, model, num_dim, num_data, num_tasks, run, proc_id):
-    return pd.read_csv(f"{path}/temp/llama_generated_tasks_params{model}_dim{num_dim}_data{num_data}_tasks{num_tasks}_run{run}_procid{proc_id}.csv")
+    return pd.read_csv(f"{path}/llama_generated_tasks_params{model}_dim{num_dim}_data{num_data}_tasks{num_tasks}_run{run}_procid{proc_id}.csv")
 
 def pool_generated_tasks(path, models, dims, data, tasks, runs, proc_ids):
     ''' 

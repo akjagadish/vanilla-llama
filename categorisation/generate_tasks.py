@@ -55,9 +55,9 @@ if __name__ == "__main__":
                 r"x=(\[.*?\]),\s*([A-Z])"
             ]
     instructions = f"A classification problem consists of a set of input-target pairs."\
-                        f" Each input, x, is a vector of length {num_dim}, x = [x1, x2, x3], containing feature values that range continuously between 0 and 1."\
+                        f" Each input, x, is a vector of length {str(num_dim)}, x = [x1, x2, x3], containing feature values that range continuously between 0 and 1."\
                         " The target, y, is a function of the input vector and can take on values of either y = A or y = B.\n\n"\
-                        f" The following are {num_data} input-target pairs generated for one such classification problem:\n"\
+                        f" The following are {str(num_data)} input-target pairs generated for one such classification problem:\n"\
                         "x=["
 
     # load LLaMA

@@ -8,12 +8,14 @@ import os
 sys.path.append('/raven/u/ajagadish/vanilla-llama/categorisation/')
 sys.path.append('/raven/u/ajagadish/vanilla-llama/categorisation/data')
 from utils import parse_generated_tasks, return_generated_task
+import ipdb
 
-def parse_and_pool_generated_tasks(path, models, dims, data, tasks, runs, proc_ids):
+def parse_and_pool_generated_tasks(path, gpt, models, dims, data, tasks, runs, proc_ids):
     ''' 
     Parse (if not parsed) and pool the generated tasks from LLMs into a single dataframe
     Args:
         path: path to the folder containing the generated tasks
+        gpt: gpt model used to generate the tasks
         models: list of models used to generate the tasks
         dims: list of dimensions used to generate the tasks
         data: list of number of datapoints used to generate the tasks
@@ -29,46 +31,42 @@ def parse_and_pool_generated_tasks(path, models, dims, data, tasks, runs, proc_i
     for model in models:
         for dim in dims:
             for num_data in data:
+                last_task_id=0
                 for num_tasks in tasks:
                     for run in runs:
                         for proc_id in proc_ids[num_tasks]:
                             total_tasks += num_tasks
-                            # check if the file exists
-                            filename = f'llama_generated_tasks_params{model}_dim{dim}_data{num_data}_tasks{num_tasks}_run{run}_procid{proc_id}'
-                            if not os.path.exists(f"{path}/{filename}.csv"):
-                                parse_generated_tasks(path, filename, num_data)
-                                print(f'parsed: {filename}')
-                            print(f'pooling {filename}')
+                            
+                            filename = f'{gpt}_generated_tasks_params{model}_dim{dim}_data{num_data}_tasks{num_tasks}_run{run}_procid{proc_id}'
+                            #if os.path.exists(f"{path}/{filename}.csv"): 
+                            last_task_id = parse_generated_tasks(path, filename, gpt, num_data, last_task_id)
+                            print(f'parsed: {filename}')
+                           
                             # load llama generated tasks which were successfully regex parsed
-                            df = return_generated_task(path, model, dim, num_data, num_tasks, run, proc_id) if df is None else pd.concat([df, \
-                                    return_generated_task(path, model, dim, num_data, num_tasks, run, proc_id)], ignore_index=True)
-
+                            df = return_generated_task(path, gpt, model, dim, num_data, num_tasks, run, proc_id) if df is None else pd.concat([df, \
+                                    return_generated_task(path, gpt, model, dim, num_data, num_tasks, run, proc_id)], ignore_index=True)
+                            print(f'pooled: {filename}')
                 # save the pooled dataframe to csv
+                print(df)
                 df = df.query('target == "A" or target == "B"')
-                df['task_id'] = np.int64(np.arange(len(df))/num_data) #+ 1 
-                df.to_csv(f"{path}/test_llama_generated_tasks_params{model}_dim{dim}_data{num_data}_tasks{total_tasks}.csv")
+                #df['task_id'] = np.int64(np.arange(len(df))/num_data) #+ 1 
+                df.to_csv(f"{path}/{gpt}_generated_tasks_params{model}_dim{dim}_data{num_data}_tasks{total_tasks}.csv")
     
     return df
 
 
 if __name__ == '__main__':
 
-    # path ='/raven/u/ajagadish/vanilla-llama/categorisation/data'
-    # models = ['65B']
-    # dims = [3]
-    # num_data_points = [96]
-    # tasks = [10] #1000, 2000, 500, 1500]
-    # runs = [0] #{1000: 0, 2000: 0}
-    # proc_ids = {10: [999]} #1000: range(0, 8), 2000: range(0,2), 500: range(0,2), 1500: range(0,1)} #format is {num_tasks: proc_ids}
-
     path ='/raven/u/ajagadish/vanilla-llama/categorisation/data'
-    models = ['65B']
+    gpt = 'gpt3' #'llama',
+    models = ['NA']#['65B']
     dims = [3]
-    num_data_points = [8]
-    tasks = [1000, 2000, 500, 1500]
+    num_data_points = [100]
+    tasks = [100] #1000, 2000, 500, 1500]
     runs = [0] #{1000: 0, 2000: 0}
-    proc_ids = {1000: range(0, 8), 2000: range(0,2), 500: range(0,2), 1500: range(0,1)}       
-    data = parse_and_pool_generated_tasks(path, models, dims, num_data_points, tasks, runs, proc_ids)
+    proc_ids = {10: [999, 998, 997], 5: [999], 100: [0]} #1000: range(0, 8), 2000: range(0,2), 500: range(0,2), 1500: range(0,1)} #format is {num_tasks: proc_ids}
+    
+    data = parse_and_pool_generated_tasks(path, gpt, models, dims, num_data_points, tasks, runs, proc_ids)
 
 
 # for model in models:

@@ -7,6 +7,7 @@ import sys
 sys.path.append('/raven/u/ajagadish/vanilla-llama/categorisation/')
 sys.path.append('/raven/u/ajagadish/vanilla-llama/categorisation/rl2')
 from utils import return_baseline_performance
+from baseline_classifiers import LogisticRegressionModel, SVMModel
 
 # set plotting parameters
 COLORS = {'compositional':'#117733', 
@@ -99,52 +100,3 @@ def plot_autocorr_features(data):
         sns.heatmap(autocorr, annot=True, ax=ax, cmap='RdBu_r', vmin=-1, vmax=1)
         ax.set_title(f'Task {task}')
         plt.show()
-
-# plotting the distance between datapoints over trials
-def l2_distance_trials(data,within_targets=False, within_consquetive_targets=False):
-    '''
-    Spatial distance between datapoints for each task
-    Args:
-        data: pandas dataframe with columns ['task_id', 'trial_id', 'input', 'target']
-    Returns:
-        None
-    ''' 
-    tasks = data.task_id.unique()#[:100]
-    # extract the spatial distance for each task
-
-    for target in data.target.unique():
-
-        for task in tasks:
-            # get the inputs for this task which is numpy array of dim (num_trials, 3)
-            inputs = np.stack([eval(val) for val in data[data.task_id==task].input.values])
-            # get the targets for this task which is numpy array of dim (num_trials, 1)
-            targets = np.stack([val for val in data[data.task_id==task].target.values])
-
-        
-            if within_targets:
-                inputs = inputs[targets==target]    
-
-            # get the spatial distance between datapoints over trials for only points with the same target
-            distance = np.array([np.linalg.norm(inputs[ii,:]-inputs[ii+1,:]) for ii in range(inputs.shape[0]-1)])
-            
-            if within_consquetive_targets:
-                # consequetive datapoints with the same target
-                distance = np.array([np.linalg.norm(inputs[ii]-inputs[ii+1]) for ii in range(inputs.shape[0]-1) if targets[ii]==targets[ii+1]])
-            
-            # pad with Nan's if distances are of unequal length and stack them vertically over tasks
-            distance = np.pad(distance, (0, int(data.trial_id.max()*0.6)-distance.shape[0] if within_targets else data.trial_id.max()-distance.shape[0]), mode='constant', constant_values=np.nan)
-            if task==0:
-                distances = distance
-            else:
-                distances = np.vstack((distances, distance))
-        
-        # plot the spatial distances
-        f, ax = plt.subplots(1, 1, figsize=(7,7))   
-        sns.heatmap(distances, annot=False, ax=ax, cmap='hot_r', vmin=0, vmax=1)
-        ax.set_title(f'Distance between datapoints')
-        ax.set_xlabel('Trial')
-        ax.set_ylabel('Task')
-        plt.show()
-    
-    return distances
-

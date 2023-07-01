@@ -2,11 +2,14 @@ import pickle
 import re
 import pandas as pd
 import numpy as np
+import torch
 import sys
 sys.path.append('/raven/u/ajagadish/vanilla-llama/categorisation/')
 sys.path.append('/raven/u/ajagadish/vanilla-llama/categorisation/data')
 sys.path.append('/raven/u/ajagadish/vanilla-llama/categorisation/rl2')
 from baseline_classifiers import benchmark_baseline_models_regex_parsed_random_points, benchmark_baseline_models_regex_parsed
+from baseline_classifiers import LogisticRegressionModel, SVMModel
+
 
 def parse_generated_tasks(path, file_name, gpt, num_datapoints=8, last_task_id=0):
    
@@ -112,3 +115,182 @@ def return_baseline_performance(data, random=False):
     std_errors = performance.std(0)/np.sqrt(num_tasks-1)
 
     return means, std_errors, performance
+
+# computing the distance between consequetive datapoints over trials
+def l2_distance_trials(data, within_targets=False, within_consecutive_targets=False):
+    '''
+    Spatial distance between datapoints for each task
+    Args:
+        data: pandas dataframe with columns ['task_id', 'trial_id', 'input', 'target']
+    Returns:
+        None
+    ''' 
+    tasks = data.task_id.unique()#[:100]
+    # extract the spatial distance for each task
+
+    for target in data.target.unique():
+
+        for task in tasks:
+            # get the inputs for this task which is numpy array of dim (num_trials, 3)
+            inputs = np.stack([eval(val) for val in data[data.task_id==task].input.values])
+            # get the targets for this task which is numpy array of dim (num_trials, 1)
+            targets = np.stack([val for val in data[data.task_id==task].target.values])
+
+        
+            if within_targets:
+                inputs = inputs[targets==target]    
+
+            # get the spatial distance between datapoints over trials for only points with the same target
+            distance = np.array([np.linalg.norm(inputs[ii,:]-inputs[ii+1,:]) for ii in range(inputs.shape[0]-1)])
+            
+            if within_consecutive_targets:
+                # consequetive datapoints with the same target
+                distance = np.array([np.linalg.norm(inputs[ii]-inputs[ii+1]) for ii in range(inputs.shape[0]-1) if targets[ii]==targets[ii+1]])
+            
+            # pad with Nan's if distances are of unequal length and stack them vertically over tasks
+            distance = np.pad(distance, (0, int(data.trial_id.max()*0.6)-distance.shape[0] if within_targets else data.trial_id.max()-distance.shape[0]), mode='constant', constant_values=np.nan)
+            if task==0:
+                distances = distance
+            else:
+                distances = np.vstack((distances, distance))
+
+        # # plot the spatial distances
+        # f, ax = plt.subplots(1, 1, figsize=(7,7))   
+        # sns.heatmap(distances, annot=False, ax=ax, cmap='hot_r', vmin=0, vmax=1)
+        # ax.set_title(f'Distance between datapoints')
+        # ax.set_xlabel('Trial')
+        # ax.set_ylabel('Task')
+        # plt.show()
+    
+    return distances
+
+def l2_distance_trials_all(data, target='A', shift=1, within_targets=False, llama=False, random=False):
+    '''
+    Compute distance of a datapoint with every other datapoint with shifts over trials
+    Args:
+        data: pandas dataframe with columns ['task_id', 'trial_id', 'input', 'target']
+    Returns:
+        None
+    ''' 
+    tasks = data.task_id.unique()#[:1000]
+
+    # extract the distances for each task
+    for task in tasks:
+        
+        # get the inputs for this task which is numpy array of dim (num_trials, 3)
+        inputs = np.stack([eval(val) for val in data[data.task_id==task].input.values])
+        # get the targets for this task which is numpy array of dim (num_trials, 1)
+        targets = np.stack([val for val in data[data.task_id==task].target.values]) 
+        
+        if random:
+            num_points, dim = 87, 3
+            inputs =  np.random.rand(num_points, dim) 
+            targets = np.random.choice(['A', 'B'], size=num_points) 
+
+        if within_targets:
+            inputs = inputs[targets==target]    
+
+        # get the spatial distance between datapoints over trials 
+        distance = np.array([np.linalg.norm(inputs[ii,:]-inputs[ii+shift,:]) for ii in range(inputs.shape[0]-shift)])
+        # pad with Nan's if distances are of unequal length and stack them vertically over tasks
+        if llama:
+            print(int(8*0.6)-distance.shape[0])
+            distance = np.pad(distance, (0, int(8*0.6)-distance.shape[0] if within_targets else 8-distance.shape[0]), mode='constant', constant_values=np.nan)
+        else:
+            distance = np.pad(distance, (0, int(data.trial_id.max()*0.6)-distance.shape[0] if within_targets else data.trial_id.max()-distance.shape[0]), mode='constant', constant_values=np.nan)
+
+        if task==0:
+            distances = distance
+        else:
+            distances = np.vstack((distances, distance))
+        
+    return distances
+
+def probability_same_target_vs_distance(data, target='A', llama=False, random=False):
+
+    tasks = data.task_id.unique()#[:1000]
+    # load data for each task
+    for task in tasks:
+        
+        # get the inputs for this task which is numpy array of dim (num_trials, 3)
+        inputs = np.stack([eval(val) for val in data[data.task_id==task].input.values])
+        # get the targets for this task which is numpy array of dim (num_trials, 1)
+        targets = np.stack([val for val in data[data.task_id==task].target.values]) 
+        
+        if random:
+            num_points, dim = 87, 3
+            inputs =  np.random.rand(num_points, dim) 
+            targets = np.random.choice(['A', 'B'], size=num_points) 
+   
+
+        # get the spatial distance between datapoints over trials 
+        #feature_distance = np.array([np.linalg.norm(inputs[ii,:]-inputs[ii+1,:]) for ii in range(inputs.shape[0]-1)])
+        # distance between every pair of datapoints
+        feature_distance = np.array([np.linalg.norm(inputs[ii,:]-inputs[jj,:]) for ii in range(inputs.shape[0]) for jj in range(inputs.shape[0]) if ii!=jj])
+
+        # compute difference in probability of target for each pair of datapoints
+        svm = SVMModel(inputs, targets)
+        probability = svm.predict_proba(inputs)
+        #probability_distance = np.array([np.linalg.norm(probability[ii, 0]-probability[ii+1, 0]) for ii in range(probability.shape[0]-1)])
+        probability_distance = np.array([np.linalg.norm(probability[ii,0]-probability[jj,0]) for ii in range(probability.shape[0]) for jj in range(probability.shape[0]) if ii!=jj])
+        
+        # pad with Nan's if distances are of unequal length and stack them vertically over tasks
+        probability_distance = np.pad(probability_distance, (0, 10000-feature_distance.shape[0]), mode='constant', constant_values=np.nan)
+        feature_distance = np.pad(feature_distance, (0, 10000-feature_distance.shape[0]), mode='constant', constant_values=np.nan)
+        
+        #print(probability_distance.shape)
+        if task==0:
+            distances = feature_distance
+            probabilities = probability_distance
+        else:
+            distances = np.vstack((distances, feature_distance))
+            probabilities = np.vstack((probabilities, probability_distance))
+
+    # # plot probability vs distance
+    # f, ax = plt.subplots(1, 1, figsize=(7,7))
+    # sns.regplot(distances.flatten(), probabilities.flatten(), ax=ax)
+    # ax.set_title(f'Probability of same target vs distance between datapoints')
+    # ax.set_xlabel('Distance between datapoints')
+    # ax.set_ylabel('Probability of same target')
+    # plt.show()
+
+    return distances, probabilities
+
+def evaluate_data_against_baselines(data, upto_trial=15, return_all=True):
+
+    tasks = data.task_id.unique()#[:1000] 
+    accuracy = []
+    # loop over dataset making predictions for next trial using model trained on all previous trials
+    for task in tasks:
+        baseline_model_choices, true_choices = [], []   
+        # get the inputs for this task which is numpy array of dim (num_trials, 3)
+        inputs = np.stack([eval(val) for val in data[data.task_id==task].input.values])
+        # get the targets for this task which is numpy array of dim (num_trials, 1)
+        targets = torch.stack([torch.tensor(0) if val=='A' else torch.tensor(1) for val in data[data.task_id==task].target.values])
+        num_trials = data[data.task_id==task].trial_id.max()
+
+        trial = num_trials-upto_trial # upto last 15
+        # loop over trials
+        while trial < num_trials:
+            trial_inputs = inputs[:trial]
+            trial_targets = targets[:trial]
+            try:
+                lr_model = LogisticRegressionModel(trial_inputs, trial_targets)
+                svm_model = SVMModel(trial_inputs, trial_targets)
+                lr_model_choice = lr_model.predict_proba(inputs[trial:trial+1])
+                svm_model_choice = svm_model.predict_proba(inputs[trial:trial+1])
+                true_choice = targets[trial:trial+1]
+                baseline_model_choices.append(torch.tensor([lr_model_choice, svm_model_choice]))
+                true_choices.append(true_choice)
+            except:
+                print('error')
+            trial += 1
+    
+        # calculate accuracy
+        baseline_model_choices_stacked, true_choices_stacked = torch.stack(baseline_model_choices).squeeze().argmax(2), torch.stack(true_choices).squeeze()
+        #print(baseline_model_choices_stacked[:, 0].shape)
+        accuracy_per_task = (baseline_model_choices_stacked[:, 1] == true_choices_stacked) #for model_id in range(1)]
+        #print(accuracy_per_task)
+        accuracy.append(accuracy_per_task)
+        
+    return accuracy #accuracy

@@ -18,16 +18,42 @@ load_dotenv()
 
 TOKEN_COUNTER = 0
 def act(text=None, run_gpt='llama', temperature=1., max_length=300):
+
     global TOKEN_COUNTER
+
     if run_gpt=='llama':
+
         #TODO: use stop words or maybe try to resample whenever it gives wierd results
         raw_response = llama.generate([text], temperature=temperature, max_length=max_length)[0][0]
         return raw_response
+    
+    elif run_gpt=='gpt4':
+        
+        openai.api_key = os.getenv("OPENAI_API_KEY_GPT4") # load key from env
+        #text = [{"role": "user", "content": text}]  
+        text = [{"role": "system", "content": "Do not generate any text other than the input-target pairs in the format specified by the user."}, \
+                {"role": "user", "content": text}]
+        engine = 'gpt-4'
+        try:
+            response = openai.ChatCompletion.create(
+                model = engine,
+                messages = text,
+                max_tokens = max_length,
+                temperature = temperature,
+            )
+            #ipdb.set_trace()
+            TOKEN_COUNTER += response['usage']['total_tokens'] 
+            return response.choices[0].message.content.replace(' ', '')
+        except:
+            print("Error, trying again...ratelimiterror")
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            print(exc_value)
+
+
     elif run_gpt=='gpt3':
         
         openai.api_key = os.getenv("OPENAI_API_KEY") # load key from env
         engine = "text-davinci-003"
-        #ipdb.set_trace()
         try:
             response = openai.Completion.create(
                 engine = engine,
@@ -40,6 +66,8 @@ def act(text=None, run_gpt='llama', temperature=1., max_length=300):
             return response.choices[0].text.strip().replace(' ', '')
         except:
             print("Error")
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            print(exc_value)
             #time.sleep(3**iter)
     else:
 
@@ -51,7 +79,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--llama-path", type=str, required=True)
     parser.add_argument("--model", type=str, required=True, choices=models)
-    parser.add_argument("--run-gpt", type=str, required=True, choices=['llama', 'gpt3'])
+    parser.add_argument("--run-gpt", type=str, required=True, choices=['llama', 'gpt3', 'gpt4'])
     parser.add_argument("--num-tasks", type=int, required=False, default=1000)
     parser.add_argument("--num-dim", type=int, required=False, default=3)
     parser.add_argument("--num-data", type=int, required=False, default=8)
@@ -63,7 +91,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     start_loading = time.time()
     run_gpt = args.run_gpt #True
-    assert args.model=='NA'if args.run_gpt=='gpt3' else False, "Only NA model is supported for GPT3"
+    assert args.model=='NA'if args.run_gpt=='gpt3' or args.run_gpt=='gpt4' else False, "Only NA model is supported for GPT3"
     # model parameters
     temperature = args.temperature
     max_length = args.max_length
@@ -85,6 +113,10 @@ if __name__ == "__main__":
                 r"x=(\[.*?\]),\s*([A-Z])",
                 r"^([0-9]\.[0-9]{2}),(0\.[0-9]{2}),(0\.[0-9]{2}),(A|B)$",
                 r"\[([0-9]\.[0-9]{2}),(0\.[0-9]{2}),(0\.[0-9]{2})\],(A|B)",
+                r"\[\[([0-9]\.[0-9]{2}),(0\.[0-9]{2}),(0\.[0-9]{2})\],(A|B)\]",
+                r"n[0-9]+\.\[\[([0-9]\.[0-9]{2}),(0\.[0-9]{2}),(0\.[0-9]{2})\],(\'A\'|\'B\')\]",
+                r"\[\[([0-9]\.[0-9]{2}),(0\.[0-9]{2}),(0\.[0-9]{2})\],(\'A\'|\'B\')\]",
+                r"\[([0-9]\.[0-9]{2}),(0\.[0-9]{2}),(0\.[0-9]{2})\],(A|B)",
                 ]            
 
     # load LLaMA model and instructions
@@ -98,12 +130,33 @@ if __name__ == "__main__":
                         "x=["
     # load GPT-3 specific instructions
     elif run_gpt == 'gpt3':
-        instructions = f"A classification problem consists of a set of input-target pairs."\
+        # instructions = f"A classification problem consists of a set of input-target pairs."\
+        #                 f" Each input, x, is a vector of length {str(num_dim)}, x = [x1, x2, x3], containing feature values (rounded to 2 decimals) that range continuously between 0 and 1."\
+        #                 " The target, y, is a function of the input vector and can take on values of either y = A or y = B.\n\n"\
+        #                 f" Please generate a list of {str(num_data)} input-target pairs using the following template for each row:\n"\
+        #                 f"- [x1, x2, x3], y"
+        instructions = f"A categorisation problem consists of a set of input-target pairs."\
                         f" Each input, x, is a vector of length {str(num_dim)}, x = [x1, x2, x3], containing feature values (rounded to 2 decimals) that range continuously between 0 and 1."\
-                            " The target, y, is a function of the input vector and can take on values of either y = A or y = B.\n\n"\
-                        f"Please generate a list {str(num_data)} input-target pairs using the following template for each row:\n"\
+                        " The target, y, is a function of the input vector and can take on values of either y = A or y = B."\
+                        " You can choose any naturalistic decision function for the mapping from input to target.  \n\n"\
+                        f" Please generate a list of {str(num_data)} input-target pairs for one such categorisation problem using the following template for each row:\n"\
                         f"- [x1, x2, x3], y"
-    
+    # load GPT-4 specific instructions
+    elif run_gpt == 'gpt4':
+        # instructions = f"A categorisation problem consists of a set of input-target pairs."\
+        #                 f" Each input, x, is a vector of length {str(num_dim)}, x = [x1, x2, x3], containing feature values (rounded to 2 decimals) that range continuously between 0 and 1."\
+        #                 " The target, y, is a function of the input vector and can take on values of either y = A or y = B.\n\n"\
+        #                 f" Please generate a list of {str(num_data)} input-target pairs for one such categorisation problem using the following template for each row:\n"\
+        #                 f"- [x1, x2, x3], y" ## got code to generate output once but otherwise consistent 
+        instructions = f"A categorisation problem consists of a set of input-target pairs."\
+                        f" Each input, x, is a vector of length {str(num_dim)}, x = [x1, x2, x3], containing feature values (rounded to 2 decimals) that range continuously between 0 and 1."\
+                        " The target, y, is a function of the input vector and can take on values of either y = A or y = B."\
+                        " You can choose any naturalistic decision function for the mapping from input to target. \n\n"\
+                        f" Please generate a list of {str(num_data)} input-target pairs for one such categorisation problem using the following template for each row:\n"\
+                        f"- [x1, x2, x3], y"\
+                        #f" Do not generate any text but just provide the input-target pairs."
+        
+                        
     # run gpt models
     for run in range(num_runs):
         data, unparsable_data = [], []

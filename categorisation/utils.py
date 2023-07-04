@@ -32,8 +32,14 @@ def parse_generated_tasks(path, file_name, gpt, num_datapoints=8, last_task_id=0
         # load each input-target pair
         for item in data:
             if gpt == 'gpt3':
+                #import ipdb; ipdb.set_trace()
                 inputs.append([float(item[0]), float(item[1]), float(item[2])])
                 targets.append(item[3])
+
+            elif gpt == 'gpt4':
+                #import ipdb; ipdb.set_trace()
+                inputs.append([float(item[0]), float(item[1]), float(item[2])])
+                targets.append(item[3][1] if len(item[3])>1 else item[3])
                 
             else:
                 match = re.match(pattern, item[0])
@@ -48,7 +54,7 @@ def parse_generated_tasks(path, file_name, gpt, num_datapoints=8, last_task_id=0
                     print(f'error parsing {task, item[0]}')
 
         # if the number of datapoints is equal to the number of inputs, add to dataframe
-        if gpt=='gpt3' or ((gpt=='llama') and (len(inputs)==num_datapoints)):
+        if gpt=='gpt3' or gpt=='gpt4' or ((gpt=='llama') and (len(inputs)==num_datapoints)):
             print(f'inputs lengths {len(inputs)}')
             df = pd.DataFrame({'input': inputs, 'target': targets, 'trial_id': np.arange(len(inputs)), 'task_id': np.ones((len(inputs),))*(task_id)}) if df is None else pd.concat([df, \
                  pd.DataFrame({'input': inputs, 'target': targets, 'trial_id': np.arange(len(inputs)), 'task_id': np.ones((len(inputs),))*(task_id)})], ignore_index=True)
@@ -194,10 +200,9 @@ def l2_distance_trials_all(data, target='A', shift=1, within_targets=False, llam
         distance = np.array([np.linalg.norm(inputs[ii,:]-inputs[ii+shift,:]) for ii in range(inputs.shape[0]-shift)])
         # pad with Nan's if distances are of unequal length and stack them vertically over tasks
         if llama:
-            print(int(8*0.6)-distance.shape[0])
             distance = np.pad(distance, (0, int(8*0.6)-distance.shape[0] if within_targets else 8-distance.shape[0]), mode='constant', constant_values=np.nan)
         else:
-            distance = np.pad(distance, (0, int(data.trial_id.max()*0.6)-distance.shape[0] if within_targets else data.trial_id.max()-distance.shape[0]), mode='constant', constant_values=np.nan)
+            distance = np.pad(distance, (0, int(data.trial_id.max()*0.9)-distance.shape[0] if within_targets else data.trial_id.max()+1-distance.shape[0]), mode='constant', constant_values=np.nan)
 
         if task==0:
             distances = distance
@@ -207,6 +212,10 @@ def l2_distance_trials_all(data, target='A', shift=1, within_targets=False, llam
     return distances
 
 def probability_same_target_vs_distance(data, target='A', llama=False, random=False):
+
+    #TODO:
+    # 1. set max datapoints based on max number of trials in the dataset
+    # 2. set values for random more appropriately
 
     tasks = data.task_id.unique()#[:1000]
     # load data for each task
@@ -235,8 +244,9 @@ def probability_same_target_vs_distance(data, target='A', llama=False, random=Fa
         probability_distance = np.array([np.linalg.norm(probability[ii,0]-probability[jj,0]) for ii in range(probability.shape[0]) for jj in range(probability.shape[0]) if ii!=jj])
         
         # pad with Nan's if distances are of unequal length and stack them vertically over tasks
-        probability_distance = np.pad(probability_distance, (0, 10000-feature_distance.shape[0]), mode='constant', constant_values=np.nan)
-        feature_distance = np.pad(feature_distance, (0, 10000-feature_distance.shape[0]), mode='constant', constant_values=np.nan)
+        # 100*100 = 10000 is the maximum number of pairs of datapoints as number of datapoints is 100
+        probability_distance = np.pad(probability_distance, (0, 11000-feature_distance.shape[0]), mode='constant', constant_values=np.nan)
+        feature_distance = np.pad(feature_distance, (0, 11000-feature_distance.shape[0]), mode='constant', constant_values=np.nan)
         
         #print(probability_distance.shape)
         if task==0:
@@ -259,7 +269,8 @@ def probability_same_target_vs_distance(data, target='A', llama=False, random=Fa
 def evaluate_data_against_baselines(data, upto_trial=15, return_all=True):
 
     tasks = data.task_id.unique()#[:1000] 
-    accuracy = []
+    accuracy_lm = []
+    accuracy_svm = []
     # loop over dataset making predictions for next trial using model trained on all previous trials
     for task in tasks:
         baseline_model_choices, true_choices = [], []   
@@ -269,9 +280,9 @@ def evaluate_data_against_baselines(data, upto_trial=15, return_all=True):
         targets = torch.stack([torch.tensor(0) if val=='A' else torch.tensor(1) for val in data[data.task_id==task].target.values])
         num_trials = data[data.task_id==task].trial_id.max()
 
-        trial = num_trials-upto_trial # upto last 15
+        trial = upto_trial # fit datapoints upto upto_trial; sort of burn-in trials
         # loop over trials
-        while trial < num_trials:
+        while trial <= num_trials:
             trial_inputs = inputs[:trial]
             trial_targets = targets[:trial]
             try:
@@ -283,14 +294,15 @@ def evaluate_data_against_baselines(data, upto_trial=15, return_all=True):
                 baseline_model_choices.append(torch.tensor([lr_model_choice, svm_model_choice]))
                 true_choices.append(true_choice)
             except:
-                print('error')
+                print('error fitting : for example not enough datapoints for a class')
             trial += 1
     
         # calculate accuracy
         baseline_model_choices_stacked, true_choices_stacked = torch.stack(baseline_model_choices).squeeze().argmax(2), torch.stack(true_choices).squeeze()
-        #print(baseline_model_choices_stacked[:, 0].shape)
-        accuracy_per_task = (baseline_model_choices_stacked[:, 1] == true_choices_stacked) #for model_id in range(1)]
-        #print(accuracy_per_task)
-        accuracy.append(accuracy_per_task)
+        accuracy_per_task_lm = (baseline_model_choices_stacked[:, 0] == true_choices_stacked) #for model_id in range(1)]
+        accuracy_per_task_svm = (baseline_model_choices_stacked[:, 1] == true_choices_stacked) #for model_id in range(1)]
         
-    return accuracy #accuracy
+        accuracy_lm.append(accuracy_per_task_lm)
+        accuracy_svm.append(accuracy_per_task_svm)
+        
+    return accuracy_lm, accuracy_svm

@@ -72,7 +72,6 @@ def label_imbalance(data, categories=['A','B']):
     f.tight_layout()
     plt.show()
 
-
 # plotting the autocorrelations between features
 def plot_autocorr_features(data):
     '''
@@ -83,20 +82,67 @@ def plot_autocorr_features(data):
         None
     '''
     tasks = data.task_id.unique()
+    # store the autocorrelations for each task
+    autocorrs = []
+
     # extract the autocorrelations for each task
     for task in tasks:
         # get the inputs for this task which is numpy array of dim (num_trials, 3)
         inputs = np.stack([eval(val) for val in data[data.task_id==task].input.values])
-        # get the targets for this task which is numpy array of dim (num_trials, 1)
-        targets = np.stack([val for val in data[data.task_id==task].target.values])
         
         # get the autocorrelations between input dimensions over trials
         autocorr = np.array([np.corrcoef(inputs[:,ii], inputs[:,jj])[0,1] for ii in range(inputs.shape[1]) for jj in range(inputs.shape[1])])
         # reshape the autocorrelations to be of dim (num_trials, num_input_dims, num_input_dims)
         autocorr = autocorr.reshape((inputs.shape[1], inputs.shape[1]))
         
-        # plot the autocorrelations
-        f, ax = plt.subplots(1, 1, figsize=(7,7))
-        sns.heatmap(autocorr, annot=True, ax=ax, cmap='RdBu_r', vmin=-1, vmax=1)
-        ax.set_title(f'Task {task}')
-        plt.show()
+        # store the autocorrelations for this task
+        autocorrs.append(autocorr)
+    
+    # plot the mean autocorrelations 
+    f, ax = plt.subplots(1, 1, figsize=(7,7))
+    ax.imshow(np.stack(autocorrs).mean(axis=0), cmap='RdBu_r', vmin=-1, vmax=1)
+    ax.set_xticks(np.arange(0,3))
+    ax.set_yticks(np.arange(0,3))
+    ax.set_xticklabels(['x1', 'x2', 'x3'])
+    ax.set_title(f'Task {task}')
+    plt.show()
+
+    return autocorrs
+
+# plot the correlation between each feature over time
+def plot_correlation_features(data):
+    '''
+    Correlation between features for each task
+    Args:
+        data: pandas dataframe with columns ['task_id', 'trial_id', 'input', 'target']
+    Returns:
+
+    '''
+    tasks = data.task_id.unique()
+    features = []
+    input_length = 100
+    for task in tasks:
+        inputs = np.stack([eval(val) for val in data[data.task_id==task].input.values])
+        # pad the inputs with zeros along dim=0 to make all inputs the same length as input_length
+        inputs = np.pad(inputs, ((0, input_length-inputs.shape[0]), (0,0)), 'constant', constant_values=np.nan)
+        features.append(inputs)
+    features = np.stack(features)
+
+    # compute the correlation between each feature over time
+    corr = np.array([np.corrcoef(features[:,ii,:].flatten(), features[:,jj,:].flatten())[0,1] for ii in range(features.shape[1]) for jj in range(features.shape[1])])
+    corr = corr.reshape((features.shape[1], features.shape[1]))
+
+    # plot the mean correlation between features over time
+    f, ax = plt.subplots(1, 1, figsize=(7,7))
+    ax.imshow(corr, cmap='RdBu_r', vmin=-1, vmax=1)
+    ax.set_xticks(np.arange(0,3))
+    ax.set_yticks(np.arange(0,3))
+    ax.set_xticklabels(['x1', 'x2', 'x3'])
+    ax.set_title(f'Task {task}')
+    plt.show()
+    
+         
+
+
+
+    

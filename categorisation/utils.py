@@ -4,6 +4,9 @@ import pandas as pd
 import numpy as np
 import torch
 import sys
+from sklearn.linear_model import LogisticRegression
+from sklearn.preprocessing import PolynomialFeatures
+import statsmodels.api as sm
 sys.path.append('/raven/u/ajagadish/vanilla-llama/categorisation/')
 sys.path.append('/raven/u/ajagadish/vanilla-llama/categorisation/data')
 sys.path.append('/raven/u/ajagadish/vanilla-llama/categorisation/rl2')
@@ -218,6 +221,7 @@ def probability_same_target_vs_distance(data, target='A', llama=False, random=Fa
     # 2. set values for random more appropriately
 
     tasks = data.task_id.unique()#[:1000]
+    MAX_SIZE = (data.trial_id.max()+1)**2
     # load data for each task
     for task in tasks:
         
@@ -227,7 +231,7 @@ def probability_same_target_vs_distance(data, target='A', llama=False, random=Fa
         targets = np.stack([val for val in data[data.task_id==task].target.values]) 
         
         if random:
-            num_points, dim = 87, 3
+            num_points, dim = data.trial_id.max(), 3
             inputs =  np.random.rand(num_points, dim) 
             targets = np.random.choice(['A', 'B'], size=num_points) 
    
@@ -245,8 +249,8 @@ def probability_same_target_vs_distance(data, target='A', llama=False, random=Fa
         
         # pad with Nan's if distances are of unequal length and stack them vertically over tasks
         # 100*100 = 10000 is the maximum number of pairs of datapoints as number of datapoints is 100
-        probability_distance = np.pad(probability_distance, (0, 11000-feature_distance.shape[0]), mode='constant', constant_values=np.nan)
-        feature_distance = np.pad(feature_distance, (0, 11000-feature_distance.shape[0]), mode='constant', constant_values=np.nan)
+        probability_distance = np.pad(probability_distance, (0, MAX_SIZE-feature_distance.shape[0]), mode='constant', constant_values=np.nan)
+        feature_distance = np.pad(feature_distance, (0, MAX_SIZE-feature_distance.shape[0]), mode='constant', constant_values=np.nan)
         
         #print(probability_distance.shape)
         if task==0:
@@ -306,3 +310,82 @@ def evaluate_data_against_baselines(data, upto_trial=15, return_all=True):
         accuracy_svm.append(accuracy_per_task_svm)
         
     return accuracy_lm, accuracy_svm
+
+def find_counts(inputs, dim, xx_min, xx_max):
+    return (inputs[:, dim]<xx_max)*(inputs[:, dim]>xx_min)
+
+def data_in_range(inputs, targets, min_value=0, max_value=1):
+    inputs_in_range = [(inputs[ii]>min_value).all() * (inputs[ii]<max_value).all() for ii in range(len(inputs))]
+    inputs = inputs[inputs_in_range]
+    targets = targets[inputs_in_range]
+    return inputs, targets
+
+def bin_data_points(num_bins, data, min_value=0, max_value=1):
+    inputs = np.stack([eval(val) for val in data.input.values])
+    targets = np.stack([val for val in data.target.values])
+    inputs, targets = data_in_range(inputs, targets, min_value, max_value)
+    bins = np.linspace(0, 1, num_bins+1)[:-1]
+    bin_counts, target_counts = [], [] #np.zeros((len(bins)*3))
+    for ii in bins:
+        x_min = ii 
+        x_max = ii + 1/num_bins
+        for jj in bins:
+            y_min = jj
+            y_max = jj + 1/num_bins
+            for kk in bins:
+                z_min = kk
+                z_max = kk + 1/num_bins
+                num_points = (find_counts(inputs, 0, x_min, x_max)*find_counts(inputs, 1, y_min, y_max)*find_counts(inputs, 2, z_min, z_max))
+                bin_counts.append(num_points.sum())
+                target_counts.append((targets[num_points]=='A').sum())
+
+    bin_counts = np.array(bin_counts)
+    target_counts = np.array(target_counts)
+    return 
+
+def return_data_stats(data):
+
+    df = data.copy()
+    max_tasks = int(df['task_id'].max() + 1)
+    all_corr, all_coef, all_bics_linear, all_bics_quadratic  = [], [], [], []
+    for i in range(0, max_tasks):
+        df_task = df[df['task_id'] == i]
+        if len(df_task) > 40: # arbitary data size threshold
+            y = df_task['target'].to_numpy()
+            y = np.unique(y, return_inverse=True)[1]
+
+            df_task['input'] = df_task['input'].apply(eval).apply(np.array)
+            X = df_task["input"].to_numpy()
+            X = np.stack(X)
+            
+            # correlations
+            all_corr.append(np.corrcoef(X[:, 0], X[:, 1])[0, 1])
+            all_corr.append(np.corrcoef(X[:, 0], X[:, 2])[0, 1])
+            all_corr.append(np.corrcoef(X[:, 1], X[:, 2])[0, 1])
+
+
+            if (y == 0).all() or (y == 1).all():
+                pass
+            else:
+                X_linear = PolynomialFeatures(1).fit_transform(X)
+                log_reg = sm.Logit(y, X_linear).fit(method='bfgs')
+
+                # weights
+                all_coef.append(log_reg.params[1])
+                all_coef.append(log_reg.params[2])
+                all_coef.append(log_reg.params[3])
+
+                X_poly = PolynomialFeatures(2).fit_transform(X)
+                log_reg_quadratic = sm.Logit(y, X_poly).fit(method='bfgs')
+
+                # bics
+                all_bics_linear.append(log_reg.bic)
+                all_bics_quadratic.append(log_reg_quadratic.bic)
+
+    # compute posterior probabilities
+    logprobs = torch.from_numpy(-0.5 * np.stack((all_bics_linear, all_bics_quadratic), -1))
+    joint_logprob = logprobs + torch.log(torch.ones([]) /logprobs.shape[1])
+    marginal_logprob = torch.logsumexp(joint_logprob, dim=1, keepdim=True)
+    posterior_logprob = joint_logprob - marginal_logprob
+
+    return all_corr, all_coef, posterior_logprob

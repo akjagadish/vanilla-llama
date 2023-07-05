@@ -61,7 +61,6 @@ def label_imbalance(data, categories=['A','B']):
     num_tasks = int(data.task_id.max()+1)
     num_targets = np.stack([(data[data.task_id==task_id].target=='A').sum() for task_id in data.task_id.unique()])
     expected_number_points = np.nanmean(np.array([data[data.task_id==ii].trial_id.max()+1 for ii in np.arange(num_tasks)]))
-    print(expected_number_points)
     f, ax = plt.subplots(1, 1, figsize=(5,5))
     ax.bar(categories, [num_targets.mean(), expected_number_points-num_targets.mean()], color=[COLORS['a'], COLORS['b']])
     ax.errorbar(categories, [num_targets.mean(), expected_number_points-num_targets.mean()], yerr=[num_targets.std(), num_targets.std()], c='k')
@@ -147,7 +146,6 @@ def plot_correlation_features(data, max_input_length=100, num_features=3, time_s
 def plot_trial_by_trial_performance(data, fit_upto_trial, plot_last_trials, num_trials=None):
     
     accuracy_lm, accuracy_svm = evaluate_data_against_baselines(data, fit_upto_trial, num_trials)
-    #print(accuracy_lm, accuracy_svm)
     accuracy_lm = [acc[-plot_last_trials:] for acc in accuracy_lm if len(acc)>=plot_last_trials]
     accuracy_svm = [acc[-plot_last_trials:] for acc in accuracy_svm if len(acc)>=plot_last_trials]
     f, ax = plt.subplots(1, 1, figsize=(7,7))   

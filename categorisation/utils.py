@@ -219,7 +219,7 @@ def probability_same_target_vs_distance(data, target='A', llama=False, random=Fa
     #TODO:
     # 1. set max datapoints based on max number of trials in the dataset
     # 2. set values for random more appropriately
-
+    ref_target = 0 if target=='A' else 1
     tasks = data.task_id.unique()#[:1000]
     MAX_SIZE = (data.trial_id.max()+1)**2
     # load data for each task
@@ -245,7 +245,7 @@ def probability_same_target_vs_distance(data, target='A', llama=False, random=Fa
         svm = SVMModel(inputs, targets)
         probability = svm.predict_proba(inputs)
         #probability_distance = np.array([np.linalg.norm(probability[ii, 0]-probability[ii+1, 0]) for ii in range(probability.shape[0]-1)])
-        probability_distance = np.array([np.linalg.norm(probability[ii,0]-probability[jj,0]) for ii in range(probability.shape[0]) for jj in range(probability.shape[0]) if ii!=jj])
+        probability_distance = np.array([np.abs(probability[ii,ref_target]-probability[jj,ref_target]) for ii in range(probability.shape[0]) for jj in range(probability.shape[0]) if ii!=jj])
         
         # pad with Nan's if distances are of unequal length and stack them vertically over tasks
         # 100*100 = 10000 is the maximum number of pairs of datapoints as number of datapoints is 100
@@ -270,7 +270,7 @@ def probability_same_target_vs_distance(data, target='A', llama=False, random=Fa
 
     return distances, probabilities
 
-def evaluate_data_against_baselines(data, upto_trial=15, return_all=True):
+def evaluate_data_against_baselines(data, upto_trial=15, num_trials=None):
 
     tasks = data.task_id.unique()#[:1000] 
     accuracy_lm = []
@@ -282,23 +282,27 @@ def evaluate_data_against_baselines(data, upto_trial=15, return_all=True):
         inputs = np.stack([eval(val) for val in data[data.task_id==task].input.values])
         # get the targets for this task which is numpy array of dim (num_trials, 1)
         targets = torch.stack([torch.tensor(0) if val=='A' else torch.tensor(1) for val in data[data.task_id==task].target.values])
-        num_trials = data[data.task_id==task].trial_id.max()
+        num_trials = data[data.task_id==task].trial_id.max() if num_trials is None else num_trials
 
         trial = upto_trial # fit datapoints upto upto_trial; sort of burn-in trials
         # loop over trials
         while trial <= num_trials:
             trial_inputs = inputs[:trial]
             trial_targets = targets[:trial]
-            try:
-                lr_model = LogisticRegressionModel(trial_inputs, trial_targets)
-                svm_model = SVMModel(trial_inputs, trial_targets)
-                lr_model_choice = lr_model.predict_proba(inputs[trial:trial+1])
-                svm_model_choice = svm_model.predict_proba(inputs[trial:trial+1])
-                true_choice = targets[trial:trial+1]
-                baseline_model_choices.append(torch.tensor([lr_model_choice, svm_model_choice]))
-                true_choices.append(true_choice)
-            except:
-                print('error fitting : for example not enough datapoints for a class')
+            # if all targets until then are same, skip this trial
+            if (trial_targets == 0).all() or (trial_targets == 1).all():
+                pass
+            else:
+                try:
+                    lr_model = LogisticRegressionModel(trial_inputs, trial_targets)
+                    svm_model = SVMModel(trial_inputs, trial_targets)
+                    lr_model_choice = lr_model.predict_proba(inputs[[trial]])
+                    svm_model_choice = svm_model.predict_proba(inputs[[trial]])#
+                    true_choice = targets[[trial]] #trial:trial+1]
+                    baseline_model_choices.append(torch.tensor([lr_model_choice, svm_model_choice]))
+                    true_choices.append(true_choice)
+                except:
+                    print('error fitting')
             trial += 1
     
         # calculate accuracy
@@ -341,7 +345,7 @@ def bin_data_points(num_bins, data, min_value=0, max_value=1):
 
     bin_counts = np.array(bin_counts)
     target_counts = np.array(target_counts)
-    return 
+    return bin_counts, target_counts
 
 def return_data_stats(data):
 
@@ -350,7 +354,7 @@ def return_data_stats(data):
     all_corr, all_coef, all_bics_linear, all_bics_quadratic  = [], [], [], []
     for i in range(0, max_tasks):
         df_task = df[df['task_id'] == i]
-        if len(df_task) > 40: # arbitary data size threshold
+        if len(df_task) > 5: # arbitary data size threshold
             y = df_task['target'].to_numpy()
             y = np.unique(y, return_inverse=True)[1]
 

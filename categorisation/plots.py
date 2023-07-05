@@ -60,8 +60,8 @@ def label_imbalance(data, categories=['A','B']):
 
     num_tasks = int(data.task_id.max()+1)
     num_targets = np.stack([(data[data.task_id==task_id].target=='A').sum() for task_id in data.task_id.unique()])
-    expected_number_points = np.array([data[data.task_id==ii].trial_id.max()+1 for ii in np.arange(num_tasks)]).mean()
-
+    expected_number_points = np.nanmean(np.array([data[data.task_id==ii].trial_id.max()+1 for ii in np.arange(num_tasks)]))
+    print(expected_number_points)
     f, ax = plt.subplots(1, 1, figsize=(5,5))
     ax.bar(categories, [num_targets.mean(), expected_number_points-num_targets.mean()], color=[COLORS['a'], COLORS['b']])
     ax.errorbar(categories, [num_targets.mean(), expected_number_points-num_targets.mean()], yerr=[num_targets.std(), num_targets.std()], c='k')
@@ -129,15 +129,11 @@ def plot_correlation_features(data, max_input_length=100, num_features=3, time_s
         features.append(inputs)
     features = np.stack(features)
 
-    # compute the correlation between each feature over time
-    corr = np.array([np.corrcoef(features[:,ii,:].flatten(), features[:,jj,:].flatten())[0,1] for ii in range(features.shape[1]) for jj in range(features.shape[1])])
-    corr = corr.reshape((features.shape[1], features.shape[1]))
-
     # plot the mean correlation between features over time
     f, ax = plt.subplots(1, 1, figsize=(7,7))
     for which_feature in range(num_features):
-        corr = np.array([np.corrcoef(features[:, ii, which_feature].flatten(), features[:, ii+time_shift, which_feature].flatten())[0,1] for ii in range(features.shape[1]-1)]) 
-        ax.plot(corr, label= 'corr($x_{}(t)$, $x_{}(t+1)$)'.format(which_feature+1,which_feature+1), color=COLORS['feature_{}'.format(which_feature+1)])
+        corr = np.array([np.corrcoef(features[:, ii, which_feature].flatten(), features[:, ii+time_shift, which_feature].flatten())[0,1] for ii in range(features.shape[1]-time_shift)]) 
+        ax.plot(corr, label= 'corr($x_{}(t)$, $x_{}(t+{})$)'.format(which_feature+1,which_feature+1, time_shift), color=COLORS['feature_{}'.format(which_feature+1)])
     ax.set_title(f'Temporal correlation w/ time shift of {time_shift}', fontsize=FONTSIZE)
     ax.set_xlabel('Trials', fontsize=FONTSIZE)
     ax.set_ylabel('Correlation coefficient', fontsize=FONTSIZE)
@@ -148,9 +144,10 @@ def plot_correlation_features(data, max_input_length=100, num_features=3, time_s
     plt.show()
     
 # plot trial-by-trial performance of baseline models
-def plot_trial_by_trial_performance(data, fit_upto_trial, plot_last_trials):
+def plot_trial_by_trial_performance(data, fit_upto_trial, plot_last_trials, num_trials=None):
     
-    accuracy_lm, accuracy_svm = evaluate_data_against_baselines(data, fit_upto_trial)
+    accuracy_lm, accuracy_svm = evaluate_data_against_baselines(data, fit_upto_trial, num_trials)
+    #print(accuracy_lm, accuracy_svm)
     accuracy_lm = [acc[-plot_last_trials:] for acc in accuracy_lm if len(acc)>=plot_last_trials]
     accuracy_svm = [acc[-plot_last_trials:] for acc in accuracy_svm if len(acc)>=plot_last_trials]
     f, ax = plt.subplots(1, 1, figsize=(7,7))   

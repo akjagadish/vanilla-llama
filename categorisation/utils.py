@@ -352,9 +352,10 @@ def return_data_stats(data):
     df = data.copy()
     max_tasks = int(df['task_id'].max() + 1)
     all_corr, all_coef, all_bics_linear, all_bics_quadratic  = [], [], [], []
+    f1_ceof, f2_coef, f3_coef = [], [], []
     for i in range(0, max_tasks):
         df_task = df[df['task_id'] == i]
-        if len(df_task) > 5: # arbitary data size threshold
+        if len(df_task) > 40: # arbitary data size threshold
             y = df_task['target'].to_numpy()
             y = np.unique(y, return_inverse=True)[1]
 
@@ -378,6 +379,12 @@ def return_data_stats(data):
                 all_coef.append(log_reg.params[1])
                 all_coef.append(log_reg.params[2])
                 all_coef.append(log_reg.params[3])
+                
+                # store feature specific weights separately
+                f1_ceof.append(log_reg.params[1])
+                f2_coef.append(log_reg.params[2])
+                f3_coef.append(log_reg.params[3])
+
 
                 X_poly = PolynomialFeatures(2).fit_transform(X)
                 log_reg_quadratic = sm.Logit(y, X_poly).fit(method='bfgs')
@@ -392,4 +399,11 @@ def return_data_stats(data):
     marginal_logprob = torch.logsumexp(joint_logprob, dim=1, keepdim=True)
     posterior_logprob = joint_logprob - marginal_logprob
 
-    return all_corr, all_coef, posterior_logprob
+    # store feature specific weights separately
+    f1_ceof = np.array(f1_ceof)
+    f2_coef = np.array(f2_coef)
+    f3_coef = np.array(f3_coef)
+    feature_coef = np.stack((f1_ceof, f2_coef, f3_coef), -1)
+
+
+    return all_corr, all_coef, posterior_logprob, feature_coef

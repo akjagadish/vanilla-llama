@@ -47,11 +47,11 @@ def compare_llm_uniform_data_samples(data, random=False):
         ax.scatter(i + np.random.random(performance.shape[0]) * w - w / 2, performance[:, i], color='k', alpha=.3, zorder=3)
 
     ## formatting    
-    plt.xticks(np.arange(0,len(means)))
+    plt.xticks(np.arange(0,len(means)), fontsize=FONTSIZE-2)
     plt.yticks(fontsize=FONTSIZE-2)
     ax.set_xlabel('Models', fontsize=FONTSIZE)
-    ax.set_ylabel(f'Score', fontsize=FONTSIZE)#$a_{trials}$
-    ax.set_xticklabels(conditions, fontsize=FONTSIZE-4)#['', '']
+    ax.set_ylabel(f'Accuracy', fontsize=FONTSIZE)#$a_{trials}$
+    ax.set_xticklabels(conditions, fontsize=FONTSIZE-2)#['', '']
     sns.despine()
     f.tight_layout()
     plt.show()
@@ -65,8 +65,8 @@ def label_imbalance(data, categories=['A','B']):
     ax.bar(categories, [num_targets.mean(), expected_number_points-num_targets.mean()], color=[COLORS['a'], COLORS['b']])
     ax.errorbar(categories, [num_targets.mean(), expected_number_points-num_targets.mean()], yerr=[num_targets.std(), num_targets.std()], c='k')
     #plt.legend(fontsize=FONTSIZE-5,  loc="upper center", bbox_to_anchor=(.45, 1.1), ncol=3, frameon=True)
-    ax.set_ylabel('Mean number of points per class', fontsize=FONTSIZE-2)
-    ax.set_xlabel('Category', fontsize=FONTSIZE-2) #$a_{name_trials}$
+    ax.set_ylabel('Mean number of points per class', fontsize=FONTSIZE)
+    ax.set_xlabel('Category', fontsize=FONTSIZE) #$a_{name_trials}$
     plt.xticks(fontsize=FONTSIZE-2)
     plt.yticks(fontsize=FONTSIZE-2)
     sns.despine()
@@ -132,7 +132,7 @@ def plot_correlation_features(data, max_input_length=100, num_features=3, time_s
     f, ax = plt.subplots(1, 1, figsize=(7,7))
     for which_feature in range(num_features):
         corr = np.array([np.corrcoef(features[:, ii, which_feature].flatten(), features[:, ii+time_shift, which_feature].flatten())[0,1] for ii in range(features.shape[1]-time_shift)]) 
-        ax.plot(corr, label= 'corr($x_{}(t)$, $x_{}(t+{})$)'.format(which_feature+1,which_feature+1, time_shift), color=COLORS['feature_{}'.format(which_feature+1)])
+        ax.plot(corr, label= 'corr($x_{}(t)$, $x_{}(t+{})$)'.format(which_feature+1,which_feature+1, time_shift), color=COLORS['feature_{}'.format(which_feature+1)], linewidth=2)
     ax.set_title(f'Temporal correlation w/ time shift of {time_shift}', fontsize=FONTSIZE)
     ax.set_xlabel('Trials', fontsize=FONTSIZE)
     ax.set_ylabel('Correlation coefficient', fontsize=FONTSIZE)
@@ -155,9 +155,9 @@ def plot_trial_by_trial_performance(data, fit_upto_trial, plot_last_trials, num_
     ax.hlines(0.5, -plot_last_trials, 0, color='k', linestyles='dotted', lw=4)
     plt.yticks(fontsize=FONTSIZE-2)
     plt.xticks(fontsize=FONTSIZE-2)
-    ax.set_xlabel('Trial', fontsize=FONTSIZE-2)
-    ax.set_ylabel('Mean accuracy (over tasks)', fontsize=FONTSIZE-2)
-    ax.set_title(f'Performance over trials', fontsize=FONTSIZE-2)
+    ax.set_xlabel('Trial', fontsize=FONTSIZE)
+    ax.set_ylabel('Mean accuracy (over tasks)', fontsize=FONTSIZE)
+    ax.set_title(f'Performance over trials', fontsize=FONTSIZE)
     ax.legend(fontsize=FONTSIZE-2, loc='lower right')
     sns.despine()
     f.tight_layout()
@@ -173,8 +173,29 @@ def plot_histogram_binned_data(data, num_bins, min_value=0, max_value=1):
     f, ax = plt.subplots(1, 1, figsize=(7,7))
     ax.hist([a_counts, b_counts], label=['A', 'B'], color=[COLORS['a'], COLORS['b']])
     plt.legend(fontsize=FONTSIZE-2,  loc="upper center", bbox_to_anchor=(.45, 1.1), ncol=3, frameon=False)
-    ax.set_ylabel('Bin counts', fontsize=FONTSIZE-2)
-    ax.set_xlabel('Number of points per unit volume', fontsize=FONTSIZE-2) #$a_{name_trials}$
+    ax.set_ylabel('Bin counts', fontsize=FONTSIZE)
+    ax.set_xlabel('Number of points per unit volume', fontsize=FONTSIZE) #$a_{name_trials}$
+    plt.xticks(fontsize=FONTSIZE-2)
+    plt.yticks(fontsize=FONTSIZE-2)
+    sns.despine()
+    f.tight_layout()
+    plt.show()
+
+# plot histogram of binned data
+def plot_sorted_volumes(data, num_bins, min_value=0, max_value=1):
+
+    bin_counts, target_counts = bin_data_points(num_bins, data, min_value, max_value)    
+    b_counts = np.stack(bin_counts)-np.stack(target_counts) 
+    a_counts = np.stack(target_counts)  
+    b_counts.sort()
+    a_counts.sort()
+
+    f, ax = plt.subplots(1, 1, figsize=(7,7))
+    ax.plot(np.arange(len(b_counts)), b_counts[::-1], alpha=0.9, label='B',  color=COLORS['b'], lw=3)
+    ax.plot(np.arange(len(a_counts)), a_counts[::-1], alpha=0.9, label='A',  color=COLORS['a'], lw=3)
+
+    ax.set_ylabel('Number of points per unit volumes', fontsize=FONTSIZE)
+    ax.set_xlabel('Sorted volumes (in descending order)', fontsize=FONTSIZE) #$a_{name_trials}$
     plt.xticks(fontsize=FONTSIZE-2)
     plt.yticks(fontsize=FONTSIZE-2)
     sns.despine()
@@ -184,7 +205,7 @@ def plot_histogram_binned_data(data, num_bins, min_value=0, max_value=1):
 
 def plot_data_stats(data):
 
-    all_corr, all_coef, posterior_logprob = return_data_stats(data)
+    all_corr, all_coef, posterior_logprob, _ = return_data_stats(data)
     
     fig, axs = plt.subplots(1, 3,  figsize=(14,6))
     sns.histplot(np.array(all_corr), ax=axs[0], bins=10, stat='probability', edgecolor='w', linewidth=1, color=COLORS['stats'])
@@ -215,6 +236,27 @@ def plot_data_stats(data):
     plt.tight_layout()
     sns.despine()
     plt.show()
+
+
+def plot_cue_validity(data):
+
+    _, _, _, feature_coef = return_data_stats(data)
+
+    # plot histogram of fitted regression coefficients for each feature from feature_coef (np.arrray: num_tasks x num_features) 
+    # use COLORS['feature_1'] for  feature_1, COLORS['feature_2'] for feature_2, etc.
+    f, ax = plt.subplots(1, 1, figsize=(7,7))
+    for i in range(feature_coef.shape[1]):
+        sns.histplot(feature_coef[:, i], ax=ax, bins=10, binrange=(-10, 10), stat='probability', edgecolor='w', linewidth=1, color=COLORS[f'feature_{i+1}'])
+    ax.set_xlabel('Regression coefficients', fontsize=FONTSIZE)
+    ax.set_ylabel('Percentage', fontsize=FONTSIZE)
+    plt.xticks(fontsize=FONTSIZE-2)
+    plt.yticks(fontsize=FONTSIZE-2)
+    sns.despine()
+    f.tight_layout()
+    plt.show()
+
+    
+
 
 def plot_probability_same_class_versus_distance(data):
 

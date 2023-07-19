@@ -43,6 +43,11 @@ def parse_generated_tasks(path, file_name, gpt, num_datapoints=8, last_task_id=0
                 #import ipdb; ipdb.set_trace()
                 inputs.append([float(item[0]), float(item[1]), float(item[2])])
                 targets.append(item[3][1] if len(item[3])>1 else item[3])
+
+            elif gpt == 'claude':
+                #import ipdb; ipdb.set_trace()
+                inputs.append([float(item[0]), float(item[1]), float(item[2])])
+                targets.append(item[3][1] if len(item[3])>1 else item[3])
                 
             else:
                 match = re.match(pattern, item[0])
@@ -57,7 +62,7 @@ def parse_generated_tasks(path, file_name, gpt, num_datapoints=8, last_task_id=0
                     print(f'error parsing {task, item[0]}')
 
         # if the number of datapoints is equal to the number of inputs, add to dataframe
-        if gpt=='gpt3' or gpt=='gpt4' or ((gpt=='llama') and (len(inputs)==num_datapoints)):
+        if gpt=='gpt3' or gpt=='gpt4' or gpt=='claude' or ((gpt=='llama') and (len(inputs)==num_datapoints)):
             print(f'inputs lengths {len(inputs)}')
             df = pd.DataFrame({'input': inputs, 'target': targets, 'trial_id': np.arange(len(inputs)), 'task_id': np.ones((len(inputs),))*(task_id)}) if df is None else pd.concat([df, \
                  pd.DataFrame({'input': inputs, 'target': targets, 'trial_id': np.arange(len(inputs)), 'task_id': np.ones((len(inputs),))*(task_id)})], ignore_index=True)
@@ -275,9 +280,10 @@ def evaluate_data_against_baselines(data, upto_trial=15, num_trials=None):
     tasks = data.task_id.unique()#[:1000] 
     accuracy_lm = []
     accuracy_svm = []
+    scores = []
     # loop over dataset making predictions for next trial using model trained on all previous trials
     for task in tasks:
-        baseline_model_choices, true_choices = [], []   
+        baseline_model_choices, true_choices, baseline_model_scores = [], [], []   
         # get the inputs for this task which is numpy array of dim (num_trials, 3)
         inputs = np.stack([eval(val) for val in data[data.task_id==task].input.values])
         # get the targets for this task which is numpy array of dim (num_trials, 1)
@@ -296,11 +302,14 @@ def evaluate_data_against_baselines(data, upto_trial=15, num_trials=None):
                 try:
                     lr_model = LogisticRegressionModel(trial_inputs, trial_targets)
                     svm_model = SVMModel(trial_inputs, trial_targets)
+                    lr_score = lr_model.score(inputs[[trial]], targets[[trial]])
+                    svm_score = svm_model.score(inputs[[trial]], targets[[trial]])
                     lr_model_choice = lr_model.predict_proba(inputs[[trial]])
                     svm_model_choice = svm_model.predict_proba(inputs[[trial]])#
                     true_choice = targets[[trial]] #trial:trial+1]
                     baseline_model_choices.append(torch.tensor([lr_model_choice, svm_model_choice]))
                     true_choices.append(true_choice)
+                    baseline_model_scores.append(torch.tensor([lr_score, svm_score]))
                 except:
                     print('error fitting')
             trial += 1
@@ -310,10 +319,12 @@ def evaluate_data_against_baselines(data, upto_trial=15, num_trials=None):
         accuracy_per_task_lm = (baseline_model_choices_stacked[:, 0] == true_choices_stacked) #for model_id in range(1)]
         accuracy_per_task_svm = (baseline_model_choices_stacked[:, 1] == true_choices_stacked) #for model_id in range(1)]
         
+        baseline_model_scores_stacked = torch.stack(baseline_model_scores).squeeze()
+        scores.append(baseline_model_scores_stacked.squeeze())
         accuracy_lm.append(accuracy_per_task_lm)
         accuracy_svm.append(accuracy_per_task_svm)
         
-    return accuracy_lm, accuracy_svm
+    return accuracy_lm, accuracy_svm, scores
 
 def find_counts(inputs, dim, xx_min, xx_max):
     return (inputs[:, dim]<xx_max)*(inputs[:, dim]>xx_min)

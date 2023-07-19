@@ -13,6 +13,7 @@ import pickle
 import re
 import os
 from dotenv import load_dotenv
+import anthropic
 # Load environment variables from .env
 load_dotenv()
 
@@ -31,7 +32,9 @@ def act(text=None, run_gpt='llama', temperature=1., max_length=300):
         
         openai.api_key = os.getenv("OPENAI_API_KEY_GPT4") # load key from env
         #text = [{"role": "user", "content": text}]  
-        text = [{"role": "system", "content": "Do not generate any text other than the input-target pairs in the format specified by the user."}, \
+        # text = [{"role": "system", "content": "Do not generate any text other than the input-target pairs in the format specified by the user."}, \
+        #         {"role": "user", "content": text}]
+        text = [{"role": "system", "content": "Do not generate any text other than the list of objects with their feature values and their corresponding category label in the format specified by the user."}, \
                 {"role": "user", "content": text}]
         engine = 'gpt-4'
         try:
@@ -69,6 +72,19 @@ def act(text=None, run_gpt='llama', temperature=1., max_length=300):
             exc_type, exc_value, exc_traceback = sys.exc_info()
             print(exc_value)
             #time.sleep(3**iter)
+    elif run_gpt=='claude':
+        #ipdb.set_trace()
+        client = anthropic.Anthropic()
+        response = client.completions.create(
+                prompt = anthropic.HUMAN_PROMPT + text + anthropic.AI_PROMPT,
+                #stop_sequences=[anthropic.HUMAN_PROMPT],
+                model="claude-2",
+                temperature=temperature,
+                max_tokens_to_sample=max_length,
+            ).completion.replace(' ', '')
+    
+        return response
+ 
     else:
 
         return NotImplementedError 
@@ -79,7 +95,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--llama-path", type=str, required=True)
     parser.add_argument("--model", type=str, required=True, choices=models)
-    parser.add_argument("--run-gpt", type=str, required=True, choices=['llama', 'gpt3', 'gpt4'])
+    parser.add_argument("--run-gpt", type=str, required=True, choices=['llama', 'gpt3', 'gpt4', 'claude'])
     parser.add_argument("--num-tasks", type=int, required=False, default=1000)
     parser.add_argument("--num-dim", type=int, required=False, default=3)
     parser.add_argument("--num-data", type=int, required=False, default=8)
@@ -91,7 +107,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     start_loading = time.time()
     run_gpt = args.run_gpt #True
-    assert args.model=='NA'if args.run_gpt=='gpt3' or args.run_gpt=='gpt4' else False, "Only NA model is supported for GPT3"
+    assert args.model=='NA'if args.run_gpt=='gpt3' or args.run_gpt=='gpt4' or args.run_gpt=='claude' else False, "Only NA model is supported for GPT3"
     # model parameters
     temperature = args.temperature
     max_length = args.max_length
@@ -117,6 +133,7 @@ if __name__ == "__main__":
                 r"n[0-9]+\.\[\[([0-9]\.[0-9]{2}),(0\.[0-9]{2}),(0\.[0-9]{2})\],(\'A\'|\'B\')\]",
                 r"\[\[([0-9]\.[0-9]{2}),(0\.[0-9]{2}),(0\.[0-9]{2})\],(\'A\'|\'B\')\]",
                 r"\[([0-9]\.[0-9]{2}),(0\.[0-9]{2}),(0\.[0-9]{2})\],(A|B)",
+                r"(\d+\.\d+),(\d+\.\d+),(\d+\.\d+),([A-Z])"
                 ]            
 
     # load LLaMA model and instructions
@@ -148,15 +165,52 @@ if __name__ == "__main__":
         #                 " The target, y, is a function of the input vector and can take on values of either y = A or y = B.\n\n"\
         #                 f" Please generate a list of {str(num_data)} input-target pairs for one such categorisation problem using the following template for each row:\n"\
         #                 f"- [x1, x2, x3], y" ## got code to generate output once but otherwise consistent 
-        instructions = f"A categorisation problem consists of a set of input-target pairs."\
-                        f" Each input, x, is a vector of length {str(num_dim)}, x = [x1, x2, x3], containing feature values (rounded to 2 decimals) that range continuously between 0 and 1."\
-                        " The target, y, is a function of the input vector and can take on values of either y = A or y = B."\
-                        " You can choose any naturalistic decision function for the mapping from input to target. \n\n"\
-                        f" Please generate a list of {str(num_data)} input-target pairs for one such categorisation problem using the following template for each row:\n"\
-                        f"- [x1, x2, x3], y"\
+        # instructions = f"A categorisation problem consists of a set of input-target pairs."\
+        #                 f" Each input, x, is a vector of length {str(num_dim)}, x = [x1, x2, x3], containing feature values (rounded to 2 decimals) that range continuously between 0 and 1."\
+        #                 " The target, y, is a function of the input vector and can take on values of either y = A or y = B."\
+        #                 " You can choose any naturalistic decision function for the mapping from input to target. \n\n"\
+        #                 f" Please generate a list of {str(num_data)} input-target pairs for one such categorisation problem using the following template for each row:\n"\
+        #                 f"- [x1, x2, x3], y"\
                         #f" Do not generate any text but just provide the input-target pairs."
-        
-                        
+        # instructions = f"A categorisation problem consists of a set of input-target pairs."\
+        #                 f" Each input, x, is a vector of length {str(num_dim)}, x = [x1, x2, x3], containing feature values (rounded to 2 decimals) that range continuously between 0 and 1."\
+        #                 " The target, y, is a function of the input vector and can take on values of either y = A or y = B."\
+        #                 " For the mapping from input to target, a wide range of naturalistic decision functions can be chosen."\
+        #                 " These functions may encompass complex mathematical operations, linear or non-linear functions, or arbitrary rule-based systems."\
+        #                 " The selected function should be representative of patterns or rules that may exist in real-world categorization tasks. \n\n" \
+        #                 f" Please generate a list of {str(num_data)} input-target pairs for one such categorisation problem using the following template for each row:\n"\
+        #                 f"- [x1, x2, x3], y"\
+        features = ['shape', 'size', 'colour']
+        instructions = f" I am a psychologist who wants to run a category learning experiment."\
+                        " For a category learning experiment, I need a list of objects and their category labels."\
+                        f" Each object is characterized by three distinct features: {features[0]}, {features[1]}, and {features[2]}."\
+                        " These feature values (rounded to 2 decimals) range continuously between 0 and 1."\
+                        " Each feature should follow a distribution that describes the values they take in the real world. "\
+                        " The category label can take the values A or B and should be predictable from the feature values of the object."\
+                        " For the mapping from object features to the category label, you can choose any naturalistic function that is"\
+                        " representative of patterns or rules that may exist in real-world tasks. \n\n"\
+                        f" Please generate a list of {str(num_data)} objects with their feature values and their corresponding"\
+                        " category labels using the following template for each row: \n"\
+                        "-  feature value 1, feature value 2, feature value 3, category label \n"\
+                        #"...\n"\
+                        #f"{str(num_data)}. feature value 1, feature value 2, feature value 3, category label"
+                        #" These functions may encompass complex mathematical operations, linear or non-linear functions, or arbitrary rule-based systems. \n\n"\
+    elif run_gpt == 'claude':
+        # Q_ = anthropic.HUMAN_PROMPT
+        # A_ = anthropic.AI_PROMPT
+        features = ['shape', 'size', 'color']
+        instructions = f" I am a psychologist who wants to run a category learning experiment."\
+                        " For a category learning experiment, I need a list of objects and their category labels."\
+                        f" Each object is characterized by three distinct features: {features[0]}, {features[1]}, and {features[2]}."\
+                        " These feature values (rounded to 2 decimals) range continuously between 0 and 1."\
+                        " Each feature should follow a distribution that describes the values they take in the real world. "\
+                        " The category label can take the values A or B and should be predictable from the feature values of the object."\
+                        " For the mapping from object features to the category label, you can choose any naturalistic function that is"\
+                        " representative of patterns or rules that may exist in real-world tasks. \n\n"\
+                        f" Please generate a list of {str(num_data)} objects with their feature values and their corresponding"\
+                        " category labels using the following template for each row: \n"\
+                        "-  feature value 1, feature value 2, feature value 3, category label \n"\
+
     # run gpt models
     for run in range(num_runs):
         data, unparsable_data = [], []

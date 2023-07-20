@@ -1,10 +1,33 @@
-
 import numpy as np
 import torch
 from envs import CategorisationTask
 import argparse
 from baseline_classifiers import LogisticRegressionModel, SVMModel
 
+# evaluate a model
+def evaluate_1d(env_name=None, model_path=None, env=None, model=None, mode='val', policy='greedy', return_all=False):
+    
+    if env is None:
+        # load environment
+        env = CategorisationTask(data=env_name, mode=mode)
+    if model is None:
+        # load model
+        model = torch.load(model_path)[1]
+        
+    with torch.no_grad():
+        model.eval()
+        packed_inputs, sequence_lengths, targets = env.sample_batch()
+        model_choices = model(packed_inputs, sequence_lengths)
+        true_choices = targets.view(-1).float()
+        model_choices = model_choices.view(-1).float()
+
+        accuracy = (model_choices.round()==true_choices).sum()/(model_choices.shape[0])
+        
+    if return_all:
+        return accuracy, model_choices, true_choices
+    else:    
+        return accuracy
+    
 # evaluate a model
 def evaluate(env_name=None, model_path=None, env=None, model=None, mode='val', policy='greedy', return_all=False):
     
@@ -41,6 +64,7 @@ def evaluate(env_name=None, model_path=None, env=None, model=None, mode='val', p
         return accuracy, model_choices, true_choices
     else:    
         return accuracy
+
 def evaluate_against_baselines(env_name, model_path, mode='val', return_all=False):
 
     # load environment
@@ -78,8 +102,8 @@ def evaluate_against_baselines(env_name, model_path, mode='val', return_all=Fals
     
     # calculate accuracy
     baseline_model_choices, true_choices = torch.stack(baseline_model_choices).squeeze().argmax(2), torch.stack(true_choices).squeeze()
-    ml2 = (metal_choice.argmax(2)[-1]==metal_true_choices[-1]).sum()/metal_choice.shape[1]
-    accuracy = [(baseline_model_choices[:, model_id] == true_choices).sum()/num_tasks for model_id in range(2)]
+    ml2 = (metal_choice.argmax(2)[-1]==metal_true_choices[-1])[tasks].sum()/len(tasks) #metal_choice.shape[1]
+    accuracy = [(baseline_model_choices[:, model_id] == true_choices).sum()/len(tasks) for model_id in range(2)]
     accuracy.append(ml2)      
 
     # concatenate all model choices and true choices

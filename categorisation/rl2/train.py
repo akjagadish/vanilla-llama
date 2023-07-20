@@ -6,15 +6,16 @@ import torch.optim as optim
 import torch.nn.functional as F
 from torch.utils.tensorboard import SummaryWriter
 from envs import CategorisationTask
-from model import RL2
+from model import RL2, MetaLearner
 import argparse
 from tqdm import tqdm
-from evaluate import evaluate
+from evaluate import evaluate, evaluate_1d
+from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 
-def run(env_name, num_episodes, print_every, save_every, num_hidden, save_dir, device, lr, batch_size=32):
+def run(env_name, num_episodes, synthetic, max_steps, print_every, save_every, num_hidden, save_dir, device, lr, batch_size=64):
 
     writer = SummaryWriter('runs/' + save_dir)
-    env = CategorisationTask(data=env_name, batch_size=batch_size, device=device).to(device)
+    env = CategorisationTask(data=env_name, max_steps=max_steps, batch_size=batch_size, synthetic_data=synthetic, device=device).to(device)
     model = RL2(num_input=env.num_dims, num_output=env.num_choices, num_hidden=num_hidden, num_layers=1).to(device)
     optimizer = optim.Adam(model.parameters(), lr=lr)
     losses = [] # keep track of losses
@@ -64,19 +65,19 @@ def run(env_name, num_episodes, print_every, save_every, num_hidden, save_dir, d
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='meta-learning for categorisation')
     parser.add_argument('--num-episodes', type=int, default=1e6, help='number of trajectories for training')
+    parser.add_argument('--max-steps', type=int, default=8, help='number of points per episode')
     parser.add_argument('--print-every', type=int, default=100, help='how often to print')
     parser.add_argument('--save-every', type=int, default=100, help='how often to save')
     parser.add_argument('--runs', type=int, default=1, help='total number of runs')
     parser.add_argument('--first-run-id', type=int, default=0, help='id of the first run')
-
     parser.add_argument('--num_hidden', type=int, default=128, help='number of hidden units')
     parser.add_argument('--lr', type=float, default=3e-4, help='learning rate')
-    
     parser.add_argument('--no-cuda', action='store_true', default=False, help='disables CUDA training')
     parser.add_argument('--env-name', default='llama_generated_tasks_params65B_dim3_data8_tasks14500', help='name of the environment')
     parser.add_argument('--env-dir', default='raven/u/ajagadish/vanilla-llama/categorisation/data', help='name of the environment')
     parser.add_argument('--save-dir', default='trained_models/', help='directory to save models')
     parser.add_argument('--test', action='store_true', default=False, help='test runs')
+    parser.add_argument('--synthetic', action='store_true', default=False, help='train models on synthetic data')
 
     args = parser.parse_args()
     use_cuda = not args.no_cuda and torch.cuda.is_available()
@@ -88,5 +89,6 @@ if __name__ == "__main__":
             save_dir = f'{args.save_dir}env={args.env_name}_num_episodes{str(args.num_episodes)}_num_hidden={str(args.num_hidden)}_lr{str(args.lr)}_run={str(args.first_run_id + i)}_test.pt'
         else:
             save_dir = f'{args.save_dir}env={args.env_name}_num_episodes{str(args.num_episodes)}_num_hidden={str(args.num_hidden)}_lr{str(args.lr)}_run={str(args.first_run_id + i)}.pt'
-        
-        run(env_name, args.num_episodes, args.print_every, args.save_every, args.num_hidden, save_dir, device, args.lr)
+        if args.synthetic:
+            save_dir = save_dir.replace('.pt', '_synthetic.pt')
+        run(env_name, args.num_episodes, args.synthetic, args.max_steps, args.print_every, args.save_every, args.num_hidden, save_dir, device, args.lr)

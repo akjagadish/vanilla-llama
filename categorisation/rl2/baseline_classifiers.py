@@ -59,11 +59,27 @@ def benchmark_baseline_models_2d(num_tasks, data):
 # benchmark baseline models only regex parsed dataset which might include no samples from other classes or wierd datapoints etc
 def benchmark_baseline_models_regex_parsed(num_tasks, data):
     performance = []
-    num_tasks = range(1,int(num_tasks)+1) if num_tasks<data.task_id.max() else data.task_id
+    num_tasks = range(1,int(num_tasks)+1) if num_tasks<data.task_id.max() else data.task_id.unique()
     for task_id in num_tasks:
         X = np.stack([eval(val) for val in data[data.task_id==task_id].input.values])
         assert X.shape[0]>0, "task {} has no data".format(task_id)
         y = np.stack([val for val in data[data.task_id==task_id].target.values])
+        try:
+            lr = LogisticRegressionModel(X, y)
+            svm = SVMModel(X,y)
+            performance.append([lr.score(X, y), svm.score(X, y)])
+        except:
+            print("task {} failed".format(task_id))
+    return np.stack(performance)
+
+# benchmark baseline models only regex parsed dataset which might include no samples from other classes or wierd datapoints etc
+def benchmark_baseline_models_regex_parsed_random_points(data, dim=3):
+    performance = []
+    num_tasks = int(data.task_id.max()+1)
+    num_points  = int(np.array([data[data.task_id==ii].trial_id.max()+1 for ii in np.arange(num_tasks)]).mean())
+    for task_id in range(num_tasks):
+        X = np.random.rand(num_points, dim) #inputs[samples]
+        y = np.random.choice(['A', 'B'], size=num_points) #targets[samples]
         try:
             lr = LogisticRegressionModel(X, y)
             svm = SVMModel(X,y)

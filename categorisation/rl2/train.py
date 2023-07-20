@@ -12,7 +12,7 @@ from tqdm import tqdm
 from evaluate import evaluate, evaluate_1d
 from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 
-def run(env_name, num_episodes, synthetic, max_steps, print_every, save_every, num_hidden, save_dir, device, lr, batch_size=64):
+def run_old(env_name, num_episodes, synthetic, max_steps, print_every, save_every, num_hidden, save_dir, device, lr, batch_size=64):
 
     writer = SummaryWriter('runs/' + save_dir)
     env = CategorisationTask(data=env_name, max_steps=max_steps, batch_size=batch_size, synthetic_data=synthetic, device=device).to(device)
@@ -57,6 +57,45 @@ def run(env_name, num_episodes, synthetic, max_steps, print_every, save_every, n
         if (not t % save_every):
             torch.save([t, model], save_dir)
             acc = evaluate(env_name=env_name, model_path=save_dir, mode='val', policy='greedy')
+            accuracy.append(acc)
+            writer.add_scalar('Val. Acc.', acc, t)
+        
+    return losses, accuracy
+
+def run(env_name, num_episodes, synthetic, max_steps, print_every, save_every, num_hidden, save_dir, device, lr, batch_size=64):
+
+    writer = SummaryWriter('runs/' + save_dir)
+    env = CategorisationTask(data=env_name, max_steps=max_steps, batch_size=batch_size, synthetic_data=synthetic, device=device).to(device)
+    #model = RL2(num_input=env.num_dims, num_output=env.num_choices, num_hidden=num_hidden, num_layers=1).to(device)
+    model = MetaLearner(num_input=env.num_dims, num_output=env.num_choices, num_hidden=num_hidden, num_layers=1).to(device)
+    
+    optimizer = optim.Adam(model.parameters(), lr=lr)
+    losses = [] # keep track of losses
+    accuracy = [] # keep track of accuracies
+    
+    for t in tqdm(range(int(num_episodes))):
+
+        packed_inputs, sequence_lengths, targets = env.sample_batch()
+        model_choices = model(packed_inputs, sequence_lengths)
+        true_choices = targets.view(-1).float()
+        model_choices = model_choices.view(-1).float()
+
+        # gradient step
+        loss = model.compute_loss(model_choices, true_choices)
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
+
+        # logging
+        losses.append(loss.item())
+        
+        if (not t % print_every):
+            writer.add_scalar('Loss', loss, t)
+            
+
+        if (not t % save_every):
+            torch.save([t, model], save_dir)
+            acc = evaluate_1d(env_name=env_name, model_path=save_dir, mode='val', policy='greedy')
             accuracy.append(acc)
             writer.add_scalar('Val. Acc.', acc, t)
         

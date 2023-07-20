@@ -2,12 +2,14 @@ import numpy as np
 import pandas as pd
 import torch.nn as nn
 import torch
+import torch.nn.utils.rnn as rnn_utils
 
 class CategorisationTask(nn.Module):
     """
     Categorisation task inspired by Shepard et al. (1961)
+    Note: generates one task at a time, each containing max_steps datapoints, with no repitition of datapoints over blocks
     """
-    def __init__(self, data, max_steps=8, num_dims=3, batch_size=64, mode='train', split=[0.8, 0.1, 0.1], device='cpu', synthetic_data=False): 
+    def __init__(self, data, max_steps=8, num_dims=3, batch_size=64, mode='train', split=[0.8, 0.1, 0.1], device='cpu', synthetic_data=False, num_tasks=10000): 
         """ 
         Initialise the environment
         Args: 
@@ -19,7 +21,8 @@ class CategorisationTask(nn.Module):
         super(CategorisationTask, self).__init__()
         self.data = pd.read_csv(data)
         self.device = torch.device(device)
-        self.num_choices = self.data.target.nunique()
+        self.num_choices = 1 #self.data.target.nunique()
+        #TODO: max steps is equal to max_steps in the dataset
         self.max_steps = max_steps
         self.batch_size = batch_size
         self.num_dims = num_dims
@@ -27,7 +30,7 @@ class CategorisationTask(nn.Module):
         self.split = (torch.tensor([split[0], split[0]+split[1], split[0]+split[1]+split[2]]) * self.data.task_id.nunique()).int()
         self.synthetic_data = synthetic_data
         if synthetic_data:
-            self.generate_synthetic_data()
+            self.generate_synthetic_data(num_tasks, split)
 
     def return_tasks(self, mode=None):
         mode = self.mode if mode is None else mode
@@ -41,33 +44,6 @@ class CategorisationTask(nn.Module):
             tasks = self.data.task_id.unique()[self.split[1]:]
         
         return tasks
-    
-    def generate_synthetic_data(self, num_tasks=10000, split=[0.8, 0.1, 0.1]):
-        self.num_tasks = num_tasks
-        self.x = torch.randn(self.max_steps, self.num_tasks, self.num_dims)
-        self.w = torch.randn(self.num_tasks, self.num_dims)
-        self.c = torch.sigmoid((self.x * self.w).sum(-1)).round()
-        self.split = (torch.tensor([split[0], split[0]+split[1], split[0]+split[1]+split[2]]) * num_tasks).int()
-    
-    def get_synthetic_data(self, mode=None):
-        num_tasks = self.num_tasks
-        tasks = np.arange(num_tasks)[:self.split[0]] if self.mode == 'train' else np.arange(num_tasks)[self.split[0]:self.split[1]] if self.mode == 'val' else np.arange(num_tasks)[self.split[1]:]
-        ## randomize the order of the tasks
-        #np.random.shuffle(tasks)
-    
-        # get batched data 
-        mode = self.mode if mode is None else mode
-        if mode == 'train':
-            tasks = np.random.choice(tasks, self.batch_size, replace=False)
-        elif mode == 'val':
-            self.batch_size = self.split[1] - self.split[0]
-        elif mode == 'test':
-            self.batch_size = self.split[2] - self.split[1]
-        inputs = self.x.permute(1, 0, 2)[tasks]
-        targets = self.c.permute(1, 0)[tasks]
-
-        return inputs, targets
-
     def reset(self):
         """
         Reset the environment
@@ -105,3 +81,70 @@ class CategorisationTask(nn.Module):
             return None, None, None, True, {}
         else:
             return self.inputs[:, self.time], self.targets[:, self.time], self.targets[:, self.time-1], done, {}
+
+    def generate_synthetic_data(self, num_tasks=10000, split=[0.8, 0.1, 0.1]):
+        self.num_tasks = num_tasks
+        self.split = (torch.tensor([split[0], split[0]+split[1], split[0]+split[1]+split[2]]) * num_tasks).int()
+        self.x = torch.randn(self.max_steps, self.num_tasks, self.num_dims)
+        self.w = torch.randn(self.num_tasks, self.num_dims)
+        self.c = torch.sigmoid((self.x * self.w).sum(-1)).round()
+
+    def get_synthetic_data(self, mode=None):
+        num_tasks = self.num_tasks
+        tasks = np.arange(num_tasks)[:self.split[0]] if self.mode == 'train' else np.arange(num_tasks)[self.split[0]:self.split[1]] if self.mode == 'val' else np.arange(num_tasks)[self.split[1]:]
+        ## randomize the order of the tasks
+        #np.random.shuffle(tasks)
+    
+        # get batched data 
+        mode = self.mode if mode is None else mode
+        if mode == 'train':
+            tasks = np.random.choice(tasks, self.batch_size, replace=False)
+        elif mode == 'val':
+            self.batch_size = self.split[1] - self.split[0]
+        elif mode == 'test':
+            self.batch_size = self.split[2] - self.split[1]
+        inputs = self.x.permute(1, 0, 2)[tasks]
+        targets = self.c.permute(1, 0)[tasks]
+
+        return inputs, targets
+
+    def sample_batch(self):
+
+        data = self.data[self.data.task_id.isin(self.return_tasks())]
+        #import ipdb ; ipdb.set_trace()
+        # convert the 'input' column from string to list of floats
+        data['target'] = data['target'].apply(lambda x: 0. if x=='A' else 1.)
+        # encode targets as one-hot vectors
+        #data['target'] = data['target'].apply(lambda x: 0. if x=='A' else 1.)
+
+        data['input'] = data['input'].apply(lambda x: list(map(float, x.strip('[]').split(','))))
+        # group all inputs for a task into a list
+        data = data.groupby('task_id').agg({'input':list, 'target':list}).reset_index()
+        # off set targets by 1 trial but zeros in the beggining
+        data['shifted_target'] = data['target'].apply(lambda x: [0.] + x[:-1])
+        stacked_task_features = [torch.from_numpy(np.concatenate((np.stack(task_input_features), np.stack(task_targets).reshape(-1, 1)),axis=1)) for task_input_features, task_targets in zip(data.input.values, data.shifted_target.values)]
+        stacked_targets = [torch.from_numpy(np.stack(task_targets)) for task_targets in data.target.values]
+        sequence_lengths = [len(task_input_features) for task_input_features in data.input.values]
+        packed_inputs = rnn_utils.pad_sequence(stacked_task_features, batch_first=True)
+        packed_targets = rnn_utils.pad_sequence(stacked_targets, batch_first=True)
+        # import ipdb ; ipdb.set_trace() 
+        # Split 'input' column into separate feature columns
+        # data[['feature1', 'feature2', 'feature3']] = pd.DataFrame(data['input'].to_list(), index=data.index)
+        
+        # # group all input features for a task into a list
+        # data = data.groupby('task_id').agg({'feature1':list, 'feature2':list, 'feature3':list, 'target':list}).reset_index()
+        # sequence_lengths = data.feature1.apply(lambda x: len(x))
+        # max_sequence_length = max(sequence_lengths)
+        
+        # convert lists of all features to numpy arrays and pad them to have same sequence length
+        #data['feature1'] = data['feature1'].apply(lambda x: np.array(x)).apply(lambda x: np.pad(x, (0, max_sequence_length - len(x)), 'constant', constant_values=(0, 0)))
+        #data['feature2'] = data['feature2'].apply(lambda x: np.array(x)).apply(lambda x: np.pad(x, (0, max_sequence_length - len(x)), 'constant', constant_values=(0, 0)))
+        #data['feature3'] = data['feature3'].apply(lambda x: np.array(x)).apply(lambda x: np.pad(x, (0, max_sequence_length - len(x)), 'constant', constant_values=(0, 0)))
+        #data['target'] = data['target'].apply(lambda x: np.array(x)).apply(lambda x: np.pad(x, (0, max_sequence_length - len(x)), 'constant', constant_values=(0, 0)))
+        
+        # pool all features from the dataframe into one array of dim (num_tasks, max_sequence_length, num_dims)
+        #inputs = torch.from_numpy(np.stack([np.stack(data.feature1.values), np.stack(data.feature2.values), np.stack(data.feature3.values)], axis=2))
+        #packed_inputs = rnn_utils.pad_sequence(stacked_list, batch_first=True) #, enforce_sorted=False)
+        #rnn_utils.pack_sequence(inputs, enforce_sorted=False)
+
+        return packed_inputs, sequence_lengths, packed_targets #data.target.values

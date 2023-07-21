@@ -73,6 +73,22 @@ def label_imbalance(data, categories=['A','B']):
     f.tight_layout()
     plt.show()
 
+
+# plot mean number of tasks
+def plot_mean_number_tasks(data):
+    f, ax = plt.subplots(1, 1, figsize=(5,5))
+    expected_number_points = np.array([data[data.task_id==ii].trial_id.max()+1 for ii in np.arange(data.task_id.max()+1)])
+    print('mean: ', expected_number_points.mean())
+    ax.hist(expected_number_points)
+    plt.legend(fontsize=FONTSIZE-2,  loc="upper center", bbox_to_anchor=(.45, 1.1), ncol=3, frameon=False)
+    ax.set_ylabel('Counts', fontsize=FONTSIZE)
+    ax.set_xlabel('Number of data points per task', fontsize=FONTSIZE) #$a_{name_trials}$
+    plt.xticks(fontsize=FONTSIZE-2)
+    plt.yticks(fontsize=FONTSIZE-2)
+    sns.despine()
+    f.tight_layout()
+    plt.show()
+
 # plotting the autocorrelations between features
 def plot_autocorr_features(data):
     '''
@@ -145,12 +161,16 @@ def plot_correlation_features(data, max_input_length=100, num_features=3, time_s
 # plot trial-by-trial performance of baseline models
 def plot_trial_by_trial_performance(data, fit_upto_trial, plot_last_trials, num_trials=None):
     
-    accuracy_lm, accuracy_svm = evaluate_data_against_baselines(data, fit_upto_trial, num_trials)
-    accuracy_lm = [acc[-plot_last_trials:] for acc in accuracy_lm if len(acc)>=plot_last_trials]
-    accuracy_svm = [acc[-plot_last_trials:] for acc in accuracy_svm if len(acc)>=plot_last_trials]
+    accuracy_lm, accuracy_svm, scores = evaluate_data_against_baselines(data, fit_upto_trial, num_trials)
+    accuracy_lm = [acc[-plot_last_trials:, 0] for acc in scores if len(acc)>=plot_last_trials]
+    accuracy_svm = [acc[-plot_last_trials:, 1] for acc in scores if len(acc)>=plot_last_trials]
+    num_tasks= data.task_id.nunique()
+    # accuracy_lm = [acc[-plot_last_trials:] for acc in accuracy_lm if len(acc)>=plot_last_trials]
+    # accuracy_svm = [acc[-plot_last_trials:] for acc in accuracy_svm if len(acc)>=plot_last_trials]
     f, ax = plt.subplots(1, 1, figsize=(7,7))   
-    ax.plot(np.arange(-plot_last_trials, 0), torch.stack(accuracy_lm).sum(0)/(data.task_id.max()+1), label='Logistic Regression', color=COLORS['lr'])
-    ax.plot(np.arange(-plot_last_trials, 0), torch.stack(accuracy_svm).sum(0)/(data.task_id.max()+1), label='SVM', color=COLORS['svm'])
+    num_tasks = len(accuracy_lm)
+    ax.plot(np.arange(-plot_last_trials, 0), torch.stack(accuracy_lm).sum(0)/num_tasks, label='Logistic Regression', color=COLORS['lr'])
+    ax.plot(np.arange(-plot_last_trials, 0), torch.stack(accuracy_svm).sum(0)/num_tasks, label='SVM', color=COLORS['svm'])
     #ax.set_ylim([0., .8])
     ax.hlines(0.5, -plot_last_trials, 0, color='k', linestyles='dotted', lw=4)
     plt.yticks(fontsize=FONTSIZE-2)
@@ -255,8 +275,6 @@ def plot_cue_validity(data):
     f.tight_layout()
     plt.show()
 
-    
-
 
 def plot_probability_same_class_versus_distance(data):
 
@@ -276,3 +294,37 @@ def plot_probability_same_class_versus_distance(data):
     sns.despine()
     f.tight_layout()
     plt.show()
+
+def plot_per_task_features(df):
+
+    df['input'] = df['input'].apply(lambda x: list(map(float, x.strip('[]').split(','))))
+    df[['feature1', 'feature2', 'feature3']] = pd.DataFrame(df['input'].to_list(), index=df.index)
+    df = df.groupby('task_id').agg({'feature1':list, 'feature2':list, 'feature3':list, 'target':list}).reset_index()
+    sample_tasks = np.random.choice(df.task_id.unique(), 5, replace=False)
+
+    # plot the histogram of values taken by the three features in the dataset
+    # each feature as separate subplot for 5 tasks
+    f, axs = plt.subplots(5, 3, figsize=(10,10))
+    for i, task in enumerate(sample_tasks):
+        sns.histplot(df[df.task_id==task].feature1.values[0], ax=axs[i, 0], bins=10, stat='probability', edgecolor='w', linewidth=1, color=COLORS['feature_1'])
+        sns.histplot(df[df.task_id==task].feature2.values[0], ax=axs[i, 1], bins=10, stat='probability', edgecolor='w', linewidth=1, color=COLORS['feature_2'])
+        sns.histplot(df[df.task_id==task].feature3.values[0], ax=axs[i, 2], bins=10, stat='probability', edgecolor='w', linewidth=1, color=COLORS['feature_3'])
+        axs[i, 0].set_xlabel('')
+        axs[i, 1].set_xlabel('')
+        axs[i, 2].set_xlabel('')
+        axs[i, 0].set_ylabel('')
+        axs[i, 1].set_ylabel('')
+        axs[i, 2].set_ylabel('')
+        axs[i, 0].set_title(f'Task {task}')
+    axs[0, 0].set_ylabel('Percentage', fontsize=FONTSIZE)
+    axs[2, 0].set_ylabel('Percentage', fontsize=FONTSIZE)
+    axs[4, 0].set_ylabel('Percentage', fontsize=FONTSIZE)
+    axs[4, 0].set_xlabel('Feature 1', fontsize=FONTSIZE)
+    axs[4, 1].set_xlabel('Feature 2', fontsize=FONTSIZE)
+    axs[4, 2].set_xlabel('Feature 3', fontsize=FONTSIZE)
+    sns.despine()
+    f.tight_layout()
+    plt.show()
+
+    
+  

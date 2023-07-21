@@ -199,6 +199,7 @@ if __name__ == "__main__":
         # Q_ = anthropic.HUMAN_PROMPT
         # A_ = anthropic.AI_PROMPT
         features = ['shape', 'size', 'color']
+        
         instructions = f" I am a psychologist who wants to run a category learning experiment."\
                         " For a category learning experiment, I need a list of objects and their category labels."\
                         f" Each object is characterized by three distinct features: {features[0]}, {features[1]}, and {features[2]}."\
@@ -231,11 +232,11 @@ if __name__ == "__main__":
             print(f'task {t}: no matches found' if len(matches) == 0 else f'task {t}: match found')
 
             # save data
-            with open(f"data/{run_gpt}_generated_tasks_params{args.model}_dim{num_dim}_data{num_data}_tasks{num_tasks}_run{run}_procid{proc_id}.txt", "wb") as fp:   
+            with open(f"data/parsed/{run_gpt}_generated_tasks_params{args.model}_dim{num_dim}_data{num_data}_tasks{num_tasks}_run{run}_procid{proc_id}.txt", "wb") as fp:   
                 #pickling
                 pickle.dump(data, fp)
 
-            with open(f"data/{run_gpt}_generated_tasks_params{args.model}_dim{num_dim}_data{num_data}_tasks{num_tasks}_run{run}_procid{proc_id}_unparsed.txt", "wb") as fp:   
+            with open(f"data/unparsed/{run_gpt}_generated_tasks_params{args.model}_dim{num_dim}_data{num_data}_tasks{num_tasks}_run{run}_procid{proc_id}_unparsed.txt", "wb") as fp:   
                 #pickling
                 pickle.dump(unparsable_data, fp)
 

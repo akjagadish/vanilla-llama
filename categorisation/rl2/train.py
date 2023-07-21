@@ -77,11 +77,14 @@ def run(env_name, num_episodes, synthetic, max_steps, print_every, save_every, n
 
         packed_inputs, sequence_lengths, targets = env.sample_batch()
         model_choices = model(packed_inputs, sequence_lengths)
-        true_choices = targets.view(-1).float()
-        model_choices = model_choices.view(-1).float()
-
+        #true_choices = targets.view(-1).float()
+        #model_choices = model_choices.view(-1).float()
+        #import ipdb ; ipdb.set_trace()
+        model_choices = torch.concat([model_choices[i, :seq_len] for i, seq_len in enumerate(sequence_lengths)], axis=0).squeeze().float()
+        true_choices = torch.concat(targets, axis=0).float()
+        
         # gradient step
-        loss = model.compute_loss(model_choices, true_choices)
+        loss = model.compute_loss(model_choices,true_choices)
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()

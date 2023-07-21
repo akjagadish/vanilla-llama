@@ -18,8 +18,10 @@ def evaluate_1d(env_name=None, model_path=None, env=None, model=None, mode='val'
         model.eval()
         packed_inputs, sequence_lengths, targets = env.sample_batch()
         model_choices = model(packed_inputs, sequence_lengths)
-        true_choices = targets.view(-1).float()
-        model_choices = model_choices.view(-1).float()
+        # true_choices = targets.view(-1).float()
+        # model_choices = model_choices.view(-1).float()
+        model_choices = torch.concat([model_choices[i, :seq_len] for i, seq_len in enumerate(sequence_lengths)], axis=0).squeeze().float()
+        true_choices = torch.concat(targets, axis=0).float()
 
         accuracy = (model_choices.round()==true_choices).sum()/(model_choices.shape[0])
         

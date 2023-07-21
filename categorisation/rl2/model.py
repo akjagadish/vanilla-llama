@@ -56,15 +56,15 @@ class MetaLearner(nn.Module):
 
     def forward(self, packed_inputs, sequence_lengths):
 
-        lengths, sort_idx = torch.sort(torch.tensor(sequence_lengths), descending=True) #.sort(reverse=True)
-        packed_inputs = packed_inputs[sort_idx]
+        #lengths, sort_idx = torch.sort(torch.tensor(sequence_lengths), descending=True) #.sort(reverse=True)
+        #packed_inputs = packed_inputs[sort_idx]
+        lengths = sequence_lengths
         packed_inputs = pack_padded_sequence(packed_inputs, lengths, batch_first=True, enforce_sorted=False)
         packed_output, _ = self.lstm(packed_inputs.float())
         output, _ = pad_packed_sequence(packed_output, batch_first=True)
-        _, unsort_idx = sort_idx.sort()
-        output = output[unsort_idx]
+        # _, unsort_idx = sort_idx.sort()
+        #output = output[unsort_idx]
         y = self.linear(output)
-        #y = F.softmax(y, dim=-1)
         y = self.sigmoid(y)
         
         return y

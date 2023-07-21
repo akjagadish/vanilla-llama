@@ -83,6 +83,7 @@ class CategorisationTask(nn.Module):
             return self.inputs[:, self.time], self.targets[:, self.time], self.targets[:, self.time-1], done, {}
 
     def generate_synthetic_data(self, num_tasks=10000, split=[0.8, 0.1, 0.1]):
+        
         self.num_tasks = num_tasks
         self.split = (torch.tensor([split[0], split[0]+split[1], split[0]+split[1]+split[2]]) * num_tasks).int()
         self.x = torch.randn(self.max_steps, self.num_tasks, self.num_dims)
@@ -126,9 +127,12 @@ class CategorisationTask(nn.Module):
         stacked_targets = [torch.from_numpy(np.stack(task_targets)) for task_targets in data.target.values]
         sequence_lengths = [len(task_input_features) for task_input_features in data.input.values]
         packed_inputs = rnn_utils.pad_sequence(stacked_task_features, batch_first=True)
-        packed_targets = rnn_utils.pad_sequence(stacked_targets, batch_first=True)
+        #packed_targets = rnn_utils.pad_sequence(stacked_targets, batch_first=True)
+        
+
         # import ipdb ; ipdb.set_trace() 
         # Split 'input' column into separate feature columns
+        # data['input'] = data['input'].apply(lambda x: list(map(float, x.strip('[]').split(','))))
         # data[['feature1', 'feature2', 'feature3']] = pd.DataFrame(data['input'].to_list(), index=data.index)
         
         # # group all input features for a task into a list
@@ -147,4 +151,20 @@ class CategorisationTask(nn.Module):
         #packed_inputs = rnn_utils.pad_sequence(stacked_list, batch_first=True) #, enforce_sorted=False)
         #rnn_utils.pack_sequence(inputs, enforce_sorted=False)
 
-        return packed_inputs, sequence_lengths, packed_targets #data.target.values
+        return packed_inputs, sequence_lengths, stacked_targets #data.target.values
+
+class HumanCategorizationTask(nn.Module):
+    """
+    Categorisation task inspired by Shepard et al. (1961) for evaluating models on human performance
+    """
+    
+    def __init__(self, data, max_steps=96, num_dims=3, batch_size=32, device='cpu'):
+        super(HumanCategorizationTask, self).__init__()
+        self.device = torch.device(device)
+        self.num_choices = 1 
+        self.max_steps = max_steps
+        self.batch_size = batch_size
+        self.num_dims = num_dims
+
+    def generate_tasks(self):
+        pass

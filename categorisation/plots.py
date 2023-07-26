@@ -161,6 +161,9 @@ def plot_correlation_features(data, max_input_length=100, num_features=3, time_s
 # plot trial-by-trial performance of baseline models
 def plot_trial_by_trial_performance(data, fit_upto_trial, plot_last_trials, num_trials=None):
     
+    # keep only trial_id upto num_trials for all tasks
+    data = data[data.trial_id<=num_trials] if num_trials is not None else data
+
     accuracy_lm, accuracy_svm, scores = evaluate_data_against_baselines(data, fit_upto_trial, num_trials)
     accuracy_lm = [acc[-plot_last_trials:, 0] for acc in scores if len(acc)>=plot_last_trials]
     accuracy_svm = [acc[-plot_last_trials:, 1] for acc in scores if len(acc)>=plot_last_trials]

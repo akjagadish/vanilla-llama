@@ -297,8 +297,8 @@ def plot_probability_same_class_versus_distance(data):
 
 def plot_per_task_features(df):
 
-    df['input'] = df['input'].apply(lambda x: list(map(float, x.strip('[]').split(','))))
-    df[['feature1', 'feature2', 'feature3']] = pd.DataFrame(df['input'].to_list(), index=df.index)
+    df['input_stripped'] = df['input'].apply(lambda x: list(map(float, x.strip('[]').split(','))))
+    df[['feature1', 'feature2', 'feature3']] = pd.DataFrame(df['input_stripped'].to_list(), index=df.index)
     df = df.groupby('task_id').agg({'feature1':list, 'feature2':list, 'feature3':list, 'target':list}).reset_index()
     sample_tasks = np.random.choice(df.task_id.unique(), 5, replace=False)
 

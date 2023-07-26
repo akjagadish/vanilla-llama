@@ -40,8 +40,11 @@ export OMP_NUM_THREADS=${SLURM_CPUS_PER_TASK}
 #python generate_tasks.py --llama-path /ptmp/mbinz/new --model NA --proc-id 0 --num-tasks 2000 --num-data 100 --max-length 3000 --run-gpt claude
 #python generate_tasks.py --llama-path /ptmp/mbinz/new --model NA --proc-id 1 --num-tasks 2000 --num-data 100 --max-length 3000 --run-gpt claude
 #python generate_tasks.py --llama-path /ptmp/mbinz/new --model NA --proc-id 2 --num-tasks 2000 --num-data 100 --max-length 3000 --run-gpt claude
-python generate_tasks.py --llama-path /ptmp/mbinz/new --model NA --proc-id 3 --num-tasks 2000 --num-data 100 --max-length 3000 --run-gpt claude
+#python generate_tasks.py --llama-path /ptmp/mbinz/new --model NA --proc-id 3 --num-tasks 2000 --num-data 100 --max-length 3000 --run-gpt claude
 #python generate_tasks.py --llama-path /ptmp/mbinz/new --model NA --proc-id 4 --num-tasks 2000 --num-data 100 --max-length 3000 --run-gpt claude
+#python generate_tasks.py --llama-path /ptmp/mbinz/new --model NA --proc-id 5 --num-tasks 2000 --num-data 100 --max-length 3000 --run-gpt claude
+python generate_tasks.py --llama-path /ptmp/mbinz/new --model NA --proc-id 6 --num-tasks 2000 --num-data 100 --max-length 3000 --run-gpt claude
+
 
 #python generate_tasks.py --llama-path /ptmp/mbinz/new --model NA --proc-id 1 --num-tasks 10 --num-data 100 --max-length 2500 --run-gpt claude
 #python generate_tasks.py --llama-path /ptmp/mbinz/new --model NA --proc-id 2 --num-tasks 10 --num-data 100 --max-length 3000 --run-gpt claude

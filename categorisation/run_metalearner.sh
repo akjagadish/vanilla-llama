@@ -21,5 +21,5 @@ pip3 install --user fire sentencepiece ipdb accelerate tqdm
 export OMP_NUM_THREADS=${SLURM_CPUS_PER_TASK}
 
 #ython rl2/train.py --num-episodes 100000 --save-every 1000 --print-every 100 --test --synthetic --max-steps 96
-python rl2/train.py --num-episodes 100000 --save-every 1000 --print-every 100 --max-steps 70 --env-name claude_generated_tasks_paramsNA_dim3_data100_tasks6000
+python rl2/train.py --num-episodes 100000 --save-every 1000 --print-every 100 --max-steps 70 --env-name claude_generated_tasks_paramsNA_dim3_data100_tasks14000
 #python rl2/train.py --num-episodes 1000000 --save-every 100 --print-every 100 

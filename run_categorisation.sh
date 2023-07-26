@@ -11,6 +11,8 @@
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=akshay.jagadish@tuebingen.mpg.de
 
+# #export OMP_NUM_THREADS=${SLURM_CPUS_PER_TASK} # set it to 20 if you changed it multiples of 32
+
 cd ~/vanilla-llama/categorisation/
 
 module purge
@@ -18,14 +20,19 @@ module load anaconda/3/2021.11
 module load gcc/11 impi/2021.6
 module load cuda/11.6
 module load pytorch_distributed/gpu-cuda-11.6/1.13.0
-pip3 install --user accelerate openai gym ipdb
+pip3 install --user accelerate openai gym ipdb transformers tensorboard anthropic
 clear
-
-export OMP_NUM_THREADS=${SLURM_CPUS_PER_TASK} # set it to 20 if you changed it multiples of 32
+jupyter-lab
 
 python query.py --llama-path /ptmp/mbinz/new --model 7B
+python query.py --llama-path /ptmp/mbinz/new --model 65B
+
+python generate_tasks.py --llama-path /ptmp/mbinz/new --model 7B
+python generate_tasks.py --llama-path /ptmp/mbinz/new --model 65B
 
 #srun --time=00:10:00  --cpus-per-task=20 --gres=gpu:a100:1 --mem=50G --pty bash
+#srun --time=01:00:00  --cpus-per-task=18 --gres=gpu:a100:1 --mem=50G --pty bash
 #srun --time=00:10:00  --cpus-per-task=20 --gres=gpu:a100:4 --mem=240G --pty bash
 #srun --time=01:00:00  --cpus-per-task=20 --gres=gpu:a100:4 --mem=240G --pty bash
-# raw_response = llama.generate([text], temperature=1., max_length=1); raw_response[0][0][len(text):].replace(' ', '')
+#srun --time=24:00:00  --cpus-per-task=20 --gres=gpu:a100:4 --mem=240G --pty bash
+#raw_response = llama.generate([text], temperature=1., max_length=1); raw_response[0][0][len(text):].replace(' ', '')

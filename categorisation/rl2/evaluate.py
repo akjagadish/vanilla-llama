@@ -26,7 +26,7 @@ def evaluate_1d(env_name=None, model_path=None, env=None, model=None, mode='val'
         accuracy = (model_choices.round()==true_choices).sum()/(model_choices.shape[0])
         
     if return_all:
-        return accuracy, model_choices, true_choices
+        return accuracy, model_choices, true_choices, sequence_lengths
     else:    
         return accuracy
     

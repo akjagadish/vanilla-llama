@@ -20,4 +20,4 @@ pip3 install --user accelerate openai gym ipdb transformers tensorboard python-d
 pip3 install --user fire sentencepiece ipdb accelerate tqdm
 export OMP_NUM_THREADS=${SLURM_CPUS_PER_TASK}
 
-python llm/run_llm.py
+python llm/run_llm.py --mode 'human'

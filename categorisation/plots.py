@@ -8,6 +8,7 @@ sys.path.append('/raven/u/ajagadish/vanilla-llama/categorisation/')
 sys.path.append('/raven/u/ajagadish/vanilla-llama/categorisation/rl2')
 from utils import return_baseline_performance, return_data_stats
 from baseline_classifiers import LogisticRegressionModel, SVMModel
+from evaluate import evaluate_1d
 from utils import evaluate_data_against_baselines, bin_data_points
 from utils import probability_same_target_vs_distance
 
@@ -330,4 +331,28 @@ def plot_per_task_features(df):
     plt.show()
 
     
-  
+def metalearner_evaluation(env_name, model_path, mode='test', num_trials=96):
+    
+    _, model_choices, true_choices, sequences = evaluate_1d(env_name=env_name, \
+                  model_path=model_path, \
+                  mode=mode, return_all=True)
+
+    cum_sum = np.array(sequences).cumsum()
+    correct = np.ones((len(cum_sum), np.diff(cum_sum).max()))
+    for task_idx, seq in enumerate(cum_sum[:-1]):
+        task_correct = (model_choices.round()==true_choices)[cum_sum[task_idx]:cum_sum[task_idx+1]]
+        correct[task_idx,:(cum_sum[task_idx+1]-cum_sum[task_idx])] = task_correct.numpy()
+
+    correct = correct[:, :num_trials] if num_trials is not None else correct 
+
+    # plot the error rate over trials
+    f, ax = plt.subplots(1, 1, figsize=(5,5))
+    ax.plot(np.arange(correct.shape[1]), 1-correct.mean(0), color=COLORS['stats'], lw=3)
+    ax.set_xlabel('Trial', fontsize=FONTSIZE)
+    ax.set_ylabel('Error rate', fontsize=FONTSIZE)
+    plt.xticks(fontsize=FONTSIZE-2)
+    plt.yticks(fontsize=FONTSIZE-2)
+    sns.despine()
+    f.tight_layout()
+    plt.show()
+

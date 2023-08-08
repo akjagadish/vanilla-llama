@@ -112,23 +112,21 @@ class CategorisationTask(nn.Module):
     def sample_batch(self):
 
         data = self.data[self.data.task_id.isin(self.return_tasks())]
-        #import ipdb ; ipdb.set_trace()
-        # convert the 'input' column from string to list of floats
-        data['target'] = data['target'].apply(lambda x: 0. if x=='A' else 1.)
-        # encode targets as one-hot vectors
-        #data['target'] = data['target'].apply(lambda x: 0. if x=='A' else 1.)
-
+        # import ipdb ; ipdb.set_trace()
+        # covert targets to 0 and 1 but switch them based on random number
+        random_number = torch.rand(1)
+        data['target'] = data['target'].apply(lambda x: 0. if x=='A' else 1.) if random_number > 0.5 else data['target'].apply(lambda x: 1. if x=='A' else 0.)
         data['input'] = data['input'].apply(lambda x: list(map(float, x.strip('[]').split(','))))
+        # shuffle the order of trials within a task but keep all trials 
+        data = data.groupby('task_id').apply(lambda x: x.sample(frac=1)).reset_index(drop=True)
         # group all inputs for a task into a list
         data = data.groupby('task_id').agg({'input':list, 'target':list}).reset_index()
         # off set targets by 1 trial but zeros in the beggining
-        data['shifted_target'] = data['target'].apply(lambda x: [0.] + x[:-1])
+        data['shifted_target'] = data['target'].apply(lambda x: [0. if random_number > 0.5 else 1.] + x[:-1])
         stacked_task_features = [torch.from_numpy(np.concatenate((np.stack(task_input_features), np.stack(task_targets).reshape(-1, 1)),axis=1)) for task_input_features, task_targets in zip(data.input.values, data.shifted_target.values)]
         stacked_targets = [torch.from_numpy(np.stack(task_targets)) for task_targets in data.target.values]
         sequence_lengths = [len(task_input_features) for task_input_features in data.input.values]
         packed_inputs = rnn_utils.pad_sequence(stacked_task_features, batch_first=True)
-        #packed_targets = rnn_utils.pad_sequence(stacked_targets, batch_first=True)
-        
 
         # import ipdb ; ipdb.set_trace() 
         # Split 'input' column into separate feature columns

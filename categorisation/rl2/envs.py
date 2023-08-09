@@ -9,7 +9,7 @@ class CategorisationTask(nn.Module):
     Categorisation task inspired by Shepard et al. (1961)
     Note: generates one task at a time, each containing max_steps datapoints, with no repitition of datapoints over blocks
     """
-    def __init__(self, data, max_steps=8, num_dims=3, batch_size=64, mode='train', split=[0.8, 0.1, 0.1], device='cpu', synthetic_data=False, num_tasks=10000): 
+    def __init__(self, data, max_steps=8, num_dims=3, batch_size=64, mode='train', split=[0.8, 0.1, 0.1], device='cpu', synthetic_data=False, num_tasks=10000, noise=0.1, shuffle_trials=False): 
         """ 
         Initialise the environment
         Args: 
@@ -29,6 +29,8 @@ class CategorisationTask(nn.Module):
         self.mode = mode
         self.split = (torch.tensor([split[0], split[0]+split[1], split[0]+split[1]+split[2]]) * self.data.task_id.nunique()).int()
         self.synthetic_data = synthetic_data
+        self.noise = noise
+        self.shuffle_trials = shuffle_trials
         if synthetic_data:
             self.generate_synthetic_data(num_tasks, split)
 
@@ -118,9 +120,13 @@ class CategorisationTask(nn.Module):
         data['target'] = data['target'].apply(lambda x: 0. if x=='A' else 1.) if random_number > 0.5 else data['target'].apply(lambda x: 1. if x=='A' else 0.)
         data['input'] = data['input'].apply(lambda x: list(map(float, x.strip('[]').split(','))))
         # shuffle the order of trials within a task but keep all trials 
-        data = data.groupby('task_id').apply(lambda x: x.sample(frac=1)).reset_index(drop=True)
+        if self.shuffle_trials:
+            data = data.groupby('task_id').apply(lambda x: x.sample(frac=1)).reset_index(drop=True)
         # group all inputs for a task into a list
         data = data.groupby('task_id').agg({'input':list, 'target':list}).reset_index()
+        # flip the target for 10% of total number of trials within each task
+        if self.noise > 0.:
+            data['target'] = data.groupby('task_id').target.apply(lambda x: x.sample(frac=self.noise).apply(lambda x: 1. if x==0. else 0.) if len(x) > 1 else x)
         # off set targets by 1 trial but zeros in the beggining
         data['shifted_target'] = data['target'].apply(lambda x: [0. if random_number > 0.5 else 1.] + x[:-1])
         stacked_task_features = [torch.from_numpy(np.concatenate((np.stack(task_input_features), np.stack(task_targets).reshape(-1, 1)),axis=1)) for task_input_features, task_targets in zip(data.input.values, data.shifted_target.values)]

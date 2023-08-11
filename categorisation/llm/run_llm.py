@@ -27,7 +27,7 @@ def run_llm_on_categorisation(mode='llm', model='claude-2'):
     for dataset in datasets:
         df = pd.read_csv(dataset)
         df['llm_category'], df['true_category'] = np.nan, np.nan # add new column to df to store the llm predicted category
-        num_participants = 10 #df.participant.max() + 1
+        num_participants = df.participant.max() + 1
         num_tasks = df.task.max() + 1
         num_blocks = df.block.max() + 1
         
@@ -88,7 +88,7 @@ def run_llm_on_categorisation(mode='llm', model='claude-2'):
                         block_instructions += '- In trial '+ str(t_idx+1) +', you picked category ' + str(response) + ' for ' + object_name + ' and category ' + str(t) + ' was correct.\n'
         
         # save df with llm predicted category and true category
-        df.to_csv(dataset.replace('.csv', '_llm.csv'), index=False)
+        df.to_csv(dataset.replace('.csv', f'llm_choices{mode}.csv'), index=False)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

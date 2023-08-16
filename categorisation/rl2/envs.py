@@ -161,7 +161,7 @@ class ShepardsTask(nn.Module):
     Categorisation task inspired by Shepard et al. (1961) for evaluating models on human performance
     """
     
-    def __init__(self, max_steps=96, num_dims=3, batch_size=32, device='cpu', noise=0., shuffle_trials=False):
+    def __init__(self, task=None, max_steps=96, num_dims=3, batch_size=32, device='cpu', noise=0., shuffle_trials=False):
         super(ShepardsTask, self).__init__()
         self.device = torch.device(device)
         self.num_choices = 1 
@@ -170,9 +170,10 @@ class ShepardsTask(nn.Module):
         self.num_dims = num_dims
         self.noise = noise
         self.shuffle_trials = shuffle_trials
+        self.task_type = task
 
     def sample_batch(self, task_type=1):
-  
+        task_type = self.task_type if self.task_type is not None else task_type
         stacked_task_features, stacked_targets = self.generate_task(task_type)
         sequence_lengths = [len(data)for data in stacked_task_features]
         packed_inputs = rnn_utils.pad_sequence(stacked_task_features, batch_first=True)
@@ -189,23 +190,45 @@ class ShepardsTask(nn.Module):
         
         for _ in range(self.batch_size):
             
-            chosen_feature = np.random.choice(np.arange(3)) # choose one of the three feature dimensions randomly
+            # generate a random target
             target = 0. if np.random.rand(1) > 0.5 else 1.
-
             # generate targets for each task type
             if task_type==1:
+                chosen_feature = np.random.choice(np.arange(3)) # choose one of the three feature dimensions randomly
                 # assign target for all objects with chosen feature == 0 and 1-target otherwise
                 targets = np.array([target if feature_combination[chosen_feature]==0 else 1-target for feature_combination in all_feature_combinations])
+            
             elif task_type==2:
-                pass
+                chosen_features = np.random.choice(np.arange(3), 2, replace=False) # choose two of the three feature dimensions randomly
+                # assign target when the values for these two chosen feature are the same as 0 and 1-target otherwise
+                targets = np.array([target if feature_combination[chosen_features[0]]==feature_combination[chosen_features[1]] else 1-target for feature_combination in all_feature_combinations])
+                
             elif task_type==3:
-                pass
+                np.random.shuffle(all_feature_combinations) # shuffle rows in all_feature_combinations
+                chosen_feature = np.random.choice(np.arange(3)) # choose one of the three feature dimensions randomly
+                category_indices = np.hstack((np.where(all_feature_combinations[:, chosen_feature]==1)[0][:3], np.where(all_feature_combinations[:, chosen_feature]==0)[0][0]))
+                # category_2_indices = np.hstack((np.where(all_feature_combinations[:, chosen_feature]==1)[0][3], np.where(all_feature_combinations[:, chosen_feature]==0)[0][1:]))
+                # assign target to category 1 indices and 1-target to category 2 indices
+                targets = np.array([target if i in category_indices else 1-target for i in range(len(all_feature_combinations))])
+
             elif task_type==4:
-                pass
+                # choose one arbitrary instance as the prototype from all feature combinations
+                prototype = all_feature_combinations[np.random.choice(np.arange(len(all_feature_combinations)))]
+                # assign target to instances which have at least two features in common with the prototype and 1-target otherwise
+                targets = np.array([target if np.sum(prototype==feature_combination)>=2 else 1-target for feature_combination in all_feature_combinations])
+                
             elif task_type==5:
-                pass
+                np.random.shuffle(all_feature_combinations) # shuffle rows in all_feature_combinations
+                chosen_feature = np.random.choice(np.arange(3)) # choose one of the three feature dimensions randomly
+                category_indices = np.hstack((np.where(all_feature_combinations[:, chosen_feature]==1)[0][:2], np.where(all_feature_combinations[:, chosen_feature]==0)[0][:2]))
+                # assign target to category 1 indices and 1-target to category 2 indices
+                targets = np.array([target if i in category_indices else 1-target for i in range(len(all_feature_combinations))])
+
             elif task_type==6:
-                pass
+                # choose one arbitrary instance as the prototype from all feature combinations
+                prototype = all_feature_combinations[np.random.choice(np.arange(len(all_feature_combinations)))]
+                # assign target to instances which have at least two features in common with the prototype and 1-target otherwise
+                targets = np.array([target if np.sum(prototype==feature_combination)==1 or np.sum(prototype==feature_combination)==3 else 1-target for feature_combination in all_feature_combinations])
 
             # add to the targets
             if self.noise > 0.:

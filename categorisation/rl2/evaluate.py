@@ -5,11 +5,11 @@ import argparse
 from baseline_classifiers import LogisticRegressionModel, SVMModel
 
 # evaluate a model
-def evaluate_1d(env_name=None, model_path=None, env=None, model=None, mode='val', policy='greedy', return_all=False):
+def evaluate_1d(env_name=None, model_path=None, env=None, model=None, mode='val', shuffle_trials=False, policy='greedy', return_all=False):
     
     if env is None:
         # load environment
-        env = CategorisationTask(data=env_name, mode=mode)
+        env = CategorisationTask(data=env_name, mode=mode, shuffle_trials=shuffle_trials)
     if model is None:
         # load model
         model = torch.load(model_path)[1]
@@ -119,3 +119,25 @@ def evaluate_against_baselines(env_name, model_path, mode='val', return_all=Fals
         return accuracy, all_model_choices, all_true_choices
     else:    
         return accuracy
+    
+def evaluate_metalearner(env_name, model_path, mode='test', shuffle_trials=False, num_trials=96, num_runs=5):
+    
+    for run_idx in range(num_runs):
+
+        _, model_choices, true_choices, sequences = evaluate_1d(env_name=env_name, \
+                    model_path=model_path, \
+                    mode=mode, shuffle_trials=shuffle_trials, \
+                    return_all=True)
+        
+        cum_sum = np.array(sequences).cumsum()
+        correct = np.ones((num_runs, len(cum_sum), np.diff(cum_sum).max())) if run_idx==0 else correct
+        model_choices = model_choices.round()
+
+        for task_idx, _ in enumerate(cum_sum[:-1]):
+            # task corrects
+            task_correct = (model_choices==true_choices)[cum_sum[task_idx]:cum_sum[task_idx+1]]
+            correct[run_idx, task_idx, :(cum_sum[task_idx+1]-cum_sum[task_idx])] = task_correct.numpy()
+
+    correct = correct[...,:num_trials].mean(0) if num_trials is not None else correct.mean(0) 
+
+    return correct

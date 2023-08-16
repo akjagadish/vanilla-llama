@@ -1,15 +1,19 @@
 import numpy as np
 import torch
-from envs import CategorisationTask
+from envs import CategorisationTask, ShepardsTask
 import argparse
 from baseline_classifiers import LogisticRegressionModel, SVMModel
 
 # evaluate a model
-def evaluate_1d(env_name=None, model_path=None, env=None, model=None, mode='val', shuffle_trials=False, policy='greedy', return_all=False):
+def evaluate_1d(env_name=None, model_path=None, experiment='categorisation', env=None, model=None, mode='val', shuffle_trials=False, policy='greedy', return_all=False):
     
     if env is None:
-        # load environment
-        env = CategorisationTask(data=env_name, mode=mode, shuffle_trials=shuffle_trials)
+        if experiment == 'categorisation':
+            # load environment
+            env = CategorisationTask(data=env_name, mode=mode, shuffle_trials=shuffle_trials)
+        elif experiment == 'shepard_categorisation':
+            env = ShepardsTask()
+
     if model is None:
         # load model
         model = torch.load(model_path)[1]
@@ -29,7 +33,6 @@ def evaluate_1d(env_name=None, model_path=None, env=None, model=None, mode='val'
         return accuracy, model_choices, true_choices, sequence_lengths
     else:    
         return accuracy
-    
 # evaluate a model
 def evaluate(env_name=None, model_path=None, env=None, model=None, mode='val', policy='greedy', return_all=False):
     
@@ -120,12 +123,12 @@ def evaluate_against_baselines(env_name, model_path, mode='val', return_all=Fals
     else:    
         return accuracy
     
-def evaluate_metalearner(env_name, model_path, mode='test', shuffle_trials=False, num_trials=96, num_runs=5):
+def evaluate_metalearner(env_name, model_path, experiment='categorisation', mode='test', shuffle_trials=False, num_trials=96, num_runs=5):
     
     for run_idx in range(num_runs):
 
-        _, model_choices, true_choices, sequences = evaluate_1d(env_name=env_name, \
-                    model_path=model_path, \
+        _, model_choices, true_choices, sequences = evaluate_1d(env_name=env_name,\
+                    model_path=model_path, experiment=experiment,\
                     mode=mode, shuffle_trials=shuffle_trials, \
                     return_all=True)
         
@@ -135,7 +138,7 @@ def evaluate_metalearner(env_name, model_path, mode='test', shuffle_trials=False
 
         for task_idx, _ in enumerate(cum_sum[:-1]):
             # task corrects
-            task_correct = (model_choices==true_choices)[cum_sum[task_idx]:cum_sum[task_idx+1]]
+            task_correct = (model_choices==true_choices.squeeze())[cum_sum[task_idx]:cum_sum[task_idx+1]]
             correct[run_idx, task_idx, :(cum_sum[task_idx+1]-cum_sum[task_idx])] = task_correct.numpy()
 
     correct = correct[...,:num_trials].mean(0) if num_trials is not None else correct.mean(0) 

@@ -8,7 +8,7 @@ sys.path.append('/raven/u/ajagadish/vanilla-llama/categorisation/')
 sys.path.append('/raven/u/ajagadish/vanilla-llama/categorisation/rl2')
 from utils import return_baseline_performance, return_data_stats
 from baseline_classifiers import LogisticRegressionModel, SVMModel
-from evaluate import evaluate_1d
+from evaluate import evaluate_1d, evaluate_metalearner
 from utils import evaluate_data_against_baselines, bin_data_points
 from utils import probability_same_target_vs_distance
 
@@ -369,15 +369,18 @@ def errors_metalearner(env_name, model_path, mode='test', shuffle_trials=False, 
     f.tight_layout()
     plt.show()
 
-def compare_metalearners(noises=[0.05, 0.1, 0.0], shuffles=[True, False], shuffle_evals=[True, False], num_runs=5, num_trials=96, num_eval_tasks=1113):
+def compare_metalearners(experiment='categorisation', noises=[0.05, 0.1, 0.0], shuffles=[True, False], shuffle_evals=[True, False], num_runs=5, num_trials=96, num_eval_tasks=1113):
 
     corrects = np.ones((len(noises), len(shuffles), len(shuffle_evals), num_eval_tasks, num_trials))
     for n_idx, noise in enumerate(noises):
         for s_idx, shuffle in enumerate(shuffles):
             for se_idx, shuffle_eval in enumerate(shuffle_evals):
-                env_name='/raven/u/ajagadish/vanilla-llama/categorisation/data/claude_generated_tasks_paramsNA_dim3_data100_tasks14000.csv'
+                if experiment=='categorisation':
+                    env_name = '/raven/u/ajagadish/vanilla-llama/categorisation/data/claude_generated_tasks_paramsNA_dim3_data100_tasks14000.csv'
+                elif experiment=='shepard_categorisation':
+                    env_name = None
                 model_path=f"/raven/u/ajagadish/vanilla-llama/categorisation/trained_models/env=claude_generated_tasks_paramsNA_dim3_data100_tasks14000_num_episodes500000_num_hidden=128_lr0.0003_noise{noise}_shuffle{shuffle}_run=0.pt"
-                corrects[n_idx, s_idx, se_idx] = evaluate_metalearner(env_name, model_path, shuffle_trials=shuffle_eval, num_runs=num_runs)
+                corrects[n_idx, s_idx, se_idx] = evaluate_metalearner(env_name, model_path, experiment, shuffle_trials=shuffle_eval, num_runs=num_runs)
     
     # compuate error rates across trials using corrects
     errors = 1. - corrects.mean(3)

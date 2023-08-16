@@ -156,18 +156,73 @@ class CategorisationTask(nn.Module):
 
         return packed_inputs, sequence_lengths, stacked_targets #data.target.values
 
-class HumanCategorizationTask(nn.Module):
+class ShepardsTask(nn.Module):
     """
     Categorisation task inspired by Shepard et al. (1961) for evaluating models on human performance
     """
     
-    def __init__(self, data, max_steps=96, num_dims=3, batch_size=32, device='cpu'):
-        super(HumanCategorizationTask, self).__init__()
+    def __init__(self, max_steps=96, num_dims=3, batch_size=32, device='cpu', noise=0., shuffle_trials=False):
+        super(ShepardsTask, self).__init__()
         self.device = torch.device(device)
         self.num_choices = 1 
         self.max_steps = max_steps
         self.batch_size = batch_size
         self.num_dims = num_dims
+        self.noise = noise
+        self.shuffle_trials = shuffle_trials
 
-    def generate_tasks(self):
-        pass
+    def sample_batch(self, task_type=1):
+  
+        stacked_task_features, stacked_targets = self.generate_task(task_type)
+        sequence_lengths = [len(data)for data in stacked_task_features]
+        packed_inputs = rnn_utils.pad_sequence(stacked_task_features, batch_first=True)
+
+        return packed_inputs, sequence_lengths, stacked_targets
+
+    def generate_task(self, task_type):
+        
+        inputs_list, targets_list = [], []
+        # generate all possible combinations of features
+        all_feature_combinations = np.array([[0, 0, 0], [0, 0, 1], [0, 1, 0],\
+                                                [0, 1, 1], [1, 0, 0], [1, 0, 1],\
+                                                [1, 1, 0], [1, 1, 1]])
+        
+        for _ in range(self.batch_size):
+            
+            chosen_feature = np.random.choice(np.arange(3)) # choose one of the three feature dimensions randomly
+            target = 0. if np.random.rand(1) > 0.5 else 1.
+
+            # generate targets for each task type
+            if task_type==1:
+                # assign target for all objects with chosen feature == 0 and 1-target otherwise
+                targets = np.array([target if feature_combination[chosen_feature]==0 else 1-target for feature_combination in all_feature_combinations])
+            elif task_type==2:
+                pass
+            elif task_type==3:
+                pass
+            elif task_type==4:
+                pass
+            elif task_type==5:
+                pass
+            elif task_type==6:
+                pass
+
+            # add to the targets
+            if self.noise > 0.:
+                targets = np.array([target if np.random.rand(1) > self.noise else 1-target for target in targets])
+            
+            # concatenate all features and targets into one array with placed holder for shifted target
+            concat_data = np.concatenate((all_feature_combinations, targets.reshape(-1, 1), targets.reshape(-1, 1)), axis=1)
+            
+            # create a new sampled data array sampling from the concatenated data array wih replacement
+            sampled_data = concat_data[np.random.choice(np.arange(concat_data.shape[0]), self.max_steps, replace=True)]
+            
+            # replace placeholder with shifted targets to the sampled data array
+            sampled_data[:, self.num_dims] = np.concatenate((np.array([0. if np.random.rand(1) > 0.5 else 1.]), sampled_data[:-1, self.num_dims]))
+            
+            # stacking all the sampled data across all tasks
+            inputs_list.append(torch.from_numpy(sampled_data[:, :(self.num_dims+1)]))
+            targets_list.append(torch.from_numpy(sampled_data[:, [self.num_dims+1]]))
+    
+        return inputs_list, targets_list
+        

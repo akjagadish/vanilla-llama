@@ -115,20 +115,19 @@ class CategorisationTask(nn.Module):
 
         data = self.data[self.data.task_id.isin(self.return_tasks())]
         # import ipdb ; ipdb.set_trace()
-        # covert targets to 0 and 1 but switch them based on random number
-        random_number = torch.rand(1)
-        data['target'] = data['target'].apply(lambda x: 0. if x=='A' else 1.) if random_number > 0.5 else data['target'].apply(lambda x: 1. if x=='A' else 0.)
+        # flip targets to 0 or 1 based on a random number
+        data['target'] = data['target'].apply(lambda x: 0. if x=='A' else 1.) if torch.rand(1) > 0.5 else data['target'].apply(lambda x: 1. if x=='A' else 0.)
         data['input'] = data['input'].apply(lambda x: list(map(float, x.strip('[]').split(','))))
-        # shuffle the order of trials within a task but keep all trials 
+        # shuffle the order of trials within a task but keep all the trials 
         if self.shuffle_trials:
             data = data.groupby('task_id').apply(lambda x: x.sample(frac=1)).reset_index(drop=True)
         # group all inputs for a task into a list
         data = data.groupby('task_id').agg({'input':list, 'target':list}).reset_index()
-        # flip the target for 10% of total number of trials within each task
+        # flip the target for %noise of total number of trials within each task
         if self.noise > 0.:
             data['target'] = data.groupby('task_id').target.apply(lambda x: x.sample(frac=self.noise).apply(lambda x: 1. if x==0. else 0.) if len(x) > 1 else x)
-        # off set targets by 1 trial but zeros in the beggining
-        data['shifted_target'] = data['target'].apply(lambda x: [0. if random_number > 0.5 else 1.] + x[:-1])
+        # off set targets by 1 trial and randomly add zeros or ones in the beggining
+        data['shifted_target'] = data['target'].apply(lambda x: [1. if torch.rand(1) > 0.5 else 0.] + x[:-1])
         stacked_task_features = [torch.from_numpy(np.concatenate((np.stack(task_input_features), np.stack(task_targets).reshape(-1, 1)),axis=1)) for task_input_features, task_targets in zip(data.input.values, data.shifted_target.values)]
         stacked_targets = [torch.from_numpy(np.stack(task_targets)) for task_targets in data.target.values]
         sequence_lengths = [len(task_input_features) for task_input_features in data.input.values]

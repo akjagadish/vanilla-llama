@@ -332,15 +332,15 @@ def plot_per_task_features(df):
     plt.show()
 
     
-def metalearner_evaluation(env_name, model_path, mode='test', num_trials=96):
-    
-    _, model_choices, true_choices, sequences = evaluate_1d(env_name=env_name, \
-                  model_path=model_path, \
-                  mode=mode, return_all=True)
+def errors_metalearner(env_name, model_path, mode='test', shuffle_trials=False, num_trials=96, num_runs=5):
 
+    _, model_choices, true_choices, sequences = evaluate_1d(env_name=env_name, \
+                model_path=model_path, \
+                mode=mode, shuffle_trials=shuffle_trials, \
+                return_all=True)
+    
     cum_sum = np.array(sequences).cumsum()
-    correct = np.ones((len(cum_sum), np.diff(cum_sum).max()))
-    errors = np.zeros((4, len(cum_sum)))# np.diff(cum_sum).max())
+    errors = np.zeros((4, len(cum_sum)))
     model_choices = model_choices.round()
     for task_idx, seq in enumerate(cum_sum[:-1]):
         
@@ -356,23 +356,6 @@ def metalearner_evaluation(env_name, model_path, mode='test', num_trials=96):
         errors[1,task_idx] = len(true_negatives)/len_task
         errors[2,task_idx] = len(false_positives)/len_task
         errors[3,task_idx] = len(false_negatives)/len_task
-
-        # task corrects
-        task_correct = (model_choices==true_choices)[cum_sum[task_idx]:cum_sum[task_idx+1]]
-        correct[task_idx,:(cum_sum[task_idx+1]-cum_sum[task_idx])] = task_correct.numpy()
-
-    correct = correct[:, :num_trials] if num_trials is not None else correct 
-
-    # plot the error rate over trials
-    f, ax = plt.subplots(1, 1, figsize=(5,5))
-    ax.plot(np.arange(correct.shape[1]), 1-correct.mean(0), color=COLORS['stats'], lw=3)
-    ax.set_xlabel('Trial', fontsize=FONTSIZE)
-    ax.set_ylabel('Error rate', fontsize=FONTSIZE)
-    plt.xticks(fontsize=FONTSIZE-2)
-    plt.yticks(fontsize=FONTSIZE-2)
-    sns.despine()
-    f.tight_layout()
-    plt.show()
 
     # plot a bar plot of the mean number of error types across tasks
     f, ax = plt.subplots(1, 1, figsize=(5,5))

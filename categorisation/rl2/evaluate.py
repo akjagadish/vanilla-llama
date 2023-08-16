@@ -12,7 +12,7 @@ def evaluate_1d(env_name=None, model_path=None, experiment='categorisation', env
             # load environment
             env = CategorisationTask(data=env_name, mode=mode, shuffle_trials=shuffle_trials)
         elif experiment == 'shepard_categorisation':
-            env = ShepardsTask()
+            env = ShepardsTask(task=env_name)
 
     if model is None:
         # load model
@@ -33,6 +33,7 @@ def evaluate_1d(env_name=None, model_path=None, experiment='categorisation', env
         return accuracy, model_choices, true_choices, sequence_lengths
     else:    
         return accuracy
+    
 # evaluate a model
 def evaluate(env_name=None, model_path=None, env=None, model=None, mode='val', policy='greedy', return_all=False):
     

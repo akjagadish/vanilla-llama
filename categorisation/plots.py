@@ -369,26 +369,27 @@ def errors_metalearner(env_name, model_path, mode='test', shuffle_trials=False, 
     f.tight_layout()
     plt.show()
 
-def compare_metalearners(experiment='categorisation', noises=[0.05, 0.1, 0.0], shuffles=[True, False], shuffle_evals=[True, False], num_runs=5, num_trials=96, num_eval_tasks=1113):
+def compare_metalearners(experiment='categorisation', tasks=[None], noises=[0.05, 0.1, 0.0], shuffles=[True, False], shuffle_evals=[True, False], num_runs=5, num_trials=96, num_eval_tasks=1113):
 
-    corrects = np.ones((len(noises), len(shuffles), len(shuffle_evals), num_eval_tasks, num_trials))
-    for n_idx, noise in enumerate(noises):
-        for s_idx, shuffle in enumerate(shuffles):
-            for se_idx, shuffle_eval in enumerate(shuffle_evals):
-                if experiment=='categorisation':
-                    env_name = '/raven/u/ajagadish/vanilla-llama/categorisation/data/claude_generated_tasks_paramsNA_dim3_data100_tasks14000.csv'
-                elif experiment=='shepard_categorisation':
-                    env_name = None
-                model_path=f"/raven/u/ajagadish/vanilla-llama/categorisation/trained_models/env=claude_generated_tasks_paramsNA_dim3_data100_tasks14000_num_episodes500000_num_hidden=128_lr0.0003_noise{noise}_shuffle{shuffle}_run=0.pt"
-                corrects[n_idx, s_idx, se_idx] = evaluate_metalearner(env_name, model_path, experiment, shuffle_trials=shuffle_eval, num_runs=num_runs)
-    
+    corrects = np.ones((len(tasks), len(noises), len(shuffles), len(shuffle_evals), num_eval_tasks, num_trials))
+    for t_idx, task in enumerate(tasks):
+        for n_idx, noise in enumerate(noises):
+            for s_idx, shuffle in enumerate(shuffles):
+                for se_idx, shuffle_eval in enumerate(shuffle_evals):
+                    if experiment=='categorisation':
+                        env_name = '/raven/u/ajagadish/vanilla-llama/categorisation/data/claude_generated_tasks_paramsNA_dim3_data100_tasks14000.csv'
+                    elif experiment=='shepard_categorisation':
+                        env_name = task
+                    model_path=f"/raven/u/ajagadish/vanilla-llama/categorisation/trained_models/env=claude_generated_tasks_paramsNA_dim3_data100_tasks14000_num_episodes500000_num_hidden=128_lr0.0003_noise{noise}_shuffle{shuffle}_run=0.pt"
+                    corrects[t_idx, n_idx, s_idx, se_idx] = evaluate_metalearner(env_name, model_path, experiment, shuffle_trials=shuffle_eval, num_runs=num_runs)
+        
     # compuate error rates across trials using corrects
     errors = 1. - corrects.mean(3)
 
     # compare the error rate over trials between different noise levels meaned over shuffles and shuffle_evals
     f, ax = plt.subplots(1, 1, figsize=(5,5))
     for n_idx, noise in enumerate(noises):
-        ax.plot(np.arange(num_trials), errors[n_idx].mean(0).mean(0), label=f'Noise={noise}', lw=3)
+        ax.plot(np.arange(num_trials), errors[:, n_idx].mean(0).mean(0).mean(0), label=f'Noise={noise}', lw=3)
     ax.set_xlabel('Trial', fontsize=FONTSIZE)
     ax.set_ylabel('Error rate', fontsize=FONTSIZE)
     plt.xticks(fontsize=FONTSIZE-2)
@@ -401,7 +402,7 @@ def compare_metalearners(experiment='categorisation', noises=[0.05, 0.1, 0.0], s
     # compare the error rate over trials between different shuffle settings meaned over noise levels and shuffle_evals
     f, ax = plt.subplots(1, 1, figsize=(5,5))
     for s_idx, shuffle in enumerate(shuffles):
-        ax.plot(np.arange(num_trials), errors[:, s_idx].mean(0).mean(0), label=f'Shuffle={shuffle}', lw=3)
+        ax.plot(np.arange(num_trials), errors[:, :, s_idx].mean(0).mean(0).mean(0), label=f'Shuffle={shuffle}', lw=3)
     ax.set_xlabel('Trial', fontsize=FONTSIZE)
     ax.set_ylabel('Error rate', fontsize=FONTSIZE)
     plt.xticks(fontsize=FONTSIZE-2)
@@ -414,12 +415,26 @@ def compare_metalearners(experiment='categorisation', noises=[0.05, 0.1, 0.0], s
     # compare the error rate over trials between different shuffle_eval settings meaned over noise levels and shuffles
     f, ax = plt.subplots(1, 1, figsize=(5,5))
     for se_idx, shuffle_eval in enumerate(shuffle_evals):
-        ax.plot(np.arange(num_trials), errors[:, :, se_idx].mean(0).mean(0), label=f'Shuffle_eval={shuffle_eval}', lw=3)
+        ax.plot(np.arange(num_trials), errors[:, :, :, se_idx].mean(0).mean(0).mean(0), label=f'Shuffle_eval={shuffle_eval}', lw=3)
     ax.set_xlabel('Trial', fontsize=FONTSIZE)
     ax.set_ylabel('Error rate', fontsize=FONTSIZE)
     plt.xticks(fontsize=FONTSIZE-2)
     plt.yticks(fontsize=FONTSIZE-2)
     plt.legend(fontsize=FONTSIZE-2, frameon=False)
+    sns.despine()
+    f.tight_layout()
+    plt.show()
+
+    # compare the error rate over trials between different tasks meaned over noise levels, shuffles and shuffle_evals
+    f, ax = plt.subplots(1, 1, figsize=(6,6))
+    for t_idx, task in enumerate(tasks):
+        ax.plot(np.arange(num_trials), errors[t_idx].mean(0).mean(0).mean(0), label=f'Task={task}', lw=3)
+    ax.set_xlabel('Trial', fontsize=FONTSIZE)
+    ax.set_ylabel('Error rate', fontsize=FONTSIZE)
+    plt.xticks(fontsize=FONTSIZE-2)
+    plt.yticks(fontsize=FONTSIZE-2)
+    # place legend outside the plot
+    plt.legend(fontsize=FONTSIZE-4, frameon=False,  loc="upper center", bbox_to_anchor=(.45, 1.2), ncol=3)
     sns.despine()
     f.tight_layout()
     plt.show()

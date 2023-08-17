@@ -1,6 +1,6 @@
 import numpy as np
 import torch
-from envs import CategorisationTask, ShepardsTask, NosofskysTask
+from envs import CategorisationTask, ShepardsTask, NosofskysTask, LeveringsTask
 import argparse
 from baseline_classifiers import LogisticRegressionModel, SVMModel
 
@@ -15,6 +15,8 @@ def evaluate_1d(env_name=None, model_path=None, experiment='categorisation', env
             env = ShepardsTask(task=env_name)
         elif experiment == 'nosofsky_categorisation':
             env = NosofskysTask(task=env_name)
+        elif experiment == 'levering_categorisation':
+            env = LeveringsTask(task=env_name)
 
     if model is None:
         # load model
@@ -148,7 +150,8 @@ def evaluate_metalearner(env_name, model_path, experiment='categorisation', mode
             task_correct = (model_choices==true_choices.squeeze())[cum_sum[task_idx]:cum_sum[task_idx+1]]
             model_choices_unpacked[run_idx, task_idx, :(cum_sum[task_idx+1]-cum_sum[task_idx])] = model_choices[cum_sum[task_idx]:cum_sum[task_idx+1]]
             true_choices_unpacked[run_idx, task_idx, :(cum_sum[task_idx+1]-cum_sum[task_idx])] = true_choices.squeeze()[cum_sum[task_idx]:cum_sum[task_idx+1]]
-            labels_unpacked[run_idx, task_idx, :(cum_sum[task_idx+1]-cum_sum[task_idx])] = category_labels.squeeze()[cum_sum[task_idx]:cum_sum[task_idx+1]]
+            if experiment=='nosofsky_categorisation':
+                labels_unpacked[run_idx, task_idx, :(cum_sum[task_idx+1]-cum_sum[task_idx])] = category_labels.squeeze()[cum_sum[task_idx]:cum_sum[task_idx+1]]
             correct[run_idx, task_idx, :(cum_sum[task_idx+1]-cum_sum[task_idx])] = task_correct.numpy()
 
     # return mean over runs

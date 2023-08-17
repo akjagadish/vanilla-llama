@@ -11,6 +11,8 @@ from baseline_classifiers import LogisticRegressionModel, SVMModel
 from evaluate import evaluate_1d, evaluate_metalearner
 from utils import evaluate_data_against_baselines, bin_data_points
 from utils import probability_same_target_vs_distance
+from envs import NosofskysTask
+
 
 # set plotting parameters
 COLORS = {'a':'#117733', 
@@ -435,6 +437,73 @@ def compare_metalearners(experiment='categorisation', tasks=[None], noises=[0.05
     plt.yticks(fontsize=FONTSIZE-2)
     # place legend outside the plot
     plt.legend(fontsize=FONTSIZE-4, frameon=False,  loc="upper center", bbox_to_anchor=(.45, 1.2), ncol=3)
+    sns.despine()
+    f.tight_layout()
+    plt.show()
+
+def replicate_nosofskys_task():
+    nosofs_task = NosofskysTask(task=[4, None, None], batch_size=1)
+    inputs, _, targets = nosofs_task.sample_batch()
+
+    f, ax = plt.subplots(1, 1, figsize=(5,5))
+    ax.scatter(inputs[:, targets[0].squeeze()==0, 2], inputs[:, targets[0].squeeze()==0, 1])
+    ax.scatter(inputs[:, targets[0].squeeze()==1, 2], inputs[:, targets[0].squeeze()==1, 1])
+    ax.set_xlabel('Saturation', fontsize=FONTSIZE-2)
+    ax.set_ylabel('Brightness', fontsize=FONTSIZE-2)
+    plt.show()
+
+def metalearner_nosofskys_task(experiment=1, noises=[0.05, 0.1, 0.0], shuffles=[True, False], num_runs=5, num_trials=64, num_eval_tasks=10):
+    #[[4, None, None], [4, 1, 5], [4, 6, 5]]
+    tasks = [[4, None, None], [4, 1, 5], [4, 6, 5]] if experiment==1 else [[4, None, None], [4, 5, 3], [4, 5, 5]]
+    correct = np.zeros((len(tasks), len(noises), len(shuffles), num_eval_tasks, num_trials))
+    model_choices = np.ones((len(tasks), num_runs, len(noises), len(shuffles), num_eval_tasks, num_trials))
+    true_choices = np.ones((len(tasks), num_runs, len(noises), len(shuffles), num_eval_tasks, num_trials))
+    labels = np.ones((len(tasks), num_runs, len(noises), len(shuffles), num_eval_tasks, num_trials))
+    
+    for t_idx, task in enumerate(tasks):
+        start_trial = 16 if task[1] is None else 0 if task[2]==5 else 8 #task[0]*12 if task[1] is None else task[0]*11 + task[2]*task[0]
+        for n_idx, noise in enumerate(noises):
+            for s_idx, shuffle in enumerate(shuffles):                    
+                    model_path=f"/raven/u/ajagadish/vanilla-llama/categorisation/trained_models/env=claude_generated_tasks_paramsNA_dim3_data100_tasks14000_num_episodes500000_num_hidden=128_lr0.0003_noise{noise}_shuffle{shuffle}_run=0.pt"
+                    correct[t_idx, n_idx, s_idx,...,start_trial:], model_choices[t_idx, :, n_idx, s_idx,...,start_trial:],\
+                        true_choices[t_idx, :, n_idx, s_idx,...,start_trial:], labels[t_idx, :, n_idx, s_idx,...,start_trial:] \
+                              = evaluate_metalearner(task, model_path, 'nosofsky_categorisation', shuffle_trials=None, num_runs=num_runs,\
+                                                      return_choices=True)
+        
+    # plot the mean accuracy over trials for differet tasks
+    f, ax = plt.subplots(1, 1, figsize=(5,5))
+    for t_idx, task in enumerate(tasks):
+        ax.plot(np.arange(num_trials), correct[t_idx].mean(0).mean(0).mean(0), label=f'Task={task}', lw=3)
+    ax.set_xlabel('Trial', fontsize=FONTSIZE)
+    ax.set_ylabel('Accuracy', fontsize=FONTSIZE)
+    plt.xticks(fontsize=FONTSIZE-2)
+    plt.yticks(fontsize=FONTSIZE-2)
+    #plt.legend(fontsize=FONTSIZE-4, frameon=False,  loc="upper center", bbox_to_anchor=(.45, 1.2), ncol=3)  # place legend outside the plot
+    sns.despine()
+    f.tight_layout()
+    plt.show()
+
+    
+    # compute mean choice for each label for all task
+    category_means = []
+    for t_idx, task in enumerate(tasks):
+        performances = []
+        for label in range(int(labels.max()+1)):
+            performances.append(model_choices[t_idx].squeeze()[...,-1][labels[t_idx].squeeze()[...,-1]==label].mean())      
+        category_means.append(performances)
+
+    # plot mean choice for all category labels over all tasks as stacked bar plot
+    task_names = ['B', 'E2', 'E7']
+    f, ax = plt.subplots(1, 1, figsize=(7,7))
+    for t_idx, task in enumerate(tasks):
+        # plot bar plot next to each other
+        ax.bar(np.arange(len(category_means[t_idx]))+1+t_idx*0.2, category_means[t_idx], width=0.2, label=f'{task_names[t_idx]}')
+    ax.set_xlabel('Category label', fontsize=FONTSIZE)
+    ax.set_ylabel('Mean choice', fontsize=FONTSIZE)
+    plt.xticks(np.arange(len(category_means[0]))+1, fontsize=FONTSIZE-2)
+    plt.xticks(fontsize=FONTSIZE-2)
+    plt.yticks(fontsize=FONTSIZE-2)
+    plt.legend(fontsize=FONTSIZE-4, frameon=False,  loc="upper center", bbox_to_anchor=(.45, 1.2), ncol=3)  # place legend outside the plot
     sns.despine()
     f.tight_layout()
     plt.show()

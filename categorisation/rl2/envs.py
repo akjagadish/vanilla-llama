@@ -249,3 +249,72 @@ class ShepardsTask(nn.Module):
     
         return inputs_list, targets_list
         
+
+class NosofskysTask(nn.Module):
+
+    def __init__(self, task=[4, None, None], num_dims=3, batch_size=64, device='cpu'):
+        super(NosofskysTask, self).__init__()
+        self.device = torch.device(device)
+        self.num_choices = 1 
+        self.batch_size = batch_size
+        self.num_dims = num_dims
+        self.task = task
+        # if experiment==1:
+        #     self.conditions = [[4, None, None], [4, 1, 5], [4, 6, 5]]
+        # elif experiment==2:
+        #     self.conditions = [[4, None, None], [4, 5, 3], [4, 5, 5]]
+        # experimental input: value (brightness)/chroma (saturation)
+        features = np.array([[7, 4], [7, 8], [6, 6], [6, 10], [5, 4], [5, 8], [5, 12], [4, 6], [4, 10], [3, 4], [3, 8], [3, 10]])
+        #self.input = self.input/10 # normalise the input to be between 0 and 1
+        self.input = (features-features.min(0))
+        self.input = self.input/self.input.max(0)
+        #TODO: change the dimension I concatenate zeros everyime 
+        # concate zeros at different points to the input to make it 3 dimensions
+        self.input = np.concatenate((np.zeros((self.input.shape[0], 1)), self.input), axis=1)  #np.concatenate((self.input, np.zeros((self.input.shape[0], 1))), axis=1) 
+        self.target = np.array([0., 1., 1., 1., 0., 1., 1., 0., 1., 0., 0., 0.])
+        self.instance_labels = np.arange(len(self.input))
+
+    def sample_batch(self):
+        stacked_task_features, stacked_targets, stacked_labels = self.generate_task()
+        sequence_lengths = [len(data)for data in stacked_task_features]
+        packed_inputs = rnn_utils.pad_sequence(stacked_task_features, batch_first=True)
+        self.stacked_labels = stacked_labels
+        
+        return packed_inputs, sequence_lengths, stacked_targets
+    
+    def generate_task(self):
+
+        inputs_list, targets_list, labels_list = [], [], []
+        
+        num_repeats, instance, num_instance = self.task
+        for _ in range(self.batch_size):
+
+            # repeat all inputs except the instance for num_repeats times and repeat the instance for num_instance times
+            if instance is None:
+                inputs = np.repeat(self.input, num_repeats, axis=0)
+                targets = np.repeat(self.target, num_repeats, axis=0)
+                instance_labels = np.repeat(self.instance_labels, num_repeats, axis=0)
+            else:
+                inputs = np.repeat(self.input[np.arange(len(self.input))!=instance], num_repeats, axis=0)
+                targets = np.repeat(self.target[np.arange(len(self.target))!=instance], num_repeats, axis=0)
+                instance_labels = np.repeat(self.instance_labels[np.arange(len(self.instance_labels))!=instance], num_repeats, axis=0)
+                inputs = np.concatenate((inputs, np.repeat([self.input[instance]], num_instance*num_repeats, axis=0)), axis=0)
+                targets = np.concatenate((targets, np.repeat(self.target[instance], num_instance*num_repeats, axis=0)), axis=0)
+                instance_labels = np.concatenate((instance_labels, np.repeat(self.instance_labels[instance], num_instance*num_repeats, axis=0)), axis=0)
+
+            # concatenate all features and targets into one array with placeholder for shifted targets
+            concat_data = np.concatenate((inputs, targets.reshape(-1, 1), targets.reshape(-1, 1), instance_labels.reshape(-1,1)), axis=1)
+            
+           
+            # shuffle the data differently in every iteration
+            np.random.shuffle(concat_data)
+
+            # replace placeholder with shifted target with the targets
+            concat_data[:, self.num_dims] = np.concatenate((np.array([0. if np.random.rand(1) > 0.5 else 1.]), concat_data[:-1, self.num_dims]))
+            
+            # stacking all the sampled data across all tasks
+            inputs_list.append(torch.from_numpy(concat_data[:, :(self.num_dims+1)]))
+            targets_list.append(torch.from_numpy(concat_data[:, [self.num_dims+1]]))
+            labels_list.append(torch.from_numpy(concat_data[:, [self.num_dims+2]]))
+
+        return inputs_list, targets_list, labels_list

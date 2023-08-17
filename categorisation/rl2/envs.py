@@ -259,10 +259,6 @@ class NosofskysTask(nn.Module):
         self.batch_size = batch_size
         self.num_dims = num_dims
         self.task = task
-        # if experiment==1:
-        #     self.conditions = [[4, None, None], [4, 1, 5], [4, 6, 5]]
-        # elif experiment==2:
-        #     self.conditions = [[4, None, None], [4, 5, 3], [4, 5, 5]]
         # experimental input: value (brightness)/chroma (saturation)
         features = np.array([[7, 4], [7, 8], [6, 6], [6, 10], [5, 4], [5, 8], [5, 12], [4, 6], [4, 10], [3, 4], [3, 8], [3, 10]])
         #self.input = self.input/10 # normalise the input to be between 0 and 1
@@ -271,6 +267,7 @@ class NosofskysTask(nn.Module):
         #TODO: change the dimension I concatenate zeros everyime 
         # concate zeros at different points to the input to make it 3 dimensions
         self.input = np.concatenate((np.zeros((self.input.shape[0], 1)), self.input), axis=1)  #np.concatenate((self.input, np.zeros((self.input.shape[0], 1))), axis=1) 
+        self.input = self.input[:, [0, 1, 2]] #input[:, np.random.permutation(self.input.shape[1])]
         self.target = np.array([0., 1., 1., 1., 0., 1., 1., 0., 1., 0., 0., 0.])
         self.instance_labels = np.arange(len(self.input))
 
@@ -305,7 +302,6 @@ class NosofskysTask(nn.Module):
             # concatenate all features and targets into one array with placeholder for shifted targets
             concat_data = np.concatenate((inputs, targets.reshape(-1, 1), targets.reshape(-1, 1), instance_labels.reshape(-1,1)), axis=1)
             
-           
             # shuffle the data differently in every iteration
             np.random.shuffle(concat_data)
 
@@ -318,3 +314,76 @@ class NosofskysTask(nn.Module):
             labels_list.append(torch.from_numpy(concat_data[:, [self.num_dims+2]]))
 
         return inputs_list, targets_list, labels_list
+    
+class LeveringsTask(nn.Module):
+    """
+    Categorisation task inspired by Levering et al. (2019) for evaluating meta-learned model 
+    on linear and non-linear decision boundaries
+    """
+    
+    def __init__(self, task='linear', max_steps=158, num_blocks=25, num_train=6, num_dims=3, batch_size=64, device='cpu', noise=0., shuffle_trials=False):
+        super(LeveringsTask, self).__init__()
+        self.device = torch.device(device)
+        self.num_choices = 1 
+        self.max_steps = max_steps
+        self.batch_size = batch_size
+        self.num_dims = num_dims
+        self.noise = noise
+        self.shuffle_trials = shuffle_trials
+        self.num_blocks = num_blocks
+        self.num_train = num_train
+        # generate all possible combinations of features
+        self.input = np.array([[0, 0, 1], [0, 1, 0],\
+                                [0, 1, 1], [1, 0, 0], [1, 0, 1],\
+                                [1, 1, 0], [0, 0, 0], [1, 1, 1]])
+        self.target = np.array([0., 0., 1., 0., 1., 1., 0., 1.]) if task=='linear' else np.array([0., 1., 0., 0., 1., 1., 0., 1.])
+
+    def sample_batch(self):
+     
+        stacked_task_features, stacked_targets = self.generate_task()
+        sequence_lengths = [len(data)for data in stacked_task_features]
+        packed_inputs = rnn_utils.pad_sequence(stacked_task_features, batch_first=True)
+
+        return packed_inputs, sequence_lengths, stacked_targets
+
+    def generate_task(self):
+        
+        inputs_list, targets_list = [], []
+        
+        for _ in range(self.batch_size):
+            
+            targets = self.target if torch.rand(1) > 0.5 else 1-self.target  # flip self.target to 0 or 1 based on a random number
+            targets = targets[:self.num_train]
+            inputs = self.input[:self.num_train]
+
+            # repeat all inputs and targets for num_blocks times
+            inputs = np.repeat(inputs, self.num_blocks, axis=0)
+            targets = np.repeat(targets, self.num_blocks, axis=0)
+
+            # add noise to the targets
+            if self.noise > 0.:
+                targets = np.array([target if np.random.rand(1) > self.noise else 1-target for target in targets])
+            
+            # concatenate all features and targets into one array with placed holder for shifted target
+            concat_data = np.concatenate((inputs, targets.reshape(-1, 1), targets.reshape(-1, 1)), axis=1)
+
+            # shuffle the data differently in every iteration
+            np.random.shuffle(concat_data)
+
+            # replace placeholder with shifted target with the targets
+            concat_data[:, self.num_dims] = np.concatenate((np.array([0. if np.random.rand(1) > 0.5 else 1.]), concat_data[:-1, self.num_dims]))
+
+            # make evaluation block at the end of the training block
+            #TODO: not giving correct target as inputs
+            # eval_data = np.concatenate((self.input, self.target.reshape(-1, 1), self.target.reshape(-1, 1)), axis=1)
+            # np.random.shuffle(eval_data)
+            # eval_data[:, self.num_dims] = np.concatenate((np.array([0. if np.random.rand(1) > 0.5 else 1.]), eval_data[:-1, self.num_dims]))
+
+            # stack concat_data and eval_data
+            data = concat_data #np.vstack((concat_data, eval_data))
+
+            # stacking all the sampled data across all tasks
+            inputs_list.append(torch.from_numpy(data[:, :(self.num_dims+1)]))
+            targets_list.append(torch.from_numpy(data[:, [self.num_dims+1]]))
+    
+        return inputs_list, targets_list            

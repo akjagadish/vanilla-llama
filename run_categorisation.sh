@@ -14,7 +14,6 @@
 # #export OMP_NUM_THREADS=${SLURM_CPUS_PER_TASK} # set it to 20 if you changed it multiples of 32
 
 cd ~/vanilla-llama/categorisation/
-
 module purge
 module load anaconda/3/2021.11
 module load gcc/11 impi/2021.6
@@ -23,6 +22,16 @@ module load pytorch_distributed/gpu-cuda-11.6/1.13.0
 pip3 install --user accelerate openai gym ipdb transformers tensorboard anthropic
 clear
 jupyter-lab
+
+cd ~/vanilla-llama/categorisation/
+module purge
+module load anaconda/3/2021.11
+module load gcc/11 impi/2021.6
+module load cuda/11.6
+module load pytorch_distributed/gpu-cuda-11.6/1.13.0
+pip3 install --user accelerate openai gym ipdb transformers tensorboard anthropic
+clear
+tensorboard --logdir=runs/trained_models/ --port=6006
 
 python query.py --llama-path /ptmp/mbinz/new --model 7B
 python query.py --llama-path /ptmp/mbinz/new --model 65B

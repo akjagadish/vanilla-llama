@@ -212,7 +212,7 @@ class ShepardsTask(nn.Module):
     Categorisation task inspired by Shepard et al. (1961) for evaluating models on human performance
     """
     
-    def __init__(self, task=None, max_steps=96, num_dims=3, batch_size=32, device='cpu', noise=0., shuffle_trials=False):
+    def __init__(self, task=None, max_steps=96, num_dims=3, batch_size=64, device='cpu', noise=0., shuffle_trials=False):
         super(ShepardsTask, self).__init__()
         self.device = torch.device(device)
         self.num_choices = 1 
@@ -303,22 +303,24 @@ class ShepardsTask(nn.Module):
 
 class NosofskysTask(nn.Module):
 
-    def __init__(self, task=[4, None, None], num_dims=3, batch_size=64, device='cpu'):
+    def __init__(self, task=[4, None, None], num_blocks=1, num_dims=3, batch_size=64, device='cpu'):
         super(NosofskysTask, self).__init__()
         self.device = torch.device(device)
         self.num_choices = 1 
         self.batch_size = batch_size
         self.num_dims = num_dims
         self.task = task
+        self.num_blocks = num_blocks
         # experimental input: value (brightness)/chroma (saturation)
         features = np.array([[7, 4], [7, 8], [6, 6], [6, 10], [5, 4], [5, 8], [5, 12], [4, 6], [4, 10], [3, 4], [3, 8], [3, 10]])
         #self.input = self.input/10 # normalise the input to be between 0 and 1
         self.input = (features-features.min(0))
         self.input = self.input/self.input.max(0)
         #TODO: change the dimension I concatenate zeros everyime 
+        #TODO: use 0.5 instead of 0 for non feature
         # concate zeros at different points to the input to make it 3 dimensions
         self.input = np.concatenate((np.zeros((self.input.shape[0], 1)), self.input), axis=1)  #np.concatenate((self.input, np.zeros((self.input.shape[0], 1))), axis=1) 
-        self.input = self.input[:, [0, 1, 2]] #input[:, np.random.permutation(self.input.shape[1])]
+        self.input = self.input[:, np.random.permutation(self.input.shape[1])] #input[:, [0, 1, 2]] #
         self.target = np.array([0., 1., 1., 1., 0., 1., 1., 0., 1., 0., 0., 0.])
         self.instance_labels = np.arange(len(self.input))
 
@@ -358,7 +360,13 @@ class NosofskysTask(nn.Module):
 
             # replace placeholder with shifted target with the targets
             concat_data[:, self.num_dims] = np.concatenate((np.array([0. if np.random.rand(1) > 0.5 else 1.]), concat_data[:-1, self.num_dims]))
-            
+
+            # repeat all blocks for num_blocks times
+            #concat_data = np.repeat(concat_data, self.num_blocks, axis=0)
+            # print(concat_data.shape)
+            # shuffle the data differently in every iteration
+            # np.random.shuffle(concat_data)
+
             # stacking all the sampled data across all tasks
             inputs_list.append(torch.from_numpy(concat_data[:, :(self.num_dims+1)]))
             targets_list.append(torch.from_numpy(concat_data[:, [self.num_dims+1]]))

@@ -535,7 +535,7 @@ def evaluate_nosofsky1994(env_name=None, experiment=None, tasks=[None], noises=[
     f.tight_layout()
     plt.show()
 
-    f.savefig(f'/raven/u/ajagadish/vanilla-llama/categorisation/figures/nosofsky1994_metalearner.svg', bbox_inches='tight', dpi=300)
+    f.savefig(f'/raven/u/ajagadish/vanilla-llama/categorisation/figures/nosofsky1994_metalearner_{model_name}.svg', bbox_inches='tight', dpi=300)
     
 def evaluate_nosofsky1988(env_name=None, experiment=1, noises=[0.05, 0.1, 0.0], shuffles=[True, False], num_runs=5, num_trials=64, num_blocks=3, num_eval_tasks=64, synthetic=False):
     num_trials = num_blocks*num_trials
@@ -583,7 +583,7 @@ def evaluate_nosofsky1988(env_name=None, experiment=1, noises=[0.05, 0.1, 0.0], 
     sns.despine()
     f.tight_layout()
     plt.show()
-    f.savefig(f'/raven/u/ajagadish/vanilla-llama/categorisation/figures/nosofsky1988_metalearner.svg', bbox_inches='tight', dpi=300)    
+    f.savefig(f'/raven/u/ajagadish/vanilla-llama/categorisation/figures/nosofsky1988_metalearner_{model_name}.svg', bbox_inches='tight', dpi=300)    
 
 def evaluate_levering2020(env_name=None, noises=[0.05, 0.1, 0.0], shuffles=[True, False], num_runs=5, num_trials=158, num_eval_tasks=64, synthetic=False):
         
@@ -621,7 +621,7 @@ def evaluate_levering2020(env_name=None, noises=[0.05, 0.1, 0.0], shuffles=[True
     sns.despine()
     f.tight_layout()
     plt.show()
-    f.savefig(f'/raven/u/ajagadish/vanilla-llama/categorisation/figures/levering2020_metalearner.svg', bbox_inches='tight', dpi=300)
+    f.savefig(f'/raven/u/ajagadish/vanilla-llama/categorisation/figures/levering2020_metalearner_{model_name}.svg', bbox_inches='tight', dpi=300)
 
 def replot_levering2020():
     # load json file containing the data
@@ -631,6 +631,7 @@ def replot_levering2020():
     performance_linear = data['linear']['y']
     performance_nonlinear = data['nonlinear']['y']
     f, ax = plt.subplots(1, 1, figsize=(5, 5))
+    colors = ['#173b4f', '#8b9da7']
     ax.plot(np.arange(len(performance_linear)), performance_linear, label=f'Linear', lw=3, color=colors[0])
     ax.plot(np.arange(len(performance_linear)), performance_nonlinear, label=f'Non-Linear', lw=3, color=colors[1])
     ax.set_xlabel('Trial', fontsize=FONTSIZE)

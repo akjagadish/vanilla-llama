@@ -6,7 +6,7 @@ import torch.optim as optim
 import torch.nn.functional as F
 from torch.utils.tensorboard import SummaryWriter
 from envs import CategorisationTask, SyntheticCategorisationTask
-from model import RL2, MetaLearner
+from model import RL2, MetaLearner, NoisyMetaLearner
 import argparse
 from tqdm import tqdm
 from evaluate import evaluate, evaluate_1d
@@ -20,7 +20,10 @@ def run(env_name, num_episodes, synthetic, max_steps, noise, shuffle, print_ever
         env = SyntheticCategorisationTask(max_steps=max_steps, batch_size=batch_size, noise=noise, shuffle_trials=shuffle, device=device).to(device)
     else:
         env = CategorisationTask(data=env_name, max_steps=max_steps, batch_size=batch_size, noise=noise, shuffle_trials=shuffle, device=device).to(device)
-    model = MetaLearner(num_input=env.num_dims, num_output=env.num_choices, num_hidden=num_hidden, num_layers=1).to(device)
+    
+    # setup model
+    #model = MetaLearner(num_input=env.num_dims, num_output=env.num_choices, num_hidden=num_hidden, num_layers=1).to(device)
+    model = NoisyMetaLearner(num_input=env.num_dims, num_output=env.num_choices, num_hidden=num_hidden, num_layers=1).to(device)
     
     optimizer = optim.Adam(model.parameters(), lr=lr)
     losses = [] # keep track of losses
@@ -51,6 +54,7 @@ def run(env_name, num_episodes, synthetic, max_steps, noise, shuffle, print_ever
 
         if (not t % save_every):
             torch.save([t, model], save_dir)
+            #TODO: eval on experiment='synthetic' if synthetic else 'categorisation'
             acc = evaluate_1d(env_name=env_name, model_path=save_dir, mode='val', policy='greedy')
             accuracy.append(acc)
             writer.add_scalar('Val. Acc.', acc, t)
@@ -75,6 +79,7 @@ if __name__ == "__main__":
     parser.add_argument('--synthetic', action='store_true', default=False, help='train models on synthetic data')
     parser.add_argument('--noise', type=float, default=0., help='noise level')
     parser.add_argument('--shuffle', action='store_true', default=False, help='shuffle trials')
+    # parser.add_argument('--eval', default='categorisation', help='what to eval your meta-learner on')
 
     args = parser.parse_args()
     use_cuda = not args.no_cuda and torch.cuda.is_available()

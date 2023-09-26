@@ -84,3 +84,39 @@ class MetaLearner(nn.Module):
 
     def compute_loss(self, model_choices, true_choices):
         return self.criterion(model_choices, true_choices)
+
+class NoisyMetaLearner(nn.Module):
+    """ Noisy Meta-learning model for the Categorisation task """
+
+    def __init__(self, num_input, num_output, num_hidden, beta=1., num_layers=1) -> None:
+        super(NoisyMetaLearner, self).__init__()
+        self.num_input = num_input + num_output
+        self.num_output = num_output
+        self.num_hidden = num_hidden
+        self.num_layers = num_layers
+        self.lstm = nn.LSTM(num_input + num_output, num_hidden, num_layers, batch_first=True)
+        self.linear = nn.Linear(num_hidden, num_output)  
+        self.sigmoid = nn.Sigmoid()
+        self.criterion = nn.BCELoss()
+        self.beta = beta
+
+    def forward(self, packed_inputs, sequence_lengths):
+
+
+        lengths = sequence_lengths
+        packed_inputs = pack_padded_sequence(packed_inputs, lengths, batch_first=True, enforce_sorted=False)
+        packed_output, _ = self.lstm(packed_inputs.float())
+        output, _ = pad_packed_sequence(packed_output, batch_first=True)
+        y = self.linear(output)
+        y = self.sigmoid(self.beta*y)
+        
+        return y
+    
+    def make_inputs(self, inputs, prev_choices):
+        return torch.cat([inputs.unsqueeze(1), F.one_hot(prev_choices, num_classes=self.num_output).unsqueeze(1)], dim=-1)
+    
+    def initial_states(self, batch_size):
+        return torch.zeros(self.num_layers, batch_size, self.num_hidden), torch.zeros(self.num_layers, batch_size, self.num_hidden)
+
+    def compute_loss(self, model_choices, true_choices):
+        return self.criterion(model_choices, true_choices)

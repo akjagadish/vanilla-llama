@@ -603,7 +603,16 @@ def metalearner_leverings_task(experiment=None, noises=[0.05, 0.1, 0.0], shuffle
     # plot the mean accuracy over trials for differet tasks
     f, ax = plt.subplots(1, 1, figsize=(5,5))
     for t_idx, task in enumerate(tasks):
-        ax.plot(np.arange(num_trials), correct[t_idx].mean(0).mean(0).mean(0), label=f'{task}', lw=3)
+def replot_levering2020():
+    # load json file containing the data
+    with open('/raven/u/ajagadish/vanilla-llama/categorisation/data/human/levering2020.json') as json_file:
+        data = json.load(json_file)
+
+    performance_linear = data['linear']['y']
+    performance_nonlinear = data['nonlinear']['y']
+    f, ax = plt.subplots(1, 1, figsize=(5, 5))
+    ax.plot(np.arange(len(performance_linear)), performance_linear, label=f'Linear', lw=3, color=colors[0])
+    ax.plot(np.arange(len(performance_linear)), performance_nonlinear, label=f'Non-Linear', lw=3, color=colors[1])
     ax.set_xlabel('Trial', fontsize=FONTSIZE)
     ax.set_ylabel('Accuracy', fontsize=FONTSIZE)
     plt.xticks(fontsize=FONTSIZE-2)
@@ -612,3 +621,66 @@ def metalearner_leverings_task(experiment=None, noises=[0.05, 0.1, 0.0], shuffle
     sns.despine()
     f.tight_layout()
     plt.show()
+    f.savefig(f'/raven/u/ajagadish/vanilla-llama/categorisation/figures/levering2020_humans.svg', bbox_inches='tight', dpi=300)
+
+def replot_nosofsky1988():
+    nosofs_task = NosofskysTask(task=[4, None, None], batch_size=1)
+    inputs, _, targets = nosofs_task.sample_batch()
+
+    # scatter plot
+    f, ax = plt.subplots(1, 1, figsize=(5,5))
+    ax.scatter(inputs[:, targets[0].squeeze()==0, 2], inputs[:, targets[0].squeeze()==0, 1])
+    ax.scatter(inputs[:, targets[0].squeeze()==1, 2], inputs[:, targets[0].squeeze()==1, 1])
+    ax.set_xlabel('Saturation', fontsize=FONTSIZE-2)
+    ax.set_ylabel('Brightness', fontsize=FONTSIZE-2)
+    plt.show()
+    f.savefig(f'/raven/u/ajagadish/vanilla-llama/categorisation/figures/nosofsky1988_task.svg', bbox_inches='tight', dpi=300)
+
+    # base-rate effect
+    colors = ['#173b4f', '#8b9da7']
+    nosofskys_values = [0.8, 0.87, 0.96]
+    f, ax = plt.subplots(1, 1, figsize=(5,5))
+    bar_positions = np.arange(len(nosofskys_values))*0.5  #[0, 0.55]
+    ax.bar(bar_positions, nosofskys_values, color=colors[0], width=0.4)
+    ax.set_ylabel('Mean choice', fontsize=FONTSIZE)
+    ax.set_ylim([0.5, 1.])
+    ax.set_xticks(bar_positions)
+    ax.set_xticklabels(['Base', 'E6(3)', 'E6(5)'], fontsize=FONTSIZE-2)
+    ax.set_yticks(np.arange(0.5, 1., 0.1))
+    ax.tick_params(axis='both', which='major', labelsize=FONTSIZE-2)
+    ax.legend(fontsize=FONTSIZE-4, frameon=False,  loc="upper center", bbox_to_anchor=(.45, 1.2), ncol=3)  # place legend outside the plot
+    sns.despine()
+    f.tight_layout()
+    plt.show()
+    f.savefig(f'/raven/u/ajagadish/vanilla-llama/categorisation/figures/nosofsky1988_humans.svg', bbox_inches='tight', dpi=300)
+
+def replot_nosofsky1994():
+    # load json file containing the data
+    with open('/raven/u/ajagadish/vanilla-llama/categorisation/data/human/nosofsky1994.json') as json_file:
+        data = json.load(json_file)
+
+    # plot the error rates for the six types of rules in data
+    f, ax = plt.subplots(1, 1, figsize=(6,5))
+    colors_mpi_blues = ['#8b9da7', '#748995', '#5d7684', '#456272', '#2e4f61', '#173b4f']
+    colors = ['#819BAF', '#A2C0A9', '#E3E2C3', '#E3C495', '#D499AB', '#7C7098']
+    # markers for the six types of rules in the plot: circle, cross, plus, inverted triangle, asterisk, triangle
+    markers = ['o', 'x', '+', '*', 'v', '^']
+    
+    for i, rule in enumerate(data.keys()):
+        ax.plot(np.arange(len(data[rule]['y']))+1, data[rule]['y'], label=f'Type {i+1}', lw=3, color=colors[i], marker=markers[i], markersize=8)
+    # integer x ticks
+    ax.set_xticks(np.arange(len(data[rule]['y']))+1) 
+    ax.set_xlabel('Block', fontsize=FONTSIZE)
+    ax.set_ylabel('Error rate', fontsize=FONTSIZE)
+    # Get the current x-tick locations and labels
+    locs, labels = ax.get_xticks(), ax.get_xticklabels()
+    # Set new x-tick locations and labels
+    ax.set_xticks(locs[::2])
+    ax.set_xticklabels(np.arange(len(data[rule]['y']))[::2]+1)
+    plt.xticks(fontsize=FONTSIZE-2)
+    plt.yticks(fontsize=FONTSIZE-2)
+    plt.legend(fontsize=FONTSIZE-4, frameon=False,  loc="upper center", bbox_to_anchor=(.45, 1.25), ncol=3)  # place legend outside the plot
+    sns.despine()
+    f.tight_layout()
+    plt.show()
+    f.savefig(f'/raven/u/ajagadish/vanilla-llama/categorisation/figures/nosofsky1994_humans.svg', bbox_inches='tight', dpi=300)

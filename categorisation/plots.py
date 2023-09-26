@@ -500,63 +500,64 @@ def compare_metalearners(experiment='categorisation', tasks=[None], noises=[0.05
     f.tight_layout()
     plt.show()
 
-    # compare the error rate over trials between different tasks meaned over noise levels, shuffles and shuffle_evals
-    f, ax = plt.subplots(1, 1, figsize=(6,6))
+def evaluate_nosofsky1994(env_name=None, experiment=None, tasks=[None], noises=[0.05, 0.1, 0.0], shuffles=[True, False], shuffle_evals=[True, False], num_runs=5, num_trials=96, num_eval_tasks=1113, synthetic=False):
+
+    corrects = np.ones((len(tasks), len(noises), len(shuffles), len(shuffle_evals), num_eval_tasks, num_trials))
     for t_idx, task in enumerate(tasks):
-        ax.plot(np.arange(num_trials), errors[t_idx].mean(0).mean(0).mean(0), label=f'Task={task}', lw=3)
+        for n_idx, noise in enumerate(noises):
+            for s_idx, shuffle in enumerate(shuffles):
+                for se_idx, shuffle_eval in enumerate(shuffle_evals):
+                    if synthetic:
+                        model_name =  f"env={env_name}_num_episodes500000_num_hidden=128_lr0.0003_noise{noise}_shuffle{shuffle}_run=0_synthetic.pt"
+                    else:
+                        model_name = f"env={env_name}_num_episodes500000_num_hidden=128_lr0.0003_noise{noise}_shuffle{shuffle}_run=0.pt"
+                    model_path=f"/raven/u/ajagadish/vanilla-llama/categorisation/trained_models/{model_name}"
+                    corrects[t_idx, n_idx, s_idx, se_idx] = evaluate_metalearner(task, model_path, 'shepard_categorisation', shuffle_trials=shuffle_eval, num_runs=num_runs)
+        
+    # compuate error rates across trials using corrects
+    errors = 1. - corrects.mean(3)
+
+    # compare the error rate over trials between different tasks meaned over noise levels, shuffles and shuffle_evals
+    f, ax = plt.subplots(1, 1, figsize=(6,5))
+    colors_mpi_blues = ['#8b9da7', '#748995', '#5d7684', '#456272', '#2e4f61', '#173b4f']
+    colors = ['#819BAF', '#A2C0A9', '#E3E2C3', '#E3C495', '#D499AB', '#7C7098']
+    # markers for the six types of rules in the plot: circle, cross, plus, inverted triangle, asterisk, triangle
+    markers = ['o', 'x', '+', '*', 'v', '^']
+    for t_idx, task in enumerate(tasks):
+        ax.plot(np.arange(num_trials), errors[t_idx].mean(0).mean(0).mean(0), label=f'Type {task}', lw=3, color=colors[t_idx])#, marker=markers[t_idx], markersize=8)
     ax.set_xlabel('Trial', fontsize=FONTSIZE)
     ax.set_ylabel('Error rate', fontsize=FONTSIZE)
     plt.xticks(fontsize=FONTSIZE-2)
     plt.yticks(fontsize=FONTSIZE-2)
     # place legend outside the plot
-    plt.legend(fontsize=FONTSIZE-4, frameon=False,  loc="upper center", bbox_to_anchor=(.45, 1.2), ncol=3)
+    # plt.legend(fontsize=FONTSIZE-4, frameon=False,  loc="upper center", bbox_to_anchor=(.45, 1.2), ncol=3)
     sns.despine()
     f.tight_layout()
     plt.show()
 
-def replicate_nosofskys_task():
-    nosofs_task = NosofskysTask(task=[4, None, None], batch_size=1)
-    inputs, _, targets = nosofs_task.sample_batch()
-
-    f, ax = plt.subplots(1, 1, figsize=(5,5))
-    ax.scatter(inputs[:, targets[0].squeeze()==0, 2], inputs[:, targets[0].squeeze()==0, 1])
-    ax.scatter(inputs[:, targets[0].squeeze()==1, 2], inputs[:, targets[0].squeeze()==1, 1])
-    ax.set_xlabel('Saturation', fontsize=FONTSIZE-2)
-    ax.set_ylabel('Brightness', fontsize=FONTSIZE-2)
-    plt.show()
-
-def metalearner_nosofskys_task(experiment=1, noises=[0.05, 0.1, 0.0], shuffles=[True, False], num_runs=5, num_trials=64, num_eval_tasks=64):
-    #[[4, None, None], [4, 1, 5], [4, 6, 5]]
-    tasks = [[4, None, None], [4, 1, 5], [4, 6, 5]] if experiment==1 else [[4, None, None], [4, 5, 3], [4, 5, 5]]
+    f.savefig(f'/raven/u/ajagadish/vanilla-llama/categorisation/figures/nosofsky1994_metalearner.svg', bbox_inches='tight', dpi=300)
+    
+def evaluate_nosofsky1988(env_name=None, experiment=1, noises=[0.05, 0.1, 0.0], shuffles=[True, False], num_runs=5, num_trials=64, num_blocks=3, num_eval_tasks=64, synthetic=False):
+    num_trials = num_blocks*num_trials
+    tasks = [[4*num_blocks, None, None], [4*num_blocks, 1, 5], [4*num_blocks, 6, 5]] if experiment==1 else [[4*num_blocks, None, None], [4*num_blocks, 5, 3], [4*num_blocks, 5, 5]]
     correct = np.zeros((len(tasks), len(noises), len(shuffles), num_eval_tasks, num_trials))
     model_choices = np.ones((len(tasks), num_runs, len(noises), len(shuffles), num_eval_tasks, num_trials))
     true_choices = np.ones((len(tasks), num_runs, len(noises), len(shuffles), num_eval_tasks, num_trials))
     labels = np.ones((len(tasks), num_runs, len(noises), len(shuffles), num_eval_tasks, num_trials))
     
     for t_idx, task in enumerate(tasks):
-        start_trial = 16 if task[1] is None else 0 if task[2]==5 else 8 #task[0]*12 if task[1] is None else task[0]*11 + task[2]*task[0]
+        start_trial = 16*num_blocks if task[1] is None else 0 if task[2]==5 else 8*num_blocks # initial values are set to match the number of trials
         for n_idx, noise in enumerate(noises):
-            for s_idx, shuffle in enumerate(shuffles):                    
-                    model_path=f"/raven/u/ajagadish/vanilla-llama/categorisation/trained_models/env=claude_generated_tasks_paramsNA_dim3_data100_tasks14000_num_episodes500000_num_hidden=128_lr0.0003_noise{noise}_shuffle{shuffle}_run=0.pt"
+            for s_idx, shuffle in enumerate(shuffles):    
+                    if synthetic:
+                        model_name =  f"env={env_name}_num_episodes500000_num_hidden=128_lr0.0003_noise{noise}_shuffle{shuffle}_run=0_synthetic.pt"
+                    else:
+                        model_name = f"env={env_name}_num_episodes500000_num_hidden=128_lr0.0003_noise{noise}_shuffle{shuffle}_run=0.pt"
+                    model_path=f"/raven/u/ajagadish/vanilla-llama/categorisation/trained_models/{model_name}"
                     correct[t_idx, n_idx, s_idx,...,start_trial:], model_choices[t_idx, :, n_idx, s_idx,...,start_trial:],\
                         true_choices[t_idx, :, n_idx, s_idx,...,start_trial:], labels[t_idx, :, n_idx, s_idx,...,start_trial:] \
                               = evaluate_metalearner(task, model_path, 'nosofsky_categorisation', shuffle_trials=None, num_runs=num_runs,\
-                                                      return_choices=True, num_trials=64)
-        
-    # plot the mean accuracy over trials for differet tasks
-    f, ax = plt.subplots(1, 1, figsize=(5,5))
-    for t_idx, task in enumerate(tasks):
-        ax.plot(np.arange(num_trials), correct[t_idx].mean(0).mean(0).mean(0), label=f'Task={task}', lw=3)
-    ax.set_xlabel('Trial', fontsize=FONTSIZE)
-    ax.set_ylabel('Accuracy', fontsize=FONTSIZE)
-    plt.xticks(fontsize=FONTSIZE-2)
-    plt.yticks(fontsize=FONTSIZE-2)
-    #plt.legend(fontsize=FONTSIZE-4, frameon=False,  loc="upper center", bbox_to_anchor=(.45, 1.2), ncol=3)  # place legend outside the plot
-    sns.despine()
-    f.tight_layout()
-    plt.show()
-
-    
+                                                      return_choices=True, num_trials=num_trials)
     # compute mean choice for each label for all task
     category_means = []
     for t_idx, task in enumerate(tasks):
@@ -565,24 +566,26 @@ def metalearner_nosofskys_task(experiment=1, noises=[0.05, 0.1, 0.0], shuffles=[
             performances.append(model_choices[t_idx].squeeze()[...,-1][labels[t_idx].squeeze()[...,-1]==label].mean())      
         category_means.append(performances)
 
-    # plot mean choice for all category labels over all tasks as stacked bar plot
-    task_names = ['B', 'E2', 'E7'] if experiment==1 else ['B', 'E6(3)', 'E6(5)']
-    f, ax = plt.subplots(1, 1, figsize=(7,7))
-    for t_idx, task in enumerate(tasks):
-        # plot bar plot next to each other
-        ax.bar(np.arange(len(category_means[t_idx]))+1+t_idx*0.2, category_means[t_idx], width=0.2, label=f'{task_names[t_idx]}')
-    ax.set_xlabel('Category label', fontsize=FONTSIZE)
+
+    meta_learning_values = [] if experiment==1 else  np.stack(category_means)[:, 5]
+    colors = ['#173b4f', '#8b9da7']
+    f, ax = plt.subplots(1, 1, figsize=(5,5))
+    bar_positions = np.arange(len(meta_learning_values))*0.5
+    ax.bar(bar_positions, meta_learning_values, color=colors[0], width=0.4)
+    # ax.set_xlabel('Category label', fontsize=FONTSIZE)
     ax.set_ylabel('Mean choice', fontsize=FONTSIZE)
-    plt.xticks(np.arange(len(category_means[0]))+1, fontsize=FONTSIZE-2)
-    plt.xticks(fontsize=FONTSIZE-2)
-    plt.yticks(fontsize=FONTSIZE-2)
-    plt.legend(fontsize=FONTSIZE-4, frameon=False,  loc="upper center", bbox_to_anchor=(.45, 1.2), ncol=3)  # place legend outside the plot
+    ax.set_ylim([0.5, 1.])
+    ax.set_xticks(bar_positions)
+    ax.set_xticklabels(['Base', 'E6(3)', 'E6(5)'], fontsize=FONTSIZE-2)
+    ax.set_yticks(np.arange(0.5, 1., 0.1))
+    ax.tick_params(axis='both', which='major', labelsize=FONTSIZE-2)
+    ax.legend(fontsize=FONTSIZE-4, frameon=False,  loc="upper center", bbox_to_anchor=(.45, 1.2), ncol=3)  # place legend outside the plot
     sns.despine()
     f.tight_layout()
     plt.show()
+    f.savefig(f'/raven/u/ajagadish/vanilla-llama/categorisation/figures/nosofsky1988_metalearner.svg', bbox_inches='tight', dpi=300)    
 
-
-def metalearner_leverings_task(experiment=None, noises=[0.05, 0.1, 0.0], shuffles=[True, False], num_runs=5, num_trials=158, num_eval_tasks=64):
+def evaluate_levering2020(env_name=None, noises=[0.05, 0.1, 0.0], shuffles=[True, False], num_runs=5, num_trials=158, num_eval_tasks=64, synthetic=False):
         
     tasks = ['linear', 'nonlinear']
     correct = np.zeros((len(tasks), len(noises), len(shuffles), num_eval_tasks, num_trials))
@@ -593,7 +596,11 @@ def metalearner_leverings_task(experiment=None, noises=[0.05, 0.1, 0.0], shuffle
     for t_idx, task in enumerate(tasks):
         for n_idx, noise in enumerate(noises):
             for s_idx, shuffle in enumerate(shuffles):                    
-                    model_path=f"/raven/u/ajagadish/vanilla-llama/categorisation/trained_models/env=claude_generated_tasks_paramsNA_dim3_data100_tasks14000_num_episodes500000_num_hidden=128_lr0.0003_noise{noise}_shuffle{shuffle}_run=0.pt"
+                    if synthetic:
+                        model_name =  f"env={env_name}_num_episodes500000_num_hidden=128_lr0.0003_noise{noise}_shuffle{shuffle}_run=0_synthetic.pt"
+                    else:
+                        model_name = f"env={env_name}_num_episodes500000_num_hidden=128_lr0.0003_noise{noise}_shuffle{shuffle}_run=0.pt"
+                    model_path=f"/raven/u/ajagadish/vanilla-llama/categorisation/trained_models/{model_name}"
                     correct[t_idx, n_idx, s_idx], model_choices[t_idx, :, n_idx, s_idx],\
                         true_choices[t_idx, :, n_idx, s_idx], labels[t_idx, :, n_idx, s_idx] \
                             = evaluate_metalearner(task, model_path, 'levering_categorisation', shuffle_trials=None,\
@@ -602,7 +609,20 @@ def metalearner_leverings_task(experiment=None, noises=[0.05, 0.1, 0.0], shuffle
         
     # plot the mean accuracy over trials for differet tasks
     f, ax = plt.subplots(1, 1, figsize=(5,5))
+    colors = ['#173b4f', '#8b9da7']
+    task_names = ['Linear', 'Non-linear']
     for t_idx, task in enumerate(tasks):
+        ax.plot(np.arange(num_trials), correct[t_idx].mean(0).mean(0).mean(0), label=f'{task_names[t_idx]}', lw=3, color=colors[t_idx])
+    ax.set_xlabel('Trial', fontsize=FONTSIZE)
+    ax.set_ylabel('Accuracy', fontsize=FONTSIZE)
+    plt.xticks(fontsize=FONTSIZE-2)
+    plt.yticks(fontsize=FONTSIZE-2)
+    plt.legend(fontsize=FONTSIZE-4, frameon=False,  loc="upper center", bbox_to_anchor=(.45, 1.2), ncol=3)  # place legend outside the plot
+    sns.despine()
+    f.tight_layout()
+    plt.show()
+    f.savefig(f'/raven/u/ajagadish/vanilla-llama/categorisation/figures/levering2020_metalearner.svg', bbox_inches='tight', dpi=300)
+
 def replot_levering2020():
     # load json file containing the data
     with open('/raven/u/ajagadish/vanilla-llama/categorisation/data/human/levering2020.json') as json_file:

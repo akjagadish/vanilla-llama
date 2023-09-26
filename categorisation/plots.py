@@ -500,7 +500,7 @@ def compare_metalearners(experiment='categorisation', tasks=[None], noises=[0.05
     f.tight_layout()
     plt.show()
 
-def evaluate_nosofsky1994(env_name=None, experiment=None, tasks=[None], noises=[0.05, 0.1, 0.0], shuffles=[True, False], shuffle_evals=[True, False], num_runs=5, num_trials=96, num_eval_tasks=1113, synthetic=False):
+def evaluate_nosofsky1994(env_name=None, experiment=None, tasks=[None], beta=1., noises=[0.05, 0.1, 0.0], shuffles=[True, False], shuffle_evals=[True, False], num_runs=5, num_trials=96, num_eval_tasks=1113, synthetic=False):
 
     corrects = np.ones((len(tasks), len(noises), len(shuffles), len(shuffle_evals), num_eval_tasks, num_trials))
     for t_idx, task in enumerate(tasks):
@@ -508,11 +508,12 @@ def evaluate_nosofsky1994(env_name=None, experiment=None, tasks=[None], noises=[
             for s_idx, shuffle in enumerate(shuffles):
                 for se_idx, shuffle_eval in enumerate(shuffle_evals):
                     if synthetic:
-                        model_name =  f"env={env_name}_num_episodes500000_num_hidden=128_lr0.0003_noise{noise}_shuffle{shuffle}_run=0_synthetic.pt"
+                        model_name = f"env={env_name}_noise{noise}_shuffle{shuffle}_run=0_synthetic.pt"
                     else:
-                        model_name = f"env={env_name}_num_episodes500000_num_hidden=128_lr0.0003_noise{noise}_shuffle{shuffle}_run=0.pt"
-                    model_path=f"/raven/u/ajagadish/vanilla-llama/categorisation/trained_models/{model_name}"
-                    corrects[t_idx, n_idx, s_idx, se_idx] = evaluate_metalearner(task, model_path, 'shepard_categorisation', shuffle_trials=shuffle_eval, num_runs=num_runs)
+                        model_name = f"env={env_name}_noise{noise}_shuffle{shuffle}_run=0.pt"
+                    model_path = f"/raven/u/ajagadish/vanilla-llama/categorisation/trained_models/{model_name}"
+                    corrects[t_idx, n_idx, s_idx, se_idx] = evaluate_metalearner(task, model_path, 'shepard_categorisation', \
+                                                                                 beta=beta, shuffle_trials=shuffle_eval, num_runs=num_runs)
         
     # compuate error rates across trials using corrects
     errors = 1. - corrects.mean(3)
@@ -537,7 +538,7 @@ def evaluate_nosofsky1994(env_name=None, experiment=None, tasks=[None], noises=[
 
     f.savefig(f'/raven/u/ajagadish/vanilla-llama/categorisation/figures/nosofsky1994_metalearner_{model_name}.svg', bbox_inches='tight', dpi=300)
     
-def evaluate_nosofsky1988(env_name=None, experiment=1, noises=[0.05, 0.1, 0.0], shuffles=[True, False], num_runs=5, num_trials=64, num_blocks=3, num_eval_tasks=64, synthetic=False):
+def evaluate_nosofsky1988(env_name=None, experiment=1, beta=1., noises=[0.05, 0.1, 0.0], shuffles=[True, False], num_runs=5, num_trials=64, num_blocks=3, num_eval_tasks=64, synthetic=False):
     num_trials = num_blocks*num_trials
     tasks = [[4*num_blocks, None, None], [4*num_blocks, 1, 5], [4*num_blocks, 6, 5]] if experiment==1 else [[4*num_blocks, None, None], [4*num_blocks, 5, 3], [4*num_blocks, 5, 5]]
     correct = np.zeros((len(tasks), len(noises), len(shuffles), num_eval_tasks, num_trials))
@@ -550,14 +551,14 @@ def evaluate_nosofsky1988(env_name=None, experiment=1, noises=[0.05, 0.1, 0.0], 
         for n_idx, noise in enumerate(noises):
             for s_idx, shuffle in enumerate(shuffles):    
                     if synthetic:
-                        model_name =  f"env={env_name}_num_episodes500000_num_hidden=128_lr0.0003_noise{noise}_shuffle{shuffle}_run=0_synthetic.pt"
+                        model_name = f"env={env_name}_noise{noise}_shuffle{shuffle}_run=0_synthetic.pt"
                     else:
-                        model_name = f"env={env_name}_num_episodes500000_num_hidden=128_lr0.0003_noise{noise}_shuffle{shuffle}_run=0.pt"
-                    model_path=f"/raven/u/ajagadish/vanilla-llama/categorisation/trained_models/{model_name}"
+                        model_name = f"env={env_name}_noise{noise}_shuffle{shuffle}_run=0.pt"
+                    model_path = f"/raven/u/ajagadish/vanilla-llama/categorisation/trained_models/{model_name}"
                     correct[t_idx, n_idx, s_idx,...,start_trial:], model_choices[t_idx, :, n_idx, s_idx,...,start_trial:],\
                         true_choices[t_idx, :, n_idx, s_idx,...,start_trial:], labels[t_idx, :, n_idx, s_idx,...,start_trial:] \
                               = evaluate_metalearner(task, model_path, 'nosofsky_categorisation', shuffle_trials=None, num_runs=num_runs,\
-                                                      return_choices=True, num_trials=num_trials)
+                                                      beta=beta, return_choices=True, num_trials=num_trials)
     # compute mean choice for each label for all task
     category_means = []
     for t_idx, task in enumerate(tasks):
@@ -585,7 +586,7 @@ def evaluate_nosofsky1988(env_name=None, experiment=1, noises=[0.05, 0.1, 0.0], 
     plt.show()
     f.savefig(f'/raven/u/ajagadish/vanilla-llama/categorisation/figures/nosofsky1988_metalearner_{model_name}.svg', bbox_inches='tight', dpi=300)    
 
-def evaluate_levering2020(env_name=None, noises=[0.05, 0.1, 0.0], shuffles=[True, False], num_runs=5, num_trials=158, num_eval_tasks=64, synthetic=False):
+def evaluate_levering2020(env_name=None, beta=1., noises=[0.05, 0.1, 0.0], shuffles=[True, False], num_runs=5, num_trials=158, num_eval_tasks=64, synthetic=False):
         
     tasks = ['linear', 'nonlinear']
     correct = np.zeros((len(tasks), len(noises), len(shuffles), num_eval_tasks, num_trials))
@@ -597,15 +598,14 @@ def evaluate_levering2020(env_name=None, noises=[0.05, 0.1, 0.0], shuffles=[True
         for n_idx, noise in enumerate(noises):
             for s_idx, shuffle in enumerate(shuffles):                    
                     if synthetic:
-                        model_name =  f"env={env_name}_num_episodes500000_num_hidden=128_lr0.0003_noise{noise}_shuffle{shuffle}_run=0_synthetic.pt"
+                        model_name = f"env={env_name}_noise{noise}_shuffle{shuffle}_run=0_synthetic.pt"
                     else:
-                        model_name = f"env={env_name}_num_episodes500000_num_hidden=128_lr0.0003_noise{noise}_shuffle{shuffle}_run=0.pt"
-                    model_path=f"/raven/u/ajagadish/vanilla-llama/categorisation/trained_models/{model_name}"
+                        model_name = f"env={env_name}_noise{noise}_shuffle{shuffle}_run=0.pt"
+                    model_path = f"/raven/u/ajagadish/vanilla-llama/categorisation/trained_models/{model_name}"
                     correct[t_idx, n_idx, s_idx], model_choices[t_idx, :, n_idx, s_idx],\
                         true_choices[t_idx, :, n_idx, s_idx], labels[t_idx, :, n_idx, s_idx] \
                             = evaluate_metalearner(task, model_path, 'levering_categorisation', shuffle_trials=None,\
-                                                    num_runs=num_runs, return_choices=True, \
-                                                    num_trials=num_trials)
+                                                    num_runs=num_runs, return_choices=True, beta=beta, num_trials=num_trials)
         
     # plot the mean accuracy over trials for differet tasks
     f, ax = plt.subplots(1, 1, figsize=(5,5))

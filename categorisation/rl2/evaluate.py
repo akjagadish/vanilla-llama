@@ -1,14 +1,16 @@
 import numpy as np
 import torch
-from envs import CategorisationTask, ShepardsTask, NosofskysTask, LeveringsTask
+from envs import CategorisationTask, ShepardsTask, NosofskysTask, LeveringsTask, SyntheticCategorisationTask
 import argparse
 from baseline_classifiers import LogisticRegressionModel, SVMModel
 
 # evaluate a model
-def evaluate_1d(env_name=None, model_path=None, experiment='categorisation', env=None, model=None, mode='val', shuffle_trials=False, policy='greedy', return_all=False):
+def evaluate_1d(env_name=None, model_path=None, experiment='categorisation', env=None, model=None, mode='val', shuffle_trials=False, policy='greedy', beta=1., return_all=False):
     
     if env is None:
         # load environment
+        if experiment == 'synthetic':
+            env = SyntheticCategorisationTask(max_steps=70, noise=0., shuffle_trials=shuffle_trials)
         if experiment == 'categorisation':
             env = CategorisationTask(data=env_name, mode=mode, shuffle_trials=shuffle_trials)
         elif experiment == 'shepard_categorisation':
@@ -25,14 +27,29 @@ def evaluate_1d(env_name=None, model_path=None, experiment='categorisation', env
     with torch.no_grad():
         model.eval()
         packed_inputs, sequence_lengths, targets = env.sample_batch()
+
+        #TODO: the noise term for the choices can be set within the model
+        model.beta = beta
         model_choices = model(packed_inputs, sequence_lengths)
+        
+        # sample from model choices probs using binomial distribution
+        model_choices = torch.distributions.Binomial(probs=model_choices).sample()
+
+        # for MetaLearner model class
+        # sigmoid = torch.nn.Sigmoid()
+        # model_choices = sigmoid(model_choices*0.5) #0.85 (used 0.5 for ac summer school)
+        # model_choices = torch.distributions.Binomial(probs=model_choices).sample()
+        
+        # deprecated
+        # model_choices = model_choices.round()
+        
         # true_choices = targets.view(-1).float()
         # model_choices = model_choices.view(-1).float()
         #TODO: this reshaping limits the future possilibites chagne it
         model_choices = torch.concat([model_choices[i, :seq_len] for i, seq_len in enumerate(sequence_lengths)], axis=0).squeeze().float()
         true_choices = torch.concat(targets, axis=0).float()
         category_labels = torch.concat(env.stacked_labels, axis=0).float() if experiment=='nosofsky_categorisation' else None
-        accuracy = (model_choices.round()==true_choices).sum()/(model_choices.shape[0])
+        accuracy = (model_choices==true_choices).sum()/(model_choices.shape[0])
         
     if return_all:
         return accuracy, model_choices, true_choices, sequence_lengths, category_labels
@@ -129,14 +146,13 @@ def evaluate_against_baselines(env_name, model_path, mode='val', return_all=Fals
     else:    
         return accuracy
     
-def evaluate_metalearner(env_name, model_path, experiment='categorisation', mode='test', shuffle_trials=False, num_trials=96, num_runs=5, return_choices=False):
+def evaluate_metalearner(env_name, model_path, experiment='categorisation', mode='test', shuffle_trials=False, beta=1., num_trials=96, num_runs=5, return_choices=False):
     
     for run_idx in range(num_runs):
 
         _, model_choices, true_choices, sequences, category_labels = evaluate_1d(env_name=env_name,\
-                    model_path=model_path, experiment=experiment,\
-                    mode=mode, shuffle_trials=shuffle_trials, \
-                    return_all=True)
+                    model_path=model_path, experiment=experiment, mode=mode, shuffle_trials=shuffle_trials, \
+                    beta=beta, return_all=True)
         
         cum_sum = np.array(sequences).cumsum()
         correct = np.ones((num_runs, len(cum_sum), np.diff(cum_sum).max())) if run_idx==0 else correct

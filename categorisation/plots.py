@@ -21,12 +21,14 @@ COLORS = {'a':'#117733',
           'svm':'#CC6677',
           'optimal': '#D6BF4D',
           'feature_1':'#882255', #332288
-          'mean_tracker_compositional':'#882255', #AA4499',
+          'people':'#882255', #AA4499',
           'stats':'#44AA99', 
           'feature_2':'#44AA99',
           'simple_grammar_constrained_noncompositonal':'#EF9EBB',
           'feature_3':'#E2C294', #'#0571D0', 
           'metal':'#DA9138', #"#D55E00", 
+          'people2': '#748995',
+          'metal2': '#173b4f'
           }
 FONTSIZE=20
 
@@ -65,25 +67,36 @@ def label_imbalance(data, categories=['A','B']):
     num_targets = np.stack([(data[data.task_id==task_id].target=='A').sum() for task_id in data.task_id.unique()])
     expected_number_points = np.nanmean(np.array([data[data.task_id==ii].trial_id.max()+1 for ii in np.arange(num_tasks)]))
     f, ax = plt.subplots(1, 1, figsize=(5,5))
-    ax.bar(categories, [num_targets.mean(), expected_number_points-num_targets.mean()], color=[COLORS['a'], COLORS['b']])
-    ax.errorbar(categories, [num_targets.mean(), expected_number_points-num_targets.mean()], yerr=[num_targets.std(), num_targets.std()], c='k')
-    #plt.legend(fontsize=FONTSIZE-5,  loc="upper center", bbox_to_anchor=(.45, 1.1), ncol=3, frameon=True)
-    ax.set_ylabel('Mean number of points per class', fontsize=FONTSIZE)
-    ax.set_xlabel('Category', fontsize=FONTSIZE) #$a_{name_trials}$
+    bar_positions = [0, 0.55]
+    colors = ['#173b4f', '#8b9da7'] #'#748995', '#5d7684', '#456272', '#2e4f61',
+    ax.bar(bar_positions, [num_targets.mean(), expected_number_points-num_targets.mean()], color=colors, width=0.4)
+    ax.errorbar(bar_positions, [num_targets.mean(), expected_number_points-num_targets.mean()], \
+                yerr=[num_targets.std()/np.sqrt(len(num_targets)-1), (expected_number_points-num_targets).std()/np.sqrt(len(num_targets)-1)], \
+                c='k', lw=3, fmt="o")
+    ax.set_ylabel('# points per class per task', fontsize=FONTSIZE)
+    ax.set_xlabel('Category', fontsize=FONTSIZE) 
+    ax.set_xticks(bar_positions)  # Set x-tick positions to bar_positions
+    ax.set_xticklabels(categories, fontsize=FONTSIZE-2)  # Assign category names to x-tick labels
     plt.xticks(fontsize=FONTSIZE-2)
     plt.yticks(fontsize=FONTSIZE-2)
     sns.despine()
     f.tight_layout()
     plt.show()
 
+    # save figure
+    f.savefig(f'/raven/u/ajagadish/vanilla-llama/categorisation/figures/label_balance.svg', bbox_inches='tight', dpi=300)
+
 
 # plot mean number of tasks
 def plot_mean_number_tasks(data):
     f, ax = plt.subplots(1, 1, figsize=(5,5))
     expected_number_points = np.array([data[data.task_id==ii].trial_id.max()+1 for ii in np.arange(data.task_id.max()+1)])
+    mean_number_points = expected_number_points.mean()
     print('mean: ', expected_number_points.mean())
-    ax.hist(expected_number_points)
-    plt.legend(fontsize=FONTSIZE-2,  loc="upper center", bbox_to_anchor=(.45, 1.1), ncol=3, frameon=False)
+    # ax.hist(expected_number_points)
+    sns.histplot(expected_number_points, kde=False, bins=50, color=COLORS['metal2'])
+    plt.axvline(mean_number_points, color='#8b9da7', linestyle='--', label=f'Mean: {mean_number_points:.2f}', linewidth=2)
+    # plt.legend(fontsize=FONTSIZE-2,  loc="upper center", bbox_to_anchor=(.45, 1.1), ncol=3, frameon=False)
     ax.set_ylabel('Counts', fontsize=FONTSIZE)
     ax.set_xlabel('Number of data points per task', fontsize=FONTSIZE) #$a_{name_trials}$
     plt.xticks(fontsize=FONTSIZE-2)
@@ -91,6 +104,9 @@ def plot_mean_number_tasks(data):
     sns.despine()
     f.tight_layout()
     plt.show()
+
+    # save figure
+    f.savefig(f'/raven/u/ajagadish/vanilla-llama/categorisation/figures/mean_number_tasks.svg', bbox_inches='tight', dpi=300)
 
 # plotting the autocorrelations between features
 def plot_autocorr_features(data):
@@ -162,32 +178,51 @@ def plot_correlation_features(data, max_input_length=100, num_features=3, time_s
     plt.show()
     
 # plot trial-by-trial performance of baseline models
-def plot_trial_by_trial_performance(data, fit_upto_trial, plot_last_trials, num_trials=None):
+def plot_trial_by_trial_performance(data, fit_upto_trial, plot_last_trials, num_trials=None, backwards=False):
     
-    # keep only trial_id upto num_trials for all tasks
-    data = data[data.trial_id<=num_trials] if num_trials is not None else data
-
+    num_tasks = data.task_id.nunique()
     accuracy_lm, accuracy_svm, scores = evaluate_data_against_baselines(data, fit_upto_trial, num_trials)
-    accuracy_lm = [acc[-plot_last_trials:, 0] for acc in scores if len(acc)>=plot_last_trials]
-    accuracy_svm = [acc[-plot_last_trials:, 1] for acc in scores if len(acc)>=plot_last_trials]
-    num_tasks= data.task_id.nunique()
+    # if backwards: 
+    #     accuracy_lm2 = [acc[-plot_last_trials:, 0] for acc in scores if len(acc)>=plot_last_trials]
+    #     accuracy_svm = [acc[-plot_last_trials:, 1] for acc in scores if len(acc)>=plot_last_trials]
+    # else:
+    #     accuracy_lm2 = [acc[:plot_last_trials, 0] for acc in scores if len(acc)>=plot_last_trials]
+    #     accuracy_svm = [acc[:plot_last_trials, 1] for acc in scores if len(acc)>=plot_last_trials]
     # accuracy_lm = [acc[-plot_last_trials:] for acc in accuracy_lm if len(acc)>=plot_last_trials]
     # accuracy_svm = [acc[-plot_last_trials:] for acc in accuracy_svm if len(acc)>=plot_last_trials]
-    f, ax = plt.subplots(1, 1, figsize=(7,7))   
+
+    f, ax = plt.subplots(1, 1, figsize=(5,5))   
     num_tasks = len(accuracy_lm)
-    ax.plot(np.arange(-plot_last_trials, 0), torch.stack(accuracy_lm).sum(0)/num_tasks, label='Logistic Regression', color=COLORS['lr'])
-    ax.plot(np.arange(-plot_last_trials, 0), torch.stack(accuracy_svm).sum(0)/num_tasks, label='SVM', color=COLORS['svm'])
+    x_labels = np.arange(-plot_last_trials, 0) if backwards else np.arange(0, plot_last_trials)
+    # plot lm curve
+    mean_lm = torch.stack(accuracy_lm).sum(0)/num_tasks
+    std_lm = torch.stack(accuracy_lm).float().std(0)/np.sqrt(num_tasks-1)
+    COLORS['svm'] = '#173b4f'
+    COLORS['lr'] = '#8b9da7'
+    ax.plot(x_labels, mean_lm, label='Logistic Regression', color=COLORS['lr'])
+    ax.fill_between(x_labels, mean_lm-std_lm, mean_lm+std_lm, color=COLORS['lr'], alpha=0.2)
+    # plot svm curve
+    mean_svm = torch.stack(accuracy_svm).sum(0)/num_tasks
+    std_svm = torch.stack(accuracy_svm).float().std(0)/np.sqrt(num_tasks-1)
+    ax.plot(x_labels, mean_svm, label='SVM', color=COLORS['svm'])
+    ax.fill_between(x_labels, mean_svm-std_svm, mean_svm+std_svm, color=COLORS['svm'], alpha=0.2)
     #ax.set_ylim([0., .8])
-    ax.hlines(0.5, -plot_last_trials, 0, color='k', linestyles='dotted', lw=4)
+    if backwards: 
+        ax.hlines(0.5, -plot_last_trials, 0, color='k', linestyles='dotted', lw=4)
+    else:
+        ax.hlines(0.5, 0, plot_last_trials, color='k', linestyles='dotted', lw=4)
     plt.yticks(fontsize=FONTSIZE-2)
     plt.xticks(fontsize=FONTSIZE-2)
     ax.set_xlabel('Trial', fontsize=FONTSIZE)
     ax.set_ylabel('Mean accuracy (over tasks)', fontsize=FONTSIZE)
-    ax.set_title(f'Performance over trials', fontsize=FONTSIZE)
-    ax.legend(fontsize=FONTSIZE-2, loc='lower right')
+    #ax.set_title(f'Performance over trials', fontsize=FONTSIZE)
+    ax.legend(fontsize=FONTSIZE-2, loc='lower right', frameon=False)
     sns.despine()
     f.tight_layout()
     plt.show()
+
+    # save figure
+    f.savefig(f'/raven/u/ajagadish/vanilla-llama/categorisation/figures/trial_by_trial_performance.svg', bbox_inches='tight', dpi=300)
 
 # plot histogram of binned data
 def plot_histogram_binned_data(data, num_bins, min_value=0, max_value=1):
@@ -232,8 +267,8 @@ def plot_sorted_volumes(data, num_bins, min_value=0, max_value=1):
 def plot_data_stats(data):
 
     all_corr, all_coef, posterior_logprob, _ = return_data_stats(data)
-    
-    fig, axs = plt.subplots(1, 3,  figsize=(14,6))
+    COLORS['stats'] = '#173b4f'
+    fig, axs = plt.subplots(1, 3,  figsize=(15,5))
     sns.histplot(np.array(all_corr), ax=axs[0], bins=10, stat='probability', edgecolor='w', linewidth=1, color=COLORS['stats'])
     sns.histplot(np.array(all_coef), ax=axs[1], bins=11, binrange=(-10, 10), stat='probability', edgecolor='w', linewidth=1, color=COLORS['stats'])
     sns.histplot(posterior_logprob[:, 0].exp().detach(), ax=axs[2], bins=5, stat='probability', edgecolor='w', linewidth=1, color=COLORS['stats'])
@@ -263,6 +298,8 @@ def plot_data_stats(data):
     sns.despine()
     plt.show()
 
+    # save figure
+    fig.savefig(f'/raven/u/ajagadish/vanilla-llama/categorisation/figures/data_stats.svg', bbox_inches='tight', dpi=300)
 
 def plot_cue_validity(data):
 
@@ -332,6 +369,42 @@ def plot_per_task_features(df):
     sns.despine()
     f.tight_layout()
     plt.show()
+
+def plot_per_task_features_for_selected_tasks(df, sample_task_per_feature=None):
+
+    df['input_stripped'] = df['input'].apply(lambda x: list(map(float, x.strip('[]').split(','))))
+    df[['feature1', 'feature2', 'feature3']] = pd.DataFrame(df['input_stripped'].to_list(), index=df.index)
+    df = df.groupby('task_id').agg({'feature1':list, 'feature2':list, 'feature3':list, 'target':list}).reset_index()
+    task1, task2, task3 = sample_task_per_feature
+    f, axs = plt.subplots(1, 3, figsize=(15,5))
+
+    plt.tick_params(axis='both', which='major', labelsize=FONTSIZE-2)
+    sns.histplot(df[df.task_id==task1].feature1.values[0], ax=axs[0], bins=10, stat='probability', edgecolor='w', linewidth=1, color=COLORS['feature_1'])
+    sns.histplot(df[df.task_id==task2].feature2.values[0], ax=axs[1], bins=10, stat='probability', edgecolor='w', linewidth=1, color=COLORS['feature_2'])
+    sns.histplot(df[df.task_id==task3].feature3.values[0], ax=axs[2], bins=10, stat='probability', edgecolor='w', linewidth=1, color=COLORS['feature_3'])
+    axs[0].set_xlabel('')
+    axs[1].set_xlabel('')
+    axs[2].set_xlabel('')
+    axs[0].set_ylabel('')
+    axs[1].set_ylabel('')
+    axs[2].set_ylabel('')
+    axs[0].set_ylim(0., 0.2)
+    axs[1].set_ylim(0., 0.2)
+    axs[2].set_ylim(0., 0.2)
+    axs[0].set_ylabel('probability', fontsize=FONTSIZE-2)
+    axs[0].set_xlabel('Shape', fontsize=FONTSIZE-2)
+    axs[1].set_xlabel('Size', fontsize=FONTSIZE-2)
+    axs[2].set_xlabel('Color', fontsize=FONTSIZE-2)
+        
+    for ax in axs:
+        ax.tick_params(axis='both', which='major', labelsize=FONTSIZE-2)
+            
+    sns.despine()
+    f.tight_layout()
+    plt.show()
+    
+     # save figure
+    f.savefig(f'/raven/u/ajagadish/vanilla-llama/categorisation/figures/selected_task_features.svg', bbox_inches='tight', dpi=300)
 
     
 def errors_metalearner(env_name, model_path, mode='test', shuffle_trials=False, num_trials=96, num_runs=5):

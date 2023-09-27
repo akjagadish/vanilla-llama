@@ -714,3 +714,79 @@ def replot_nosofsky1994():
     f.tight_layout()
     plt.show()
     f.savefig(f'/raven/u/ajagadish/vanilla-llama/categorisation/figures/nosofsky1994_humans.svg', bbox_inches='tight', dpi=300)
+
+def longest_consecutive_sequence(arr):
+    return np.median(np.diff(np.insert(np.where(np.diff(arr) != 0)[0] + 1, [0, -1], [0, len(arr)])))/len(arr)
+
+def compute_burstiness(signal):
+    return (len(signal)-(np.diff(signal)==0).sum())/len(signal)
+
+def plot_burstiness_training_curriculum(data,  num_tasks= 10000):
+
+    # sub-select task
+    list_tasks = data.task_id.unique()[:num_tasks] 
+    data_subselected = data[data['task_id'].isin(list_tasks)]
+
+    burstinesss, shuffled_burstinesss, block_length, shuffled_block_length  = [], [], [], []
+    for task_id in list_tasks:
+        data_As = data_subselected[data_subselected.task_id==task_id].target.values
+        signal = np.stack([2. if val=='A' else 1. for val in data_As])
+        
+        burstinesss.append(compute_burstiness(signal))
+        block_length.append(longest_consecutive_sequence(signal))
+        
+        np.random.shuffle(signal)
+        shuffled_burstinesss.append(compute_burstiness(signal))
+        shuffled_block_length.append(longest_consecutive_sequence(signal))
+    
+    categories = ['original', 'shuffled']
+    f, ax = plt.subplots(1, 1, figsize=(7,7))
+    colors = ['#173b4f', '#8b9da7'] 
+    a = plt.hist([np.stack(block_length), np.stack(shuffled_block_length)], bins=10, color=colors, label=categories);
+    ax.set_ylabel('#Counts', fontsize=FONTSIZE)
+    ax.set_xlabel('Median block length', fontsize=FONTSIZE)
+    plt.xticks(fontsize=FONTSIZE-2)
+    plt.yticks(fontsize=FONTSIZE-2)
+    plt.legend(frameon=False, fontsize=FONTSIZE-5)
+    sns.despine()
+    f.tight_layout()
+    plt.show()
+    f.savefig('/raven/u/ajagadish/vanilla-llama/categorisation/figures/claude_median_lock_length.png', bbox_inches='tight')
+
+    # histogram of burstiness
+    categories = ['original', 'shuffled']
+    f, ax = plt.subplots(1, 1, figsize=(5,5))
+    bar_positions = [0, 0.55]
+    colors = ['#173b4f', '#8b9da7'] 
+    ax.hist([np.stack(burstinesss), np.stack(shuffled_burstinesss)], density=False, color=colors, label=categories)
+    ax.set_ylabel('Counts', fontsize=FONTSIZE)
+    ax.set_xlabel('Bursitiness', fontsize=FONTSIZE)
+    plt.xticks(fontsize=FONTSIZE-2)
+    plt.yticks(fontsize=FONTSIZE-2)
+    plt.legend(frameon=False, fontsize=FONTSIZE-5, loc='upper left')
+    sns.despine()
+    f.tight_layout()
+    plt.show()
+    f.savefig('/raven/u/ajagadish/vanilla-llama/categorisation/figures/claude_burstiness_histogram.png', bbox_inches='tight')
+
+    # compare variance of burstiness
+    categories = ['original', 'shuffled']
+    f, ax = plt.subplots(1, 1, figsize=(5,5))
+    bar_positions = [0, 0.55]
+    colors = ['#173b4f', '#8b9da7']    
+    ax.bar(bar_positions, [np.array(burstinesss).mean(), np.array(shuffled_burstinesss).mean()], color=colors, width=0.4)
+    ax.errorbar(bar_positions, [np.array(burstinesss).mean(), np.array(shuffled_burstinesss).mean()],\
+                yerr=[np.array(burstinesss).std(), np.array(shuffled_burstinesss).std()], \
+                c='k', lw=3, fmt="o") #/np.sqrt(num_tasks-1)
+    ax.set_xlabel('LLM generated curriculum', fontsize=FONTSIZE)
+    ax.set_ylabel('Bursitiness', fontsize=FONTSIZE)
+    ax.set_xticks(bar_positions)  # Set x-tick positions to bar_positions
+    ax.set_xticklabels(categories, fontsize=FONTSIZE-2)  # Assign category names to x-tick labels
+    plt.xticks(fontsize=FONTSIZE-2)
+    plt.yticks(fontsize=FONTSIZE-2)
+    sns.despine()
+    f.tight_layout()
+    plt.show()
+    f.savefig('/raven/u/ajagadish/vanilla-llama/categorisation/figures/claude_burstiness.png', bbox_inches='tight')
+
+

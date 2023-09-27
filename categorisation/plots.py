@@ -12,7 +12,7 @@ from evaluate import evaluate_1d, evaluate_metalearner
 from utils import evaluate_data_against_baselines, bin_data_points
 from utils import probability_same_target_vs_distance
 from envs import NosofskysTask
-
+import json
 
 # set plotting parameters
 COLORS = {'a':'#117733', 
@@ -738,7 +738,7 @@ def plot_burstiness_training_curriculum(data,  num_tasks= 10000):
         np.random.shuffle(signal)
         shuffled_burstinesss.append(compute_burstiness(signal))
         shuffled_block_length.append(longest_consecutive_sequence(signal))
-    
+
     categories = ['original', 'shuffled']
     f, ax = plt.subplots(1, 1, figsize=(7,7))
     colors = ['#173b4f', '#8b9da7'] 

@@ -444,19 +444,28 @@ def errors_metalearner(env_name, model_path, mode='test', shuffle_trials=False, 
     f.tight_layout()
     plt.show()
 
-def compare_metalearners(experiment='categorisation', tasks=[None], noises=[0.05, 0.1, 0.0], shuffles=[True, False], shuffle_evals=[True, False], num_runs=5, num_trials=96, num_eval_tasks=1113):
+def compare_metalearners(env_name=None, model_env=None, experiment='categorisation', tasks=[None], noises=[0.05, 0.1, 0.0], shuffles=[True, False], shuffle_evals=[True, False], num_runs=5, num_trials=96, num_eval_tasks=1113, synthetic=False):
 
     corrects = np.ones((len(tasks), len(noises), len(shuffles), len(shuffle_evals), num_eval_tasks, num_trials))
     for t_idx, task in enumerate(tasks):
         for n_idx, noise in enumerate(noises):
             for s_idx, shuffle in enumerate(shuffles):
                 for se_idx, shuffle_eval in enumerate(shuffle_evals):
+
                     if experiment=='categorisation':
-                        env_name = '/raven/u/ajagadish/vanilla-llama/categorisation/data/claude_generated_tasks_paramsNA_dim3_data100_tasks14000.csv'
-                    elif experiment=='shepard_categorisation':
-                        env_name = task
-                    model_path=f"/raven/u/ajagadish/vanilla-llama/categorisation/trained_models/env=claude_generated_tasks_paramsNA_dim3_data100_tasks14000_num_episodes500000_num_hidden=128_lr0.0003_noise{noise}_shuffle{shuffle}_run=0.pt"
-                    corrects[t_idx, n_idx, s_idx, se_idx] = evaluate_metalearner(env_name, model_path, experiment, shuffle_trials=shuffle_eval, num_runs=num_runs)
+                        env_path = f'/raven/u/ajagadish/vanilla-llama/categorisation/data/{env_name}.csv'
+                    else:
+                        raise NotImplementedError
+
+                    if synthetic:
+                        model_name = f"env={env_name}_{model_env}_noise{noise}_shuffle{shuffle}_run=0_synthetic.pt"
+                    else:
+                        
+                        model_name = f"env={env_name}_{model_env}_noise{noise}_shuffle{shuffle}_run=0.pt"
+
+                    model_path=f"/raven/u/ajagadish/vanilla-llama/categorisation/trained_models/{model_name}"
+
+                    corrects[t_idx, n_idx, s_idx, se_idx] = evaluate_metalearner(env_path, model_path, experiment, shuffle_trials=shuffle_eval, num_runs=num_runs)
         
     # compuate error rates across trials using corrects
     errors = 1. - corrects.mean(3)

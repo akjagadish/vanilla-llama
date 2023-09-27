@@ -17,7 +17,8 @@ module load gcc/11 impi/2021.6
 module load cuda/11.6
 module load pytorch_distributed/gpu-cuda-11.6/1.13.0
 pip3 install --user accelerate openai gym ipdb transformers tensorboard python-dotenv
-pip3 install --user fire sentencepiece ipdb accelerate tqdm
+pip3 install --user fire sentencepiece ipdb accelerate tqdm anthropic
 export OMP_NUM_THREADS=${SLURM_CPUS_PER_TASK}
 
-python llm/run_llm.py --mode 'human'
+# python llm/run_llm.py --mode 'human' --participant_id 46 --run 2
+python llm/run_llm.py --mode 'human' --participant_id 67 --run 3

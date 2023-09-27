@@ -19,19 +19,19 @@ def call_claude(query, model="claude-2", temperature=0., max_tokens=1):
     
     return response
 
-def run_llm_on_categorisation(mode='llm', model='claude-2'):
+def run_llm_on_categorisation(mode='llm', model='claude-2', start_participant=0, run_id=0):
     datasets = ["data/human/exp1.csv"]
     all_prompts = []
     categories = {'j': 'A', 'f': 'B'}
 
     for dataset in datasets:
         df = pd.read_csv(dataset)
-        df['llm_category'], df['true_category'] = np.nan, np.nan # add new column to df to store the llm predicted category
+        df['llm_category'], df['human_category'], df['true_category'] = np.nan, np.nan, np.nan # add new column to df to store the llm predicted category
         num_participants = df.participant.max() + 1
         num_tasks = df.task.max() + 1
         num_blocks = df.block.max() + 1
         
-        for participant in range(num_participants):
+        for participant in range(start_participant, num_participants):
             df_participant = df[(df['participant'] == participant)]
             num_trials = df_participant.trial.max() + 1 # participant specific number of trials
             num_features = 3 #
@@ -50,6 +50,7 @@ def run_llm_on_categorisation(mode='llm', model='claude-2'):
                 df_task = df_participant[(df_participant['task'] == task)]
 
                 for block in range(num_blocks):
+                    print(f'participant {participant}, task {task}, block {block} \n\n')
                     df_block = df_task[(df_task['block'] == block)]
                     num_trials_block = df_block.trial.max() + 1 # block specific number of trials
                     block_instructions = instructions #+ f'In this block {block+1}, you will be shown {num_trials_block} examples of geometric objects. \n'
@@ -80,20 +81,22 @@ def run_llm_on_categorisation(mode='llm', model='claude-2'):
                         # add llm predicted category and true category to df
                         df.loc[(df['participant'] == participant) & (df['task'] == task) & (df['trial'] == trial) & (df['block'] == block) , 'llm_category'] = llm_response
                         df.loc[(df['participant'] == participant) & (df['task'] == task) & (df['trial'] == trial) & (df['block'] == block) , 'true_category'] = str(t)
+                        df.loc[(df['participant'] == participant) & (df['task'] == task) & (df['trial'] == trial) & (df['block'] == block) , 'human_category'] = human_response
                         
                         # set response to llm response if mode is llm
                         response = llm_response if mode == 'llm' else human_response
 
                         # add to block instructions
                         block_instructions += '- In trial '+ str(t_idx+1) +', you picked category ' + str(response) + ' for ' + object_name + ' and category ' + str(t) + ' was correct.\n'
-        
-        # save df with llm predicted category and true category
-        df.to_csv(dataset.replace('.csv', f'llm_choices{mode}.csv'), index=False)
+            # save df with llm predicted category and true category
+            df.to_csv(dataset.replace('.csv', f'llm_choices{mode}{run_id}.csv'), index=False)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--mode', type=str, default='llm', help='llm or human')
     parser.add_argument('--model', type=str, default='claude-2', help='claude-2 or claude-1')
+    parser.add_argument('--participant_id', type=int, default=0, help='participant number to start from')
+    parser.add_argument('--run', type=int, default=0, help='run id')
 
     args = parser.parse_args()
-    run_llm_on_categorisation(mode=args.mode, model=args.model)
+    run_llm_on_categorisation(mode=args.mode, model=args.model, start_participant=args.participant_id, run_id=args.run)

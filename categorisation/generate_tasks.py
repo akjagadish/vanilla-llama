@@ -8,15 +8,15 @@ import argparse
 import sys
 sys.path.insert(1, '/raven/u/ajagadish/vanilla-llama/')
 from inference import LLaMAInference
+from prompts import retrieve_prompt
 import ipdb
 import pickle
 import re
 import os
 from dotenv import load_dotenv
 import anthropic
-# Load environment variables from .env
-load_dotenv()
 
+load_dotenv() # load environment variables from .env
 TOKEN_COUNTER = 0
 def act(text=None, run_gpt='llama', temperature=1., max_length=300):
 
@@ -31,9 +31,6 @@ def act(text=None, run_gpt='llama', temperature=1., max_length=300):
     elif run_gpt=='gpt4':
         
         openai.api_key = os.getenv("OPENAI_API_KEY_GPT4") # load key from env
-        #text = [{"role": "user", "content": text}]  
-        # text = [{"role": "system", "content": "Do not generate any text other than the input-target pairs in the format specified by the user."}, \
-        #         {"role": "user", "content": text}]
         text = [{"role": "system", "content": "Do not generate any text other than the list of objects with their feature values and their corresponding category label in the format specified by the user."}, \
                 {"role": "user", "content": text}]
         engine = 'gpt-4'
@@ -44,7 +41,6 @@ def act(text=None, run_gpt='llama', temperature=1., max_length=300):
                 max_tokens = max_length,
                 temperature = temperature,
             )
-            #ipdb.set_trace()
             TOKEN_COUNTER += response['usage']['total_tokens'] 
             return response.choices[0].message.content.replace(' ', '')
         except:
@@ -64,7 +60,6 @@ def act(text=None, run_gpt='llama', temperature=1., max_length=300):
                 max_tokens = max_length,
                 temperature = temperature,
             )
-            #ipdb.set_trace()
             TOKEN_COUNTER += response['usage']['total_tokens'] 
             return response.choices[0].text.strip().replace(' ', '')
         except:
@@ -72,8 +67,9 @@ def act(text=None, run_gpt='llama', temperature=1., max_length=300):
             exc_type, exc_value, exc_traceback = sys.exc_info()
             print(exc_value)
             #time.sleep(3**iter)
+            
     elif run_gpt=='claude':
-        #ipdb.set_trace()
+
         client = anthropic.Anthropic()
         response = client.completions.create(
                 prompt = anthropic.HUMAN_PROMPT + text + anthropic.AI_PROMPT,
@@ -103,6 +99,7 @@ if __name__ == "__main__":
     parser.add_argument("--max-length", type=int, required=False, default=300)
     parser.add_argument("--proc-id", type=int, required=False, default=0)
     parser.add_argument("--num-runs", type=int, required=False, default=1)
+    parser.add_argument("--prompt-version", type=str, required=False, default=None)
 
     args = parser.parse_args()
     start_loading = time.time()
@@ -118,6 +115,7 @@ if __name__ == "__main__":
     # runtime parameters
     proc_id = args.proc_id
     num_runs = args.num_runs
+    prompt_version = args.prompt_version
 
     patterns = [
                 r'x=\[(.*?)\][;,]?\s*y\s*=?\s*([AB])',
@@ -139,88 +137,29 @@ if __name__ == "__main__":
     # load LLaMA model and instructions
     if run_gpt == 'llama':
         llama = LLaMAInference(args.llama_path, args.model, max_batch_size=2)
-        print(f"Loaded model {args.model} in {time.time() - start_loading:.2f} seconds")
-        instructions = f"A classification problem consists of a set of input-target pairs."\
-                        f" Each input, x, is a vector of length {str(num_dim)}, x = [x1, x2, x3], containing feature values that range continuously between 0 and 1."\
-                        " The target, y, is a function of the input vector and can take on values of either y = A or y = B.\n\n"\
-                        f" The following are {str(num_data)} input-target pairs generated for one such classification problem:\n"\
-                        "x=["
+        instructions = retrieve_prompt('llama', version='v0')
+
     # load GPT-3 specific instructions
     elif run_gpt == 'gpt3':
-        # instructions = f"A classification problem consists of a set of input-target pairs."\
-        #                 f" Each input, x, is a vector of length {str(num_dim)}, x = [x1, x2, x3], containing feature values (rounded to 2 decimals) that range continuously between 0 and 1."\
-        #                 " The target, y, is a function of the input vector and can take on values of either y = A or y = B.\n\n"\
-        #                 f" Please generate a list of {str(num_data)} input-target pairs using the following template for each row:\n"\
-        #                 f"- [x1, x2, x3], y"
-        instructions = f"A categorisation problem consists of a set of input-target pairs."\
-                        f" Each input, x, is a vector of length {str(num_dim)}, x = [x1, x2, x3], containing feature values (rounded to 2 decimals) that range continuously between 0 and 1."\
-                        " The target, y, is a function of the input vector and can take on values of either y = A or y = B."\
-                        " You can choose any naturalistic decision function for the mapping from input to target.  \n\n"\
-                        f" Please generate a list of {str(num_data)} input-target pairs for one such categorisation problem using the following template for each row:\n"\
-                        f"- [x1, x2, x3], y"
+        instructions = retrieve_prompt('gpt3', version='v1')
+
     # load GPT-4 specific instructions
     elif run_gpt == 'gpt4':
-        # instructions = f"A categorisation problem consists of a set of input-target pairs."\
-        #                 f" Each input, x, is a vector of length {str(num_dim)}, x = [x1, x2, x3], containing feature values (rounded to 2 decimals) that range continuously between 0 and 1."\
-        #                 " The target, y, is a function of the input vector and can take on values of either y = A or y = B.\n\n"\
-        #                 f" Please generate a list of {str(num_data)} input-target pairs for one such categorisation problem using the following template for each row:\n"\
-        #                 f"- [x1, x2, x3], y" ## got code to generate output once but otherwise consistent 
-        # instructions = f"A categorisation problem consists of a set of input-target pairs."\
-        #                 f" Each input, x, is a vector of length {str(num_dim)}, x = [x1, x2, x3], containing feature values (rounded to 2 decimals) that range continuously between 0 and 1."\
-        #                 " The target, y, is a function of the input vector and can take on values of either y = A or y = B."\
-        #                 " You can choose any naturalistic decision function for the mapping from input to target. \n\n"\
-        #                 f" Please generate a list of {str(num_data)} input-target pairs for one such categorisation problem using the following template for each row:\n"\
-        #                 f"- [x1, x2, x3], y"\
-                        #f" Do not generate any text but just provide the input-target pairs."
-        # instructions = f"A categorisation problem consists of a set of input-target pairs."\
-        #                 f" Each input, x, is a vector of length {str(num_dim)}, x = [x1, x2, x3], containing feature values (rounded to 2 decimals) that range continuously between 0 and 1."\
-        #                 " The target, y, is a function of the input vector and can take on values of either y = A or y = B."\
-        #                 " For the mapping from input to target, a wide range of naturalistic decision functions can be chosen."\
-        #                 " These functions may encompass complex mathematical operations, linear or non-linear functions, or arbitrary rule-based systems."\
-        #                 " The selected function should be representative of patterns or rules that may exist in real-world categorization tasks. \n\n" \
-        #                 f" Please generate a list of {str(num_data)} input-target pairs for one such categorisation problem using the following template for each row:\n"\
-        #                 f"- [x1, x2, x3], y"\
-        features = ['shape', 'size', 'colour']
-        instructions = f" I am a psychologist who wants to run a category learning experiment."\
-                        " For a category learning experiment, I need a list of objects and their category labels."\
-                        f" Each object is characterized by three distinct features: {features[0]}, {features[1]}, and {features[2]}."\
-                        " These feature values (rounded to 2 decimals) range continuously between 0 and 1."\
-                        " Each feature should follow a distribution that describes the values they take in the real world. "\
-                        " The category label can take the values A or B and should be predictable from the feature values of the object."\
-                        " For the mapping from object features to the category label, you can choose any naturalistic function that is"\
-                        " representative of patterns or rules that may exist in real-world tasks. \n\n"\
-                        f" Please generate a list of {str(num_data)} objects with their feature values and their corresponding"\
-                        " category labels using the following template for each row: \n"\
-                        "-  feature value 1, feature value 2, feature value 3, category label \n"\
-                        #"...\n"\
-                        #f"{str(num_data)}. feature value 1, feature value 2, feature value 3, category label"
-                        #" These functions may encompass complex mathematical operations, linear or non-linear functions, or arbitrary rule-based systems. \n\n"\
+        instructions = retrieve_prompt('gpt4', version='v3')
+    
+    # load Claude specific instructions
     elif run_gpt == 'claude':
-        # Q_ = anthropic.HUMAN_PROMPT
-        # A_ = anthropic.AI_PROMPT
-        features = ['shape', 'size', 'color']
-        
-        instructions = f" I am a psychologist who wants to run a category learning experiment."\
-                        " For a category learning experiment, I need a list of objects and their category labels."\
-                        f" Each object is characterized by three distinct features: {features[0]}, {features[1]}, and {features[2]}."\
-                        " These feature values (rounded to 2 decimals) range continuously between 0 and 1."\
-                        " Each feature should follow a distribution that describes the values they take in the real world. "\
-                        " The category label can take the values A or B and should be predictable from the feature values of the object."\
-                        " For the mapping from object features to the category label, you can choose any naturalistic function that is"\
-                        " representative of patterns or rules that may exist in real-world tasks. \n\n"\
-                        f" Please generate a list of {str(num_data)} objects with their feature values and their corresponding"\
-                        " category labels using the following template for each row: \n"\
-                        "-  feature value 1, feature value 2, feature value 3, category label \n"\
+        instructions = retrieve_prompt('claude', version=f'v{prompt_version}')
 
     # run gpt models
     for run in range(num_runs):
         data, unparsable_data = [], []
         for t in range(num_tasks):
-            print(instructions)
+            # print(instructions)
             ## LLM acts
             #ipdb.set_trace()
             action = act(instructions, run_gpt, temperature, max_length)
-            print(action)
+            # print(action)
             for pattern in patterns:
                 matches = re.findall(pattern, action, re.MULTILINE)
                 if len(matches) > 0:
@@ -232,11 +171,11 @@ if __name__ == "__main__":
             print(f'task {t}: no matches found' if len(matches) == 0 else f'task {t}: match found')
 
             # save data
-            with open(f"data/parsed/{run_gpt}_generated_tasks_params{args.model}_dim{num_dim}_data{num_data}_tasks{num_tasks}_run{run}_procid{proc_id}.txt", "wb") as fp:   
+            with open(f"data/parsed/{run_gpt}_generated_tasks_params{args.model}_dim{num_dim}_data{num_data}_tasks{num_tasks}_run{run}_procid{proc_id}_pversion{prompt_version}.txt", "wb") as fp:   
                 #pickling
                 pickle.dump(data, fp)
 
-            with open(f"data/unparsed/{run_gpt}_generated_tasks_params{args.model}_dim{num_dim}_data{num_data}_tasks{num_tasks}_run{run}_procid{proc_id}_unparsed.txt", "wb") as fp:   
+            with open(f"data/unparsed/{run_gpt}_generated_tasks_params{args.model}_dim{num_dim}_data{num_data}_tasks{num_tasks}_run{run}_procid{proc_id}_pversion{prompt_version}_unparsed.txt", "wb") as fp:   
                 #pickling
                 pickle.dump(unparsable_data, fp)
 

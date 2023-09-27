@@ -292,26 +292,33 @@ def evaluate_data_against_baselines(data, upto_trial=15, num_trials=None):
 
         trial = upto_trial # fit datapoints upto upto_trial; sort of burn-in trials
         # loop over trials
-        while trial <= num_trials:
+        while trial < num_trials:
             trial_inputs = inputs[:trial]
             trial_targets = targets[:trial]
             # if all targets until then are same, skip this trial
-            if (trial_targets == 0).all() or (trial_targets == 1).all():
-                pass
+            if (trial_targets == 0).all() or (trial_targets == 1).all() or trial<=5:
+                
+                # sample probability from uniform distribution
+                p = torch.distributions.uniform.Uniform(0, 1).sample()
+                lr_model_choice = torch.tensor([[1-p, p]])
+                p = torch.distributions.uniform.Uniform(0, 1).sample()
+                svm_model_choice = torch.tensor([[p, 1-p]])
+                baseline_model_choices.append(torch.stack([lr_model_choice, svm_model_choice]))
+                true_choices.append(targets[[trial]])
+                baseline_model_scores.append(torch.tensor([p, 1-p]))
+            
             else:
-                try:
-                    lr_model = LogisticRegressionModel(trial_inputs, trial_targets)
-                    svm_model = SVMModel(trial_inputs, trial_targets)
-                    lr_score = lr_model.score(inputs[[trial]], targets[[trial]])
-                    svm_score = svm_model.score(inputs[[trial]], targets[[trial]])
-                    lr_model_choice = lr_model.predict_proba(inputs[[trial]])
-                    svm_model_choice = svm_model.predict_proba(inputs[[trial]])#
-                    true_choice = targets[[trial]] #trial:trial+1]
-                    baseline_model_choices.append(torch.tensor([lr_model_choice, svm_model_choice]))
-                    true_choices.append(true_choice)
-                    baseline_model_scores.append(torch.tensor([lr_score, svm_score]))
-                except:
-                    print('error fitting')
+
+                lr_model = LogisticRegressionModel(trial_inputs, trial_targets)
+                svm_model = SVMModel(trial_inputs, trial_targets)
+                lr_score = lr_model.score(inputs[[trial]], targets[[trial]])
+                svm_score = svm_model.score(inputs[[trial]], targets[[trial]])
+                lr_model_choice = lr_model.predict_proba(inputs[[trial]])
+                svm_model_choice = svm_model.predict_proba(inputs[[trial]])#
+                true_choice = targets[[trial]] #trial:trial+1]
+                baseline_model_choices.append(torch.tensor([lr_model_choice, svm_model_choice]))
+                true_choices.append(true_choice)
+                baseline_model_scores.append(torch.tensor([lr_score, svm_score]))
             trial += 1
     
         # calculate accuracy

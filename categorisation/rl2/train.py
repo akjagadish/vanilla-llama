@@ -6,7 +6,7 @@ import torch.optim as optim
 import torch.nn.functional as F
 from torch.utils.tensorboard import SummaryWriter
 from envs import CategorisationTask, SyntheticCategorisationTask
-from model import RL2, MetaLearner, NoisyMetaLearner
+from model import MetaLearner, NoisyMetaLearner
 import argparse
 from tqdm import tqdm
 from evaluate import evaluate, evaluate_1d

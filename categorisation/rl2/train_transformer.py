@@ -29,7 +29,7 @@ def run(env_name, num_episodes, synthetic, num_dims, max_steps, noise, shuffle, 
     for t in tqdm(range(int(num_episodes))):
 
         packed_inputs, sequence_lengths, targets = env.sample_batch()
-        model_choices = model(packed_inputs, sequence_lengths, None)
+        model_choices = model(packed_inputs, sequence_lengths)
         model_choices = torch.concat([model_choices[i, :seq_len] for i, seq_len in enumerate(sequence_lengths)], axis=0).squeeze().float()
         true_choices = targets.reshape(-1).float()
 
@@ -47,11 +47,10 @@ def run(env_name, num_episodes, synthetic, num_dims, max_steps, noise, shuffle, 
 
         if (not t % save_every):
             torch.save([t, model], save_dir)
-            #TODO: eval on experiment='synthetic' if synthetic else 'categorisation'
-            #TODO: change evaluate to include transformer
-            #acc = evaluate_1d(env_name=env_name, model_path=save_dir, model='transformer', mode='val')
-            #accuracy.append(acc)
-            #writer.add_scalar('Val. Acc.', acc, t)
+            experiment = 'synthetic' if synthetic else 'categorisation'
+            acc = evaluate_1d(env_name=env_name, model_path=save_dir, experiment=experiment, mode='val')
+            accuracy.append(acc)
+            writer.add_scalar('Val. Acc.', acc, t)
         
     return losses, accuracy
 
@@ -59,7 +58,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='meta-learning for categorisation')
     parser.add_argument('--num-episodes', type=int, default=1e6, help='number of trajectories for training')
     parser.add_argument('--num-dims', type=int, default=3, help='number of dimensions')
-    parser.add_argument('--max-steps', type=int, default=8, help='number of points per episode')
+    parser.add_argument('--max-steps', type=int, default=8, help='number of data points per task')
+    parser.add_argument('--batch-size', type=int, default=64, help='batch size')
     parser.add_argument('--print-every', type=int, default=100, help='how often to print')
     parser.add_argument('--save-every', type=int, default=100, help='how often to save')
     parser.add_argument('--runs', type=int, default=1, help='total number of runs')
@@ -78,7 +78,6 @@ if __name__ == "__main__":
     parser.add_argument('--noise', type=float, default=0., help='noise level')
     parser.add_argument('--shuffle', action='store_true', default=False, help='shuffle trials')
     parser.add_argument('--model-name', default='transformer', help='name of the model')
-    
     # parser.add_argument('--eval', default='categorisation', help='what to eval your meta-learner on')
 
     args = parser.parse_args()
@@ -95,4 +94,4 @@ if __name__ == "__main__":
         if args.synthetic:
             save_dir = save_dir.replace('.pt', '_synthetic.pt')
         
-        run(env_name, args.num_episodes, args.synthetic, args.num_dims, args.max_steps, args.noise, args.shuffle, args.print_every, args.save_every, args.num_hidden, args.num_layers, args.d_model, args.num_head, save_dir, device, args.lr)
+        run(env_name, args.num_episodes, args.synthetic, args.num_dims, args.max_steps, args.noise, args.shuffle, args.print_every, args.save_every, args.num_hidden, args.num_layers, args.d_model, args.num_head, save_dir, device, args.lr, args.batch_size)

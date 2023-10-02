@@ -192,7 +192,7 @@ class TransformerDecoder(nn.Module):
         mask = mask.float().masked_fill(mask == 0, float('-inf')).masked_fill(mask == 1, float(0.0))
         return mask
 
-    def forward(self, packed_inputs, sequence_lengths, mask=None):
+    def forward(self, packed_inputs, sequence_lengths):
             
             #packed_inputs = pack_padded_sequence(packed_inputs, sequence_lengths, batch_first=True, enforce_sorted=False)
             inputs = self.embedding(packed_inputs)

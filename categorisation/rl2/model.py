@@ -7,8 +7,10 @@ from model_utils import PositionalEncoding
 class MetaLearner(nn.Module):
     """ Meta-learning model with LSTM core for the categorisation task """
 
-    def __init__(self, num_input, num_output, num_hidden, num_layers=1) -> None:
+    def __init__(self, num_input, num_output, num_hidden, num_layers=1, device="cpu") -> None:
         super(MetaLearner, self).__init__()
+
+        self.device = torch.device(device)
         self.num_input = num_input + num_output
         self.num_output = num_output
         self.num_hidden = num_hidden
@@ -54,8 +56,10 @@ class MetaLearner(nn.Module):
 class NoisyMetaLearner(nn.Module):
     """ Meta-learning model with LSTM core and an explicit tempature term for the categorisation task """
 
-    def __init__(self, num_input, num_output, num_hidden, beta=1., num_layers=1) -> None:
+    def __init__(self, num_input, num_output, num_hidden, beta=1., num_layers=1, device="cpu") -> None:
         super(NoisyMetaLearner, self).__init__()
+
+        self.device = torch.device(device)
         self.num_input = num_input + num_output
         self.num_output = num_output
         self.num_hidden = num_hidden
@@ -91,9 +95,10 @@ class NoisyMetaLearner(nn.Module):
 class Transformer(nn.Module):
     """ Meta-learning model with transformer core for the categorisation task """
 
-    def __init__(self, num_input, num_output, num_hidden, num_layers=1, d_model=256, num_head=1, dropout=0.1, beta=1, max_steps=200) -> None:
+    def __init__(self, num_input, num_output, num_hidden, num_layers=1, d_model=256, num_head=1, dropout=0.1, beta=1, max_steps=200, device="cpu") -> None:
         super(Transformer, self).__init__()
         
+        self.device = torch.device(device)
         self.num_input = num_input + num_output
         self.num_output = num_output
         self.num_hidden = num_hidden
@@ -152,9 +157,10 @@ class Transformer(nn.Module):
 class TransformerDecoder(nn.Module):
     """ Meta-learning model with transformer core for the categorisation task """
 
-    def __init__(self, num_input, num_output, num_hidden, num_layers=1, d_model=256, num_head=1, dropout=0.1, beta=1, max_steps=200) -> None:
+    def __init__(self, num_input, num_output, num_hidden, num_layers=1, d_model=256, num_head=1, dropout=0.1, beta=1, max_steps=200, device='cpu') -> None:
         super(TransformerDecoder, self).__init__()
         
+        self.device = torch.device(device)
         self.num_input = num_input + num_output
         self.num_output = num_output
         self.num_hidden = num_hidden
@@ -198,10 +204,10 @@ class TransformerDecoder(nn.Module):
             inputs = self.embedding(packed_inputs)
             inputs_pos_encoded = self.pos_encoder(inputs)
             tgt_mask = self.generate_square_subsequent_mask(inputs_pos_encoded.size(1))
-            output = self.transformer(inputs_pos_encoded.float(), inputs_pos_encoded.float(), tgt_mask=tgt_mask, memory_mask=tgt_mask)
+            output = self.transformer(inputs_pos_encoded.float().to(self.device), inputs_pos_encoded.float().to(self.device), tgt_mask=tgt_mask.to(self.device), memory_mask=tgt_mask.to(self.device))
             #output, _ = pad_packed_sequence(packed_output, batch_first=True)
-            y = self.linear(output)
-            y = self.sigmoid(self.beta*y)
+            y = self.linear(output.to(self.device))
+            y = self.sigmoid(self.beta*y.to(self.device))
             
             return y
     

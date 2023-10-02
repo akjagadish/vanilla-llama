@@ -5,7 +5,7 @@ import argparse
 from baseline_classifiers import LogisticRegressionModel, SVMModel
 
 # evaluate a model
-def evaluate_1d(env_name=None, model_path=None, experiment='categorisation', env=None, model=None, mode='val', shuffle_trials=False, policy='binomial', beta=1., max_steps=70, return_all=False):
+def evaluate_1d(env_name=None, model_path=None, experiment='categorisation', env=None, model=None, mode='val', shuffle_trials=False, policy='binomial', beta=1., max_steps=70, device='cpu', return_all=False):
     
     if env is None:
         # load environment
@@ -22,14 +22,14 @@ def evaluate_1d(env_name=None, model_path=None, experiment='categorisation', env
 
     if model is None:
         # load model
-        model = torch.load(model_path)[1]
+        model = torch.load(model_path)[1].to(device)
         
     with torch.no_grad():
         model.eval()
         packed_inputs, sequence_lengths, targets = env.sample_batch()
 
         model.beta = beta  # model beta is adjustable at test time
-        model_choices = model(packed_inputs.float(), sequence_lengths)
+        model_choices = model(packed_inputs.float().to(device), sequence_lengths)
         
         # sample from model choices probs using binomial distribution
         if policy=='binomial':
@@ -49,7 +49,7 @@ def evaluate_1d(env_name=None, model_path=None, experiment='categorisation', env
 
         #TODO: this reshaping limits the future possilibites chagne it
         model_choices = torch.concat([model_choices[i, :seq_len] for i, seq_len in enumerate(sequence_lengths)], axis=0).squeeze().float()
-        true_choices = targets.reshape(-1).float() if experiment == 'synthetic' else torch.concat(targets, axis=0).float()
+        true_choices = targets.reshape(-1).float().to(device) if experiment == 'synthetic' else torch.concat(targets, axis=0).float().to(device)
         category_labels = torch.concat(env.stacked_labels, axis=0).float() if experiment=='nosofsky_categorisation' else None
         accuracy = (model_choices==true_choices).sum()/(model_choices.shape[0])
         

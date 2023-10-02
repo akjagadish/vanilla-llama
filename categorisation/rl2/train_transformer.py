@@ -19,7 +19,7 @@ def run(env_name, num_episodes, synthetic, num_dims, max_steps, noise, shuffle, 
         env = CategorisationTask(data=env_name, max_steps=max_steps, batch_size=batch_size, noise=noise, shuffle_trials=shuffle, device=device).to(device)
     
     # setup model
-    model = TransformerDecoder(num_input=env.num_dims, num_output=env.num_choices, num_hidden=num_hidden, num_layers=num_layers, d_model=d_model, num_head=num_head).to(device) # 1, 256, 4
+    model = TransformerDecoder(num_input=env.num_dims, num_output=env.num_choices, num_hidden=num_hidden, num_layers=num_layers, d_model=d_model, num_head=num_head, device=device).to(device) # 1, 256, 4
 
     optimizer = optim.Adam(model.parameters(), lr=lr)
     losses = [] # keep track of losses
@@ -48,7 +48,7 @@ def run(env_name, num_episodes, synthetic, num_dims, max_steps, noise, shuffle, 
         if (not t % save_every):
             torch.save([t, model], save_dir)
             experiment = 'synthetic' if synthetic else 'categorisation'
-            acc = evaluate_1d(env_name=env_name, model_path=save_dir, experiment=experiment, mode='val')
+            acc = evaluate_1d(env_name=env_name, model_path=save_dir, experiment=experiment, mode='val', device=device)
             accuracy.append(acc)
             writer.add_scalar('Val. Acc.', acc, t)
         
@@ -82,7 +82,7 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     use_cuda = not args.no_cuda and torch.cuda.is_available()
-    device = "cpu" #torch.device("cuda" if use_cuda else "cpu")
+    device = torch.device("cuda" if use_cuda else "cpu") #"cpu" #
     env_name = f'/{args.env_dir}/{args.env_name}.csv'# if args.env_name is None else args.env_name
 
     for i in range(args.runs):

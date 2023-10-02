@@ -205,7 +205,7 @@ class SyntheticCategorisationTask(nn.Module):
         sequence_lengths = [len(task_input_features) for task_input_features in inputs]
         packed_inputs = rnn_utils.pad_sequence(stacked_task_features, batch_first=True)
 
-        return packed_inputs, sequence_lengths, stacked_targets 
+        return packed_inputs.to(self.device), sequence_lengths, stacked_targets.to(self.device) 
 
 class ShepardsTask(nn.Module):
     """

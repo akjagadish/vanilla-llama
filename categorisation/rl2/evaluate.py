@@ -5,12 +5,12 @@ import argparse
 from baseline_classifiers import LogisticRegressionModel, SVMModel
 
 # evaluate a model
-def evaluate_1d(env_name=None, model_path=None, experiment='categorisation', env=None, model=None, mode='val', shuffle_trials=False, policy='greedy', beta=1., return_all=False):
+def evaluate_1d(env_name=None, model_path=None, experiment='categorisation', env=None, model=None, mode='val', shuffle_trials=False, policy='binomial', beta=1., max_steps=70, return_all=False):
     
     if env is None:
         # load environment
         if experiment == 'synthetic':
-            env = SyntheticCategorisationTask(max_steps=70, noise=0., shuffle_trials=shuffle_trials)
+            env = SyntheticCategorisationTask(max_steps=max_steps, noise=0., shuffle_trials=shuffle_trials)
         if experiment == 'categorisation':
             env = CategorisationTask(data=env_name, mode=mode, shuffle_trials=shuffle_trials)
         elif experiment == 'shepard_categorisation':
@@ -28,26 +28,28 @@ def evaluate_1d(env_name=None, model_path=None, experiment='categorisation', env
         model.eval()
         packed_inputs, sequence_lengths, targets = env.sample_batch()
 
-        #TODO: the noise term for the choices can be set within the model
-        model.beta = beta
-        model_choices = model(packed_inputs, sequence_lengths)
+        model.beta = beta  # model beta is adjustable at test time
+        model_choices = model(packed_inputs.float(), sequence_lengths)
         
         # sample from model choices probs using binomial distribution
-        model_choices = torch.distributions.Binomial(probs=model_choices).sample()
+        if policy=='binomial':
+            model_choices = torch.distributions.Binomial(probs=model_choices).sample()
+        elif policy=='greedy':
+            model_choices = model_choices.round()
 
-        # for MetaLearner model class
+        # MetaLearner model with LSTM core (without beta within the model)
         # sigmoid = torch.nn.Sigmoid()
         # model_choices = sigmoid(model_choices*0.5) #0.85 (used 0.5 for ac summer school)
         # model_choices = torch.distributions.Binomial(probs=model_choices).sample()
         
         # deprecated
         # model_choices = model_choices.round()
-        
         # true_choices = targets.view(-1).float()
         # model_choices = model_choices.view(-1).float()
+
         #TODO: this reshaping limits the future possilibites chagne it
         model_choices = torch.concat([model_choices[i, :seq_len] for i, seq_len in enumerate(sequence_lengths)], axis=0).squeeze().float()
-        true_choices = torch.concat(targets, axis=0).float()
+        true_choices = targets.reshape(-1).float() if experiment == 'synthetic' else torch.concat(targets, axis=0).float()
         category_labels = torch.concat(env.stacked_labels, axis=0).float() if experiment=='nosofsky_categorisation' else None
         accuracy = (model_choices==true_choices).sum()/(model_choices.shape[0])
         

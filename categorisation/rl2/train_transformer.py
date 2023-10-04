@@ -19,7 +19,7 @@ def run(env_name, num_episodes, synthetic, num_dims, max_steps, noise, shuffle, 
         env = CategorisationTask(data=env_name, max_steps=max_steps, batch_size=batch_size, noise=noise, shuffle_trials=shuffle, device=device).to(device)
     
     # setup model
-    model = TransformerDecoder(num_input=env.num_dims, num_output=env.num_choices, num_hidden=num_hidden, num_layers=num_layers, d_model=d_model, num_head=num_head, device=device).to(device) # 1, 256, 4
+    model = TransformerDecoder(num_input=env.num_dims, num_output=env.num_choices, num_hidden=num_hidden, num_layers=num_layers, d_model=d_model, num_head=num_head, max_steps=max_steps, device=device).to(device) # 1, 256, 4
 
     optimizer = optim.Adam(model.parameters(), lr=lr)
     losses = [] # keep track of losses
@@ -31,7 +31,7 @@ def run(env_name, num_episodes, synthetic, num_dims, max_steps, noise, shuffle, 
         packed_inputs, sequence_lengths, targets = env.sample_batch()
         model_choices = model(packed_inputs, sequence_lengths)
         model_choices = torch.concat([model_choices[i, :seq_len] for i, seq_len in enumerate(sequence_lengths)], axis=0).squeeze().float()
-        true_choices = targets.reshape(-1).float()
+        true_choices = targets.reshape(-1).float() if synthetic else torch.concat(targets, axis=0).float().to(device)
 
         # gradient step
         loss = model.compute_loss(model_choices, true_choices)
@@ -59,7 +59,7 @@ if __name__ == "__main__":
     parser.add_argument('--num-episodes', type=int, default=1e6, help='number of trajectories for training')
     parser.add_argument('--num-dims', type=int, default=3, help='number of dimensions')
     parser.add_argument('--max-steps', type=int, default=8, help='number of data points per task')
-    parser.add_argument('--batch-size', type=int, default=64, help='batch size')
+    parser.add_argument('--batch_size', type=int, default=64, help='batch size')
     parser.add_argument('--print-every', type=int, default=100, help='how often to print')
     parser.add_argument('--save-every', type=int, default=100, help='how often to save')
     parser.add_argument('--runs', type=int, default=1, help='total number of runs')

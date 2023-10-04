@@ -165,7 +165,7 @@ class TransformerDecoder(nn.Module):
         self.num_output = num_output
         self.num_hidden = num_hidden
         self.num_layers = num_layers
-
+        self.num_head = num_head
          
         # check d_model is correct
         assert d_model % num_head == 0, "nheads must divide evenly into d_model"
@@ -193,19 +193,34 @@ class TransformerDecoder(nn.Module):
         self.criterion = nn.BCELoss()
         self.beta = beta
 
-    def generate_square_subsequent_mask(self, sz):
-        mask = (torch.triu(torch.ones(sz, sz)) == 1).transpose(0, 1)
-        mask = mask.float().masked_fill(mask == 0, float('-inf')).masked_fill(mask == 1, float(0.0))
-        return mask
+    def generate_square_subsequent_mask(self, seq_len, batch_size):
+
+        seq_len = torch.tensor(seq_len)
+        if (seq_len == seq_len[0]).all() and len(seq_len)>1: # check if elements of the list seq_len are equal
+            sz = seq_len[0]
+            mask = (torch.triu(torch.ones(sz, sz)) == 1).transpose(0, 1)
+            mask = mask.float().masked_fill(mask == 0, float('-inf')).masked_fill(mask == 1, float(0.0))
+            return mask
+        else:
+            sz = max(seq_len)
+            mask = (torch.triu(torch.ones(sz, sz)) == 1).transpose(0, 1)
+            mask = mask.float().masked_fill(mask == 0, float('-inf')).masked_fill(mask == 1, float(0.0))
+            mask = mask.unsqueeze(0).repeat(batch_size*self.num_head, 1, 1) # repeat the mask matrix self.num_head times
+            # mask = torch.zeros(batch_size*self.num_head, sz, sz)
+            # for i in range(len(seq_len)):
+            #     mask[i*self.num_head:(i+1)*self.num_head, :seq_len[i], :seq_len[i]] = (torch.triu(torch.ones(seq_len[i], seq_len[i])) == 1).transpose(0, 1)
+                # mask[i, :seq_len[i], :seq_len[i]] = (torch.triu(torch.ones(seq_len[i], seq_len[i])) == 1).transpose(0, 1)
+            # mask = mask.float().masked_fill(mask == 0, float('-inf')).masked_fill(mask == 1, float(0.0))
+            # repeat the mask matrix self.num_head times
+            # mask = mask.unsqueeze(0).repeat(batch_size*self.num_head, 1, 1)
+            return mask
 
     def forward(self, packed_inputs, sequence_lengths):
             
-            #packed_inputs = pack_padded_sequence(packed_inputs, sequence_lengths, batch_first=True, enforce_sorted=False)
-            inputs = self.embedding(packed_inputs)
+            inputs = self.embedding(packed_inputs.float())
             inputs_pos_encoded = self.pos_encoder(inputs)
-            tgt_mask = self.generate_square_subsequent_mask(inputs_pos_encoded.size(1))
+            tgt_mask = self.generate_square_subsequent_mask(seq_len=sequence_lengths, batch_size=packed_inputs.shape[0])
             output = self.transformer(inputs_pos_encoded.float().to(self.device), inputs_pos_encoded.float().to(self.device), tgt_mask=tgt_mask.to(self.device), memory_mask=tgt_mask.to(self.device))
-            #output, _ = pad_packed_sequence(packed_output, batch_first=True)
             y = self.linear(output.to(self.device))
             y = self.sigmoid(self.beta*y.to(self.device))
             

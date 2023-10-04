@@ -29,6 +29,7 @@ def evaluate_1d(env_name=None, model_path=None, experiment='categorisation', env
         packed_inputs, sequence_lengths, targets = env.sample_batch()
 
         model.beta = beta  # model beta is adjustable at test time
+        model.device = device
         model_choices = model(packed_inputs.float().to(device), sequence_lengths)
         
         # sample from model choices probs using binomial distribution

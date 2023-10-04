@@ -9,7 +9,7 @@
 #SBATCH --mem=240G
 #SBATCH --cpus-per-task=72
 #SBATCH --mail-type=ALL
-#SBATCH --mail-user=akshay.jagadish@tuebingen.mpg.de
+#SBATCH --mail-user=akshaykjagadish@gmail.com
 
 # #export OMP_NUM_THREADS=${SLURM_CPUS_PER_TASK} # set it to 20 if you changed it multiples of 32
 
@@ -40,7 +40,7 @@ python generate_tasks.py --llama-path /ptmp/mbinz/new --model 7B
 python generate_tasks.py --llama-path /ptmp/mbinz/new --model 65B
 
 #srun --time=00:10:00  --cpus-per-task=20 --gres=gpu:a100:1 --mem=50G --pty bash
-#srun --time=01:00:00  --cpus-per-task=18 --gres=gpu:a100:1 --mem=50G --pty bash
+#srun --time=01:00:00  --cpus-per-task=18 --gres=gpu:a100:1 --mem=80G --pty bash
 #srun --time=00:10:00  --cpus-per-task=20 --gres=gpu:a100:4 --mem=240G --pty bash
 #srun --time=01:00:00  --cpus-per-task=20 --gres=gpu:a100:4 --mem=240G --pty bash
 #srun --time=24:00:00  --cpus-per-task=20 --gres=gpu:a100:4 --mem=240G --pty bash

@@ -10,7 +10,7 @@ sys.path.append('/raven/u/ajagadish/vanilla-llama/categorisation/data')
 from utils import parse_generated_tasks, return_generated_task
 import ipdb
 
-def parse_and_pool_generated_tasks(path, gpt, models, dims, data, tasks, runs, proc_ids, prompt_version):
+def parse_and_pool_generated_tasks(path, gpt, models, dims, data, tasks, runs, proc_ids, prompt_version, use_gpt_labels):
     ''' 
     Parse (if not parsed) and pool the generated tasks from LLMs into a single dataframe
     Args:
@@ -40,7 +40,7 @@ def parse_and_pool_generated_tasks(path, gpt, models, dims, data, tasks, runs, p
                             
                             filename = f'{gpt}_generated_tasks_params{model}_dim{dim}_data{num_data}_tasks{num_tasks}_run{run}_procid{proc_id}_pversion{prompt_version}'
                             #if os.path.exists(f"{path}/{filename}.csv"): 
-                            last_task_id = parse_generated_tasks(path+'/parsed', filename, gpt, num_data, last_task_id)
+                            last_task_id = parse_generated_tasks(path+'/parsed', filename, gpt, num_data, last_task_id, use_gpt_labels)
                             print(f'parsed: {filename}')
                            
                             # load llama generated tasks which were successfully regex parsed
@@ -49,7 +49,7 @@ def parse_and_pool_generated_tasks(path, gpt, models, dims, data, tasks, runs, p
                             print(f'pooled: {filename}')
                 # save the pooled dataframe to csv
                 print(df)
-                df = df.query('target == "A" or target == "B"')
+                df = df if use_gpt_labels else df.query('target == "A" or target == "B"')
                 df.to_csv(f"{path}/{gpt}_generated_tasks_params{model}_dim{dim}_data{num_data}_tasks{total_tasks}_pversion{prompt_version}.csv")
     
     return df
@@ -62,10 +62,11 @@ if __name__ == '__main__':
     models = ['NA'] #['65B'] #['NA']
     dims = [3]
     num_data_points = [100] #[8]
-    tasks = [2000] #[1000, 2000, 500, 1500] #[20, 10] #[1000, 2000, 500, 1500]
+    tasks = [10] #[1000, 2000, 500, 1500] #[20, 10] #[1000, 2000, 500, 1500]
     runs = [0] #{1000: 0, 2000: 0}
-    proc_ids = {2000: [0, 1, 2, 3, 4, 5, 6]}
-    prompt_version = 1
+    proc_ids = {10: [999]} #{2000: [0, 1, 2, 3, 4, 5, 6]}
+    prompt_version = 2
+    use_gpt_labels = True
     #{10: [4, 5, 6]}
     #{1000: range(0, 8), 2000: range(0,2), 500: range(0,2), 1500: range(0,1)} #llama
     #{100: [1, 2]}
@@ -73,7 +74,7 @@ if __name__ == '__main__':
     #gpt3: {10: [999, 998, 997], 5: [999], 100: [0]} 
     #llama: {1000: range(0, 8), 2000: range(0,2), 500: range(0,2), 1500: range(0,1)} #format is {num_tasks: proc_ids}
     
-    data = parse_and_pool_generated_tasks(path, gpt, models, dims, num_data_points, tasks, runs, proc_ids, prompt_version)
+    data = parse_and_pool_generated_tasks(path, gpt, models, dims, num_data_points, tasks, runs, proc_ids, prompt_version, use_gpt_labels)
 
 
 # for model in models:

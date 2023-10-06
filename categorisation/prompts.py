@@ -1,9 +1,8 @@
-def retrieve_prompt(model, version):
+def retrieve_prompt(model, version, num_dim=3, num_data=100):
 
     instructions = {}
 
     # llama
-    num_dim, num_data = 3, 8
     llama_prompt_v0 = f"A classification problem consists of a set of input-target pairs."\
                         f" Each input, x, is a vector of length {str(num_dim)}, x = [x1, x2, x3], containing feature values that range continuously between 0 and 1."\
                         " The target, y, is a function of the input vector and can take on values of either y = A or y = B.\n\n"\

@@ -89,12 +89,12 @@ def act(text=None, run_gpt='llama', temperature=1., max_length=300):
 if __name__ == "__main__":
     models = ["7B", "13B", "30B", "65B", "NA"]
     parser = argparse.ArgumentParser()
-    parser.add_argument("--llama-path", type=str, required=True)
-    parser.add_argument("--model", type=str, required=True, choices=models)
+    parser.add_argument("--llama-path", type=str, required=False, default=None)
+    parser.add_argument("--model", type=str, required=False, choices=models)
     parser.add_argument("--run-gpt", type=str, required=True, choices=['llama', 'gpt3', 'gpt4', 'claude'])
-    parser.add_argument("--num-tasks", type=int, required=False, default=1000)
-    parser.add_argument("--num-dim", type=int, required=False, default=3)
-    parser.add_argument("--num-data", type=int, required=False, default=8)
+    parser.add_argument("--num-tasks", type=int, required=True, default=1000)
+    parser.add_argument("--num-dim", type=int, required=True, default=3)
+    parser.add_argument("--num-data", type=int, required=True, default=8)
     parser.add_argument("--temperature", type=float, required=False, default=1.0)
     parser.add_argument("--max-length", type=int, required=False, default=300)
     parser.add_argument("--proc-id", type=int, required=False, default=0)
@@ -137,26 +137,26 @@ if __name__ == "__main__":
     # load LLaMA model and instructions
     if run_gpt == 'llama':
         llama = LLaMAInference(args.llama_path, args.model, max_batch_size=2)
-        instructions = retrieve_prompt('llama', version='v0')
+        instructions = retrieve_prompt('llama', version='v0', num_dim=num_dim, num_data=num_data)
 
     # load GPT-3 specific instructions
     elif run_gpt == 'gpt3':
-        instructions = retrieve_prompt('gpt3', version='v1')
+        instructions = retrieve_prompt('gpt3', version='v1', num_dim=num_dim, num_data=num_data)
 
     # load GPT-4 specific instructions
     elif run_gpt == 'gpt4':
-        instructions = retrieve_prompt('gpt4', version='v3')
+        instructions = retrieve_prompt('gpt4', version='v3', num_dim=num_dim, num_data=num_data)
     
     # load Claude specific instructions
     elif run_gpt == 'claude':
-        instructions = retrieve_prompt('claude', version=f'v{prompt_version}')
+        instructions = retrieve_prompt('claude', version=f'v{prompt_version}', num_dim=num_dim, num_data=num_data)
 
     # run gpt models
     for run in range(num_runs):
         data, unparsable_data = [], []
         for t in range(num_tasks):
-            # print(instructions)
             ## LLM acts
+            # print(instructions)
             #ipdb.set_trace()
             action = act(instructions, run_gpt, temperature, max_length)
             # print(action)

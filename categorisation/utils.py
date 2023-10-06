@@ -14,7 +14,7 @@ from baseline_classifiers import benchmark_baseline_models_regex_parsed_random_p
 from baseline_classifiers import LogisticRegressionModel, SVMModel
 
 
-def parse_generated_tasks(path, file_name, gpt, num_datapoints=8, last_task_id=0):
+def parse_generated_tasks(path, file_name, gpt, num_datapoints=8, last_task_id=0, use_gpt_labels=False):
    
     # load llama generated tasks which were successfully regex parsed
     with open(f"{path}/{file_name}.txt", "rb") as fp:   
@@ -31,6 +31,7 @@ def parse_generated_tasks(path, file_name, gpt, num_datapoints=8, last_task_id=0
     for task, data in enumerate(datasets):
         # initialize lists to store parsed values
         inputs, targets = [], []
+        #TODO: per data make the target into A or B
 
         # load each input-target pair
         for item in data:
@@ -47,7 +48,10 @@ def parse_generated_tasks(path, file_name, gpt, num_datapoints=8, last_task_id=0
             elif gpt == 'claude':
                 #import ipdb; ipdb.set_trace()
                 inputs.append([float(item[0]), float(item[1]), float(item[2])])
-                targets.append(item[3][1] if len(item[3])>1 else item[3])
+                if use_gpt_labels:
+                    targets.append(item[3])
+                else:
+                    targets.append(item[3][1] if len(item[3])>1 else item[3])
                 
             else:
                 match = re.match(pattern, item[0])
@@ -425,3 +429,11 @@ def return_data_stats(data):
 
 
     return all_corr, all_coef, posterior_logprob, feature_coef
+
+def retrieve_features_and_categories(path, file_name, task_id):
+    #file_name = f'{run_gpt}_generated_tasklabels_params{model}_dim{num_dim}_tasks{num_tasks}_pversion{prompt_version}'
+    df = pd.read_csv(f'{path}/{file_name}.csv')
+    df = df[df.task_id==task_id]
+    features = eval(df.feature_names.values[0])
+    categories = eval(df.category_names.values[0])
+    return features, categories

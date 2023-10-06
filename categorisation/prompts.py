@@ -104,3 +104,52 @@ def retrieve_prompt(model, version, num_dim=3, num_data=100):
     instructions['claude']['v1'] = claude_prompt_v1
     
     return instructions[model][version]
+
+def retrieve_tasklabel_prompt(model, version, num_dim=3, num_tasks=100):
+
+    instructions = {}
+    
+    num_to_text = {2: 'two', 3: 'three', 4: 'four', 5: 'five', 6: 'six', 7: 'seven', 8: 'eight'}
+    claude_feature_names_prompt_v0 = f" I am a psychologist who wants to run a category learning experiment."\
+                    " In a category learning experiment, several objects vary along different feature dimensions, with each object belonging to a category."\
+                    " The feature dimensions of an object are such that they can be used to assign a category to an object."\
+                    f" Please generate a list of {str(num_tasks)} feature dimensions along which objects could vary: \n"\
+                    
+    claude_feature_names_prompt_v1 = f" I am a psychologist who wants to run a category learning experiment."\
+                    " In a category learning experiment, there are several objects with each object belonging to a single category."\
+                    f" Each object takes different values along {str(num_dim)} choosen feature dimensions. "\
+                    f" Please generate a list of {str(num_tasks)} pairs of {str(num_dim)} feature dimensions for objects in a category learning experiment and and their category label: \n"\
+
+    claude_feature_names_prompt_v2  = f" I am a psychologist who wants to run a category learning experiment."\
+                 " There are several stimuli in a category learning experiment, with each stimulus belonging to one category."\
+                f" These stimuli take on different values along the {num_to_text[num_dim]} choosen feature dimensions. "\
+                 " The category to which a stimulus belongs to is binary-valued. For example, they can be True/False or 0/1."\
+                f" Please generate names for {num_to_text[num_dim]} stimulus feature dimensions and a corresponding category name for {str(num_tasks)} category learning experiments: \n"\
+                f"- name of feature dimension 1, name of feature dimension 2, ..., name of feature dimension {str(num_dim)}, name of the category \n"
+    
+    claude_feature_names_prompt_v3  = f" I am a psychologist who wants to run a category learning experiment."\
+                 f" In a category learning experiment, there are many different {num_to_text[num_dim]} dimensional stimuli, with each stimulus belonging to a single category."\
+                  " The category to which a stimulus belongs to is binary-valued. For instance, it can be True/False or 0/1."\
+                 f" Please generate names for {num_to_text[num_dim]} stimulus feature dimensions and a corresponding category name for {str(num_tasks)} category learning experiments: \n"\
+                 f"- name of feature dimension 1, name of feature dimension 2, ..., name of feature dimension {str(num_dim)}, name of the category \n"
+    
+    claude_feature_names_prompt_v4  = f" I am a psychologist who wants to run a category learning experiment."\
+                 f" In a category learning experiment, there are many different {num_to_text[num_dim]} dimensional stimuli, with each stimulus belonging to a single category."\
+                  " The category to which stimuli belong to takes on one of two labels."\
+                 f" Please generate names for {num_to_text[num_dim]} stimulus feature dimensions and {num_to_text[2]} category labels for {str(num_tasks)} category learning experiments: \n"\
+                 f"- feature dimension 1, feature dimension 2, ..., feature dimension {str(num_dim)}, category label 1, category label 2  \n"
+    
+    claude_feature_names_prompt_v5  = f" I am a psychologist who wants to run a category learning experiment."\
+                 f" In a category learning experiment, there are many different {num_to_text[num_dim]}-dimensional stimuli, each of which belongs to one of two possible real-world categories."\
+                 f" Please generate names for {num_to_text[num_dim]} stimulus feature dimensions and {num_to_text[2]} corresponding categories for {str(num_tasks)} different category learning experiments: \n"\
+                 f"- feature dimension 1, feature dimension 2, ..., feature dimension {str(num_dim)}, category label 1, category label 2  \n"   
+    
+    instructions['claude'] = {}
+    instructions['claude']['v0'] = claude_feature_names_prompt_v0
+    instructions['claude']['v1'] = claude_feature_names_prompt_v1
+    instructions['claude']['v2'] = claude_feature_names_prompt_v2
+    instructions['claude']['v3'] = claude_feature_names_prompt_v3
+    instructions['claude']['v4'] = claude_feature_names_prompt_v4
+    instructions['claude']['v5'] = claude_feature_names_prompt_v5
+    
+    return instructions[model][version]

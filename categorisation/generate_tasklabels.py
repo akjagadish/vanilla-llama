@@ -137,11 +137,9 @@ if __name__ == "__main__":
     elif run_gpt == 'claude':
         instructions = retrieve_tasklabel_prompt('claude', version=f'v{prompt_version}', num_dim=num_dim, num_tasks=num_tasks)
     
-    df = None 
-    stimulus_dimensions, categories = [], []
     # run gpt models
     for run in range(num_runs):
-        data, unparsable_data = [], []
+        stimulus_dimensions, categories = [], []
         ## LLM acts
         # print(instructions)
         action = act(instructions, run_gpt, temperature, max_length)
@@ -150,18 +148,14 @@ if __name__ == "__main__":
         #ipdb.set_trace()
         if len(matches)>0:
             for match in matches: 
-                stimulus_dimensions.append(match.split(',')[:-2])
-                categories.append(match.split(',')[-2:])
+                categories.append(match.split(',')[-2:]) # last two labels are categories
+                stimulus_dimensions.append(match.split(',')[:-2]) # rest are stimulus dimensions
             # save data
-            df = pd.DataFrame({'feature_names': stimulus_dimensions, 'category_names': categories,  'task_id': np.arange(len(stimulus_dimensions)),}) if df is None else pd.concat([df, \
-                    pd.DataFrame({'feature_names': stimulus_dimensions, 'category_names': categories,  'task_id': np.arange(len(stimulus_dimensions)),})], ignore_index=True)
-    
-    # save 
-    if df is not None:
-        file_name = f'{run_gpt}_generated_tasklabels_params{args.model}_dim{num_dim}_tasks{num_tasks}_run{run}_procid{proc_id}_pversion{prompt_version}'
-        df.to_csv(f'{args.path}/{file_name}.csv')
-    else:
-        print(f'no tasks were successfully parsed')
+            df = pd.DataFrame({'feature_names': stimulus_dimensions, 'category_names': categories,  'task_id': np.arange(len(stimulus_dimensions)),})
+            file_name = f'{run_gpt}_generated_tasklabels_params{args.model}_dim{num_dim}_tasks{num_tasks}_run{run}_procid{proc_id}_pversion{prompt_version}'
+            df.to_csv(f'{args.path}/{file_name}.csv')
+        else:
+            print(f'no tasks were successfully parsed')
 
-    if run_gpt=='gpt3' or run_gpt=='gpt4':
-        print(f'total tokens used: {TOKEN_COUNTER}')
+        if run_gpt=='gpt3' or run_gpt=='gpt4':
+            print(f'total tokens used: {TOKEN_COUNTER}')

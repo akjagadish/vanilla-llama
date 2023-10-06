@@ -9,6 +9,7 @@ import sys
 sys.path.insert(1, '/raven/u/ajagadish/vanilla-llama/')
 from inference import LLaMAInference
 from prompts import retrieve_prompt
+from utils import retrieve_features_and_categories
 import ipdb
 import pickle
 import re
@@ -117,22 +118,23 @@ if __name__ == "__main__":
     num_runs = args.num_runs
     prompt_version = args.prompt_version
 
-    patterns = [
-                r'x=\[(.*?)\][;,]?\s*y\s*=?\s*([AB])',
-                r"x=\[(.*?)\][^\n]*?y=(\w)",
-                r"x=\[([\d\.]+),\s*([\d\.]+),\s*([\d\.]+)\][^\n]*[y|&]=\s*(A|B)",
-                r"x=\[?\s*([\d\.]+),\s*([\d\.]+),\s*([\d\.]+)\]?\s*(?:,|;|&|->| -> |---)?\s*[y|Y]\s*=\s*(A|B)",
-                r"x=(\[.*?\])\s*---\s*y\s*=\s*([A-Z])",
-                r"x=(\[.*?\])\s*->\s*([A-Z])",
-                r"x=(\[.*?\]),\s*([A-Z])",
-                r"^([0-9]\.[0-9]{2}),(0\.[0-9]{2}),(0\.[0-9]{2}),(A|B)$",
-                r"\[([0-9]\.[0-9]{2}),(0\.[0-9]{2}),(0\.[0-9]{2})\],(A|B)",
-                r"\[\[([0-9]\.[0-9]{2}),(0\.[0-9]{2}),(0\.[0-9]{2})\],(A|B)\]",
-                r"n[0-9]+\.\[\[([0-9]\.[0-9]{2}),(0\.[0-9]{2}),(0\.[0-9]{2})\],(\'A\'|\'B\')\]",
-                r"\[\[([0-9]\.[0-9]{2}),(0\.[0-9]{2}),(0\.[0-9]{2})\],(\'A\'|\'B\')\]",
-                r"\[([0-9]\.[0-9]{2}),(0\.[0-9]{2}),(0\.[0-9]{2})\],(A|B)",
-                r"(\d+\.\d+),(\d+\.\d+),(\d+\.\d+),([A-Z])"
-                ]            
+    patterns = [r'([\d.]+),([\d.]+),([\d.]+),([\w]+)']
+                # [
+                # r'x=\[(.*?)\][;,]?\s*y\s*=?\s*([AB])',
+                # r"x=\[(.*?)\][^\n]*?y=(\w)",
+                # r"x=\[([\d\.]+),\s*([\d\.]+),\s*([\d\.]+)\][^\n]*[y|&]=\s*(A|B)",
+                # r"x=\[?\s*([\d\.]+),\s*([\d\.]+),\s*([\d\.]+)\]?\s*(?:,|;|&|->| -> |---)?\s*[y|Y]\s*=\s*(A|B)",
+                # r"x=(\[.*?\])\s*---\s*y\s*=\s*([A-Z])",
+                # r"x=(\[.*?\])\s*->\s*([A-Z])",
+                # r"x=(\[.*?\]),\s*([A-Z])",
+                # r"^([0-9]\.[0-9]{2}),(0\.[0-9]{2}),(0\.[0-9]{2}),(A|B)$",
+                # r"\[([0-9]\.[0-9]{2}),(0\.[0-9]{2}),(0\.[0-9]{2})\],(A|B)",
+                # r"\[\[([0-9]\.[0-9]{2}),(0\.[0-9]{2}),(0\.[0-9]{2})\],(A|B)\]",
+                # r"n[0-9]+\.\[\[([0-9]\.[0-9]{2}),(0\.[0-9]{2}),(0\.[0-9]{2})\],(\'A\'|\'B\')\]",
+                # r"\[\[([0-9]\.[0-9]{2}),(0\.[0-9]{2}),(0\.[0-9]{2})\],(\'A\'|\'B\')\]",
+                # r"\[([0-9]\.[0-9]{2}),(0\.[0-9]{2}),(0\.[0-9]{2})\],(A|B)",
+                # r"(\d+\.\d+),(\d+\.\d+),(\d+\.\d+),([A-Z])"
+                # ]            
 
     # load LLaMA model and instructions
     if run_gpt == 'llama':
@@ -156,8 +158,13 @@ if __name__ == "__main__":
         data, unparsable_data = [], []
         for t in range(num_tasks):
             ## LLM acts
+            if run_gpt == 'claude':
+                features, categories = retrieve_features_and_categories(path='/raven/u/ajagadish/vanilla-llama/categorisation/data',\
+                                                                        file_name = 'claude_generated_tasklabels_paramsNA_dim3_tasks100_pversion5',\
+                                                                        task_id=t)
+                # run_gpt=run_gpt, model=args.model num_dim=3, num_tasks=100, prompt_version=5,
+                instructions = retrieve_prompt('claude', version=f'v{prompt_version}', num_dim=num_dim, num_data=num_data, features=features, categories=categories)
             # print(instructions)
-            #ipdb.set_trace()
             action = act(instructions, run_gpt, temperature, max_length)
             # print(action)
             for pattern in patterns:
@@ -179,4 +186,5 @@ if __name__ == "__main__":
                 #pickling
                 pickle.dump(unparsable_data, fp)
 
-    print(f'total tokens used: {TOKEN_COUNTER}')
+    if run_gpt == 'gpt4':
+        print(f'total tokens used: {TOKEN_COUNTER}')

@@ -437,3 +437,18 @@ def retrieve_features_and_categories(path, file_name, task_id):
     features = eval(df.feature_names.values[0])
     categories = eval(df.category_names.values[0])
     return features, categories
+
+def pool_tasklabels(path_to_dir, run_gpt, model, num_dim, num_tasks, num_runs, proc_id, prompt_version):
+    df, last_task_id = None, 0
+    for run_id in range(num_runs):
+        try:
+            filename = f'{run_gpt}_generated_tasklabels_params{model}_dim{num_dim}_tasks{num_tasks}_run{run_id}_procid{proc_id}_pversion{prompt_version}'
+            data = pd.read_csv(f'{path_to_dir}/{filename}.csv')
+            df = pd.DataFrame({'feature_names': data.feature_names.values, 'category_names': data.category_names.values, 'task_id': data.task_id.values}) \
+            if df is None else pd.concat([df, pd.DataFrame({'feature_names': data.feature_names.values, 'category_names': data.category_names.values, 'task_id': data.task_id.values+last_task_id})], ignore_index=True)
+            last_task_id = df.task_id.values[-1]         
+        except:
+            print(f'error loading {filename}')
+
+    num_tasks = df.task_id.max()+1
+    df.to_csv(f'{path_to_dir}/{run_gpt}_generated_tasklabels_params{model}_dim{num_dim}_tasks{num_tasks}_pversion{prompt_version}.csv')             

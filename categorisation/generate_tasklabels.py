@@ -15,7 +15,7 @@ import re
 import os
 from dotenv import load_dotenv
 import anthropic
-
+from utils import pool_tasklabels
 load_dotenv() # load environment variables from .env
 TOKEN_COUNTER = 0
 def act(text=None, run_gpt='llama', temperature=1., max_length=300):
@@ -100,7 +100,7 @@ if __name__ == "__main__":
     parser.add_argument('--first-run-id', type=int, default=0, help='id of the first run')
     parser.add_argument("--prompt-version", type=str, required=False, default=None)
     parser.add_argument("--path", type=str, required=False, default='/raven/u/ajagadish/vanilla-llama/categorisation/data/tasklabels')
-
+    parser.add_argument("--pool", action='store_true', required=False, default=False)
 
     args = parser.parse_args()
     start_loading = time.time()
@@ -118,46 +118,51 @@ if __name__ == "__main__":
     first_run_id = args.first_run_id
     prompt_version = args.prompt_version
 
-    patterns = [
-                r'\d+\.(.+?)\n',
-                ]            
+    if args.pool:
 
-    # load LLaMA model and instructions
-    if run_gpt == 'llama':
-        llama = LLaMAInference(args.llama_path, args.model, max_batch_size=2)
-        raise NotImplementedError
+        pool_tasklabels(args.path, args.run_gpt, args.model, args.num_dim, args.num_tasks, args.num_runs, args.proc_id, args.prompt_version)
 
-    # load GPT-3 specific instructions
-    elif run_gpt == 'gpt3':
-        raise NotImplementedError
+    else:
+        patterns = [
+                    r'\d+\.(.+?)\n',
+                    ]            
 
-    # load GPT-4 specific instructions
-    elif run_gpt == 'gpt4':
-        raise NotImplementedError
-    
-    # load Claude specific instructions
-    elif run_gpt == 'claude':
-        instructions = retrieve_tasklabel_prompt('claude', version=f'v{prompt_version}', num_dim=num_dim, num_tasks=num_tasks)
-    
-    # run gpt models
-    for run in range(first_run_id, num_runs):
-        stimulus_dimensions, categories = [], []
-        ## LLM acts
-        # print(instructions)
-        action = act(instructions, run_gpt, temperature, max_length)
-        # print(action)
-        matches = re.findall(patterns[0], action, re.MULTILINE)
-        #ipdb.set_trace()
-        if len(matches)>0:
-            for match in matches: 
-                categories.append(match.split(',')[-2:]) # last two labels are categories
-                stimulus_dimensions.append(match.split(',')[:-2]) # rest are stimulus dimensions
-            # save data
-            df = pd.DataFrame({'feature_names': stimulus_dimensions, 'category_names': categories,  'task_id': np.arange(len(stimulus_dimensions)),})
-            file_name = f'{run_gpt}_generated_tasklabels_params{args.model}_dim{num_dim}_tasks{num_tasks}_run{run}_procid{proc_id}_pversion{prompt_version}'
-            df.to_csv(f'{args.path}/{file_name}.csv')
-        else:
-            print(f'no tasks were successfully parsed')
+        # load LLaMA model and instructions
+        if run_gpt == 'llama':
+            llama = LLaMAInference(args.llama_path, args.model, max_batch_size=2)
+            raise NotImplementedError
 
-        if run_gpt=='gpt3' or run_gpt=='gpt4':
-            print(f'total tokens used: {TOKEN_COUNTER}')
+        # load GPT-3 specific instructions
+        elif run_gpt == 'gpt3':
+            raise NotImplementedError
+
+        # load GPT-4 specific instructions
+        elif run_gpt == 'gpt4':
+            raise NotImplementedError
+        
+        # load Claude specific instructions
+        elif run_gpt == 'claude':
+            instructions = retrieve_tasklabel_prompt('claude', version=f'v{prompt_version}', num_dim=num_dim, num_tasks=num_tasks)
+        
+        # run gpt models
+        for run in range(first_run_id, first_run_id+num_runs):
+            stimulus_dimensions, categories = [], []
+            ## LLM acts
+            # print(instructions)
+            action = act(instructions, run_gpt, temperature, max_length)
+            # print(action)
+            matches = re.findall(patterns[0], action, re.MULTILINE)
+            #ipdb.set_trace()
+            if len(matches)>0:
+                for match in matches: 
+                    categories.append(match.split(',')[-2:]) # last two labels are categories
+                    stimulus_dimensions.append(match.split(',')[:-2]) # rest are stimulus dimensions
+                # save data
+                df = pd.DataFrame({'feature_names': stimulus_dimensions, 'category_names': categories,  'task_id': np.arange(len(stimulus_dimensions)),})
+                file_name = f'{run_gpt}_generated_tasklabels_params{args.model}_dim{num_dim}_tasks{num_tasks}_run{run}_procid{proc_id}_pversion{prompt_version}'
+                df.to_csv(f'{args.path}/{file_name}.csv')
+            else:
+                print(f'no tasks were successfully parsed')
+
+            if run_gpt=='gpt3' or run_gpt=='gpt4':
+                print(f'total tokens used: {TOKEN_COUNTER}')

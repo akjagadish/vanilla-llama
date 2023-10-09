@@ -97,6 +97,7 @@ if __name__ == "__main__":
     parser.add_argument("--max-length", type=int, required=False, default=300)
     parser.add_argument("--proc-id", type=int, required=False, default=0)
     parser.add_argument("--num-runs", type=int, required=False, default=1)
+    parser.add_argument('--first-run-id', type=int, default=0, help='id of the first run')
     parser.add_argument("--prompt-version", type=str, required=False, default=None)
     parser.add_argument("--path", type=str, required=False, default='/raven/u/ajagadish/vanilla-llama/categorisation/data/tasklabels')
 
@@ -114,6 +115,7 @@ if __name__ == "__main__":
     # runtime parameters
     proc_id = args.proc_id
     num_runs = args.num_runs
+    first_run_id = args.first_run_id
     prompt_version = args.prompt_version
 
     patterns = [
@@ -138,7 +140,7 @@ if __name__ == "__main__":
         instructions = retrieve_tasklabel_prompt('claude', version=f'v{prompt_version}', num_dim=num_dim, num_tasks=num_tasks)
     
     # run gpt models
-    for run in range(num_runs):
+    for run in range(first_run_id, num_runs):
         stimulus_dimensions, categories = [], []
         ## LLM acts
         # print(instructions)

@@ -101,6 +101,10 @@ if __name__ == "__main__":
     parser.add_argument("--proc-id", type=int, required=False, default=0)
     parser.add_argument("--num-runs", type=int, required=False, default=1)
     parser.add_argument("--prompt-version", type=str, required=False, default=None)
+    parser.add_argument("--use-generated-tasklabels", action="store_true", required=False, default=False)
+    parser.add_argument("--path-tasklabels", type=str, required=False, default='/raven/u/ajagadish/vanilla-llama/categorisation/data/tasklabels')
+    parser.add_argument("--file-name-tasklabels", type=str, required=False, default=None)
+    parser.add_argument("--start-task-id", type=int, required=False, default=0)
 
     args = parser.parse_args()
     start_loading = time.time()
@@ -110,6 +114,7 @@ if __name__ == "__main__":
     temperature = args.temperature
     max_length = args.max_length
     # instruction parameters
+    start_task_id = args.start_task_id
     num_tasks = args.num_tasks
     num_data = args.num_data
     num_dim = args.num_dim
@@ -117,24 +122,30 @@ if __name__ == "__main__":
     proc_id = args.proc_id
     num_runs = args.num_runs
     prompt_version = args.prompt_version
+    num_categories = 2
 
-    patterns = [r'([\d.]+),([\d.]+),([\d.]+),([\w]+)']
-                # [
-                # r'x=\[(.*?)\][;,]?\s*y\s*=?\s*([AB])',
-                # r"x=\[(.*?)\][^\n]*?y=(\w)",
-                # r"x=\[([\d\.]+),\s*([\d\.]+),\s*([\d\.]+)\][^\n]*[y|&]=\s*(A|B)",
-                # r"x=\[?\s*([\d\.]+),\s*([\d\.]+),\s*([\d\.]+)\]?\s*(?:,|;|&|->| -> |---)?\s*[y|Y]\s*=\s*(A|B)",
-                # r"x=(\[.*?\])\s*---\s*y\s*=\s*([A-Z])",
-                # r"x=(\[.*?\])\s*->\s*([A-Z])",
-                # r"x=(\[.*?\]),\s*([A-Z])",
-                # r"^([0-9]\.[0-9]{2}),(0\.[0-9]{2}),(0\.[0-9]{2}),(A|B)$",
-                # r"\[([0-9]\.[0-9]{2}),(0\.[0-9]{2}),(0\.[0-9]{2})\],(A|B)",
-                # r"\[\[([0-9]\.[0-9]{2}),(0\.[0-9]{2}),(0\.[0-9]{2})\],(A|B)\]",
-                # r"n[0-9]+\.\[\[([0-9]\.[0-9]{2}),(0\.[0-9]{2}),(0\.[0-9]{2})\],(\'A\'|\'B\')\]",
-                # r"\[\[([0-9]\.[0-9]{2}),(0\.[0-9]{2}),(0\.[0-9]{2})\],(\'A\'|\'B\')\]",
-                # r"\[([0-9]\.[0-9]{2}),(0\.[0-9]{2}),(0\.[0-9]{2})\],(A|B)",
-                # r"(\d+\.\d+),(\d+\.\d+),(\d+\.\d+),([A-Z])"
-                # ]            
+    patterns = [r'([\d.]+),([\d.]+),([\d.]+),([\w]+)',
+                r'([\w\-]+),([\w\-]+),([\w\-]+),([\w]+)',
+                r'([-\w\d,.]+),([-\w\d,.]+),([-\w\d,.]+),([-\w\d,.]+)',
+                r'([^,]+),([^,]+),([^,]+),([^,]+)',
+                r'([^,\n]+),([^,\n]+),([^,\n]+),([^,\n]+)',
+                r'(?:.*?:)?([^,-]+),([^,-]+),([^,-]+),([^,-]+)',
+                r'([^,-]+),([^,-]+),([^,-]+),([^,-]+)',] if args.use_generated_tasklabels else \
+                        [r'x=\[(.*?)\][;,]?\s*y\s*=?\s*([AB])',
+                        r"x=\[(.*?)\][^\n]*?y=(\w)",
+                        r"x=\[([\d\.]+),\s*([\d\.]+),\s*([\d\.]+)\][^\n]*[y|&]=\s*(A|B)",
+                        r"x=\[?\s*([\d\.]+),\s*([\d\.]+),\s*([\d\.]+)\]?\s*(?:,|;|&|->| -> |---)?\s*[y|Y]\s*=\s*(A|B)",
+                        r"x=(\[.*?\])\s*---\s*y\s*=\s*([A-Z])",
+                        r"x=(\[.*?\])\s*->\s*([A-Z])",
+                        r"x=(\[.*?\]),\s*([A-Z])",
+                        r"^([0-9]\.[0-9]{2}),(0\.[0-9]{2}),(0\.[0-9]{2}),(A|B)$",
+                        r"\[([0-9]\.[0-9]{2}),(0\.[0-9]{2}),(0\.[0-9]{2})\],(A|B)",
+                        r"\[\[([0-9]\.[0-9]{2}),(0\.[0-9]{2}),(0\.[0-9]{2})\],(A|B)\]",
+                        r"n[0-9]+\.\[\[([0-9]\.[0-9]{2}),(0\.[0-9]{2}),(0\.[0-9]{2})\],(\'A\'|\'B\')\]",
+                        r"\[\[([0-9]\.[0-9]{2}),(0\.[0-9]{2}),(0\.[0-9]{2})\],(\'A\'|\'B\')\]",
+                        r"\[([0-9]\.[0-9]{2}),(0\.[0-9]{2}),(0\.[0-9]{2})\],(A|B)",
+                        r"(\d+\.\d+),(\d+\.\d+),(\d+\.\d+),([A-Z])"
+                        ]            
 
     # load LLaMA model and instructions
     if run_gpt == 'llama':
@@ -155,36 +166,48 @@ if __name__ == "__main__":
 
     # run gpt models
     for run in range(num_runs):
-        data, unparsable_data = [], []
-        for t in range(num_tasks):
+        data, unparsable_data, raw_data, task_ids = [], [], [], []
+        for t in range(start_task_id, start_task_id+num_tasks):
+            #TODO: generate tasks in order or randomly?
             ## LLM acts
-            if run_gpt == 'claude':
-                features, categories = retrieve_features_and_categories(path='/raven/u/ajagadish/vanilla-llama/categorisation/data',\
-                                                                        file_name = 'claude_generated_tasklabels_paramsNA_dim3_tasks100_pversion5',\
+            if run_gpt == 'claude' and args.use_generated_tasklabels:
+                assert args.file_name_tasklabels is not None, "Please provide a file name for the task labels"
+                features, categories = retrieve_features_and_categories(path=args.path_tasklabels,\
+                                                                        file_name=args.file_name_tasklabels,\
                                                                         task_id=t)
-                # run_gpt=run_gpt, model=args.model num_dim=3, num_tasks=100, prompt_version=5,
+                assert len(features) == num_dim, "Number of features does not match the number of dimensions"
+                assert len(categories) == num_categories, "Number of categories does not match the number of categories"
                 instructions = retrieve_prompt('claude', version=f'v{prompt_version}', num_dim=num_dim, num_data=num_data, features=features, categories=categories)
-            # print(instructions)
+
             action = act(instructions, run_gpt, temperature, max_length)
-            # print(action)
+            raw_data.append(action)
+
             for pattern in patterns:
                 matches = re.findall(pattern, action, re.MULTILINE)
                 if len(matches) > 0:
                     data.append(matches)
+                    task_ids.append(t)
                     break
-            #ipdb.set_trace()
+
             if len(matches) == 0:
                 unparsable_data.append(action)
             print(f'task {t}: no matches found' if len(matches) == 0 else f'task {t}: match found')
-
+            
             # save data
             with open(f"data/parsed/{run_gpt}_generated_tasks_params{args.model}_dim{num_dim}_data{num_data}_tasks{num_tasks}_run{run}_procid{proc_id}_pversion{prompt_version}.txt", "wb") as fp:   
                 #pickling
                 pickle.dump(data, fp)
 
+            with open(f"data/parsed/{run_gpt}_generated_tasks_params{args.model}_dim{num_dim}_data{num_data}_tasks{num_tasks}_run{run}_procid{proc_id}_pversion{prompt_version}_taskids.txt", "wb") as fp:
+                pickle.dump(task_ids, fp)
+
             with open(f"data/unparsed/{run_gpt}_generated_tasks_params{args.model}_dim{num_dim}_data{num_data}_tasks{num_tasks}_run{run}_procid{proc_id}_pversion{prompt_version}_unparsed.txt", "wb") as fp:   
                 #pickling
                 pickle.dump(unparsable_data, fp)
+
+            with open(f"data/raw_data/{run_gpt}_generated_tasks_params{args.model}_dim{num_dim}_data{num_data}_tasks{num_tasks}_run{run}_procid{proc_id}_pversion{prompt_version}_starttaskid{start_task_id}_lasttaskid{start_task_id+num_tasks}_raw.txt", "wb") as fp:
+                #pickling
+                pickle.dump(raw_data, fp)
 
     if run_gpt == 'gpt4':
         print(f'total tokens used: {TOKEN_COUNTER}')

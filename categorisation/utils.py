@@ -14,7 +14,7 @@ from baseline_classifiers import benchmark_baseline_models_regex_parsed_random_p
 from baseline_classifiers import LogisticRegressionModel, SVMModel
 
 
-def parse_generated_tasks(path, file_name, gpt, num_datapoints=8, last_task_id=0, use_gpt_labels=False):
+def parse_generated_tasks(path, file_name, gpt, num_datapoints=8, last_task_id=0, use_generated_tasklabels=False, prompt_version=None):
    
     # load llama generated tasks which were successfully regex parsed
     with open(f"{path}/{file_name}.txt", "rb") as fp:   
@@ -26,6 +26,11 @@ def parse_generated_tasks(path, file_name, gpt, num_datapoints=8, last_task_id=0
     # make a pandas dataframe for the parsed data
     df = None 
     task_id = last_task_id
+
+    # load task labels if use_generated_tasklabels is True
+    if use_generated_tasklabels:
+        with open(f"{path}/{file_name}_taskids.txt", "rb") as fp:   
+            task_label = pickle.load(fp)
 
     # parse the list using regex
     for task, data in enumerate(datasets):
@@ -47,8 +52,11 @@ def parse_generated_tasks(path, file_name, gpt, num_datapoints=8, last_task_id=0
 
             elif gpt == 'claude':
                 #import ipdb; ipdb.set_trace()
-                inputs.append([float(item[0]), float(item[1]), float(item[2])])
-                if use_gpt_labels:
+                if prompt_version == 3:
+                    inputs.append([item[0], item[1], item[2]])
+                else:
+                    inputs.append([float(item[0]), float(item[1]), float(item[2])])
+                if use_generated_tasklabels:
                     targets.append(item[3])
                 else:
                     targets.append(item[3][1] if len(item[3])>1 else item[3])
@@ -68,8 +76,9 @@ def parse_generated_tasks(path, file_name, gpt, num_datapoints=8, last_task_id=0
         # if the number of datapoints is equal to the number of inputs, add to dataframe
         if gpt=='gpt3' or gpt=='gpt4' or gpt=='claude' or ((gpt=='llama') and (len(inputs)==num_datapoints)):
             print(f'inputs lengths {len(inputs)}')
-            df = pd.DataFrame({'input': inputs, 'target': targets, 'trial_id': np.arange(len(inputs)), 'task_id': np.ones((len(inputs),))*(task_id)}) if df is None else pd.concat([df, \
-                 pd.DataFrame({'input': inputs, 'target': targets, 'trial_id': np.arange(len(inputs)), 'task_id': np.ones((len(inputs),))*(task_id)})], ignore_index=True)
+            use_task_index = task_label[task] if use_generated_tasklabels else task_id
+            df = pd.DataFrame({'input': inputs, 'target': targets, 'trial_id': np.arange(len(inputs)), 'task_id': np.ones((len(inputs),))*(use_task_index)}) if df is None else pd.concat([df, \
+                 pd.DataFrame({'input': inputs, 'target': targets, 'trial_id': np.arange(len(inputs)), 'task_id': np.ones((len(inputs),))*(use_task_index)})], ignore_index=True)
             task_id+=1
         else:
             print(f'dataset did not have {num_datapoints} datapoints but instead had {len(inputs)} datapoints')

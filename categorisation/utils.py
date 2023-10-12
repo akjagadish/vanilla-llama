@@ -440,24 +440,33 @@ def return_data_stats(data):
     return all_corr, all_coef, posterior_logprob, feature_coef
 
 def retrieve_features_and_categories(path, file_name, task_id):
-    #file_name = f'{run_gpt}_generated_tasklabels_params{model}_dim{num_dim}_tasks{num_tasks}_pversion{prompt_version}'
     df = pd.read_csv(f'{path}/{file_name}.csv')
     df = df[df.task_id==task_id]
     features = eval(df.feature_names.values[0])
     categories = eval(df.category_names.values[0])
     return features, categories
 
-def pool_tasklabels(path_to_dir, run_gpt, model, num_dim, num_tasks, num_runs, proc_id, prompt_version):
+def pool_tasklabels(path_to_dir, run_gpt, model, num_dim, num_tasks, num_runs, proc_id, prompt_version, num_categories=2):
     df, last_task_id = None, 0
     for run_id in range(num_runs):
+        data = None
         try:
             filename = f'{run_gpt}_generated_tasklabels_params{model}_dim{num_dim}_tasks{num_tasks}_run{run_id}_procid{proc_id}_pversion{prompt_version}'
-            data = pd.read_csv(f'{path_to_dir}/{filename}.csv')
-            df = pd.DataFrame({'feature_names': data.feature_names.values, 'category_names': data.category_names.values, 'task_id': data.task_id.values}) \
-            if df is None else pd.concat([df, pd.DataFrame({'feature_names': data.feature_names.values, 'category_names': data.category_names.values, 'task_id': data.task_id.values+last_task_id})], ignore_index=True)
-            last_task_id = df.task_id.values[-1]         
+            data = pd.read_csv(f'{path_to_dir}/{filename}.csv')       
         except:
             print(f'error loading {filename}')
+        if data is not None:
+            # does number of features match the number of dimensions
+            features = [eval(feature) for feature in data.feature_names.values]
+            features_match = np.array([len(feature) for feature in features])==num_dim 
+            # does number of categories match the number of dimensions
+            categories = [eval(category) for category in data.category_names.values]
+            categories_match = np.array([len(category) for category in categories])==num_categories
+            # if both match, add to dataframe
+            both_match = features_match*categories_match
+            processed_data = pd.DataFrame({'feature_names': data.feature_names.values[both_match], 'category_names': data.category_names.values[both_match], 'task_id': data.task_id.values[both_match] + last_task_id})
+            df = processed_data if df is None else pd.concat([df, processed_data], ignore_index=True)
+            last_task_id = df.task_id.values[-1]  
 
     num_tasks = df.task_id.max()+1
     df.to_csv(f'{path_to_dir}/{run_gpt}_generated_tasklabels_params{model}_dim{num_dim}_tasks{num_tasks}_pversion{prompt_version}.csv')             

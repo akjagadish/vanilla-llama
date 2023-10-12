@@ -105,18 +105,39 @@ def retrieve_prompt(model, version, num_dim=3, num_data=100, features=None, cate
     claude_prompt_v2 = f" I am a psychologist who wants to run a category learning experiment."\
                     " For a category learning experiment, I need a list of stimuli and their category labels."\
                     f" Each stimulus is characterized by three distinct features: {features[0]}, {features[1]}, and {features[2]}."\
-                    " These feature values (rounded to 2 decimals) range continuously between 0 and 1."\
-                    " Each feature should follow a distribution that describes the values they take in the real world. "\
+                     " These feature values (rounded to 2 decimals) range continuously between 0. and 1. where 0. indicates the minimum possible value and 1. the maximum possible value."\
                     f" The category label can be {categories[0]} or {categories[1]} and should be predictable from the feature values of the stimulus."\
                     " \n\n"\
                     f" Please generate a list of {str(num_data)} stimuli with their feature values and their corresponding"\
                     " category labels using the following template for each row: \n"\
                     "-  feature value 1, feature value 2, feature value 3, category label \n"
+                    # " Each feature should follow a distribution that describes the values they take in the real world. "\
     
+    claude_prompt_v3 = f" I am a psychologist who wants to run a category learning experiment."\
+                    " For a category learning experiment, I need a list of stimuli and their category labels."\
+                    f" Each stimulus is characterized by three distinct features: {features[0]}, {features[1]}, and {features[2]}."\
+                    f" The category label can be {categories[0]} or {categories[1]} and should be predictable from the feature values of the stimulus."\
+                    " \n\n"\
+                    f" Please generate a list of {str(num_data)} stimuli with their feature values and their corresponding"\
+                    " category labels using the following template for each row: \n"\
+                    " feature value 1, feature value 2, feature value 3, category label \n"
+
+    claude_prompt_v4 = f" I am a psychologist who wants to run a category learning experiment."\
+                    " For a category learning experiment, I need a list of stimuli and their category labels."\
+                    f" Each stimulus is characterized by three distinct features: {features[0]}, {features[1]}, and {features[2]}."\
+                    " These features can take only numerical values."\
+                    f" The category label can be {categories[0]} or {categories[1]} and should be predictable from the feature values of the stimulus."\
+                    " \n\n"\
+                    f" Please generate a list of {str(num_data)} stimuli with their feature values and their corresponding"\
+                    " category labels using the following template for each row: \n"\
+                    "-  feature value 1, feature value 2, feature value 3, category label \n"
+                    # real-valued numbers,  
     instructions['claude'] = {}
     instructions['claude']['v0'] = claude_prompt_v0
     instructions['claude']['v1'] = claude_prompt_v1
     instructions['claude']['v2'] = claude_prompt_v2
+    instructions['claude']['v3'] = claude_prompt_v3
+    instructions['claude']['v4'] = claude_prompt_v4
     
     return instructions[model][version]
 

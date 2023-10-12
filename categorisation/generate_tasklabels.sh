@@ -7,7 +7,7 @@
 #SBATCH --mem=200G
 #SBATCH --cpus-per-task=20
 #SBATCH --mail-type=ALL
-#SBATCH --mail-user=akshay.jagadish@tuebingen.mpg.de
+#SBATCH --mail-user=akshaykjagadish@gmail.com
 
 cd ~/vanilla-llama/categorisation/
 
@@ -20,4 +20,7 @@ pip3 install --user accelerate openai gym ipdb transformers tensorboard python-d
 pip3 install --user fire sentencepiece ipdb accelerate tqdm
 export OMP_NUM_THREADS=${SLURM_CPUS_PER_TASK}
 
-python generate_tasklabels.py --model NA --proc-id 0 --num-runs 1 --num-tasks 100 --num-dim 3 --max-length 3000 --run-gpt claude --prompt-version 5
+## generate task labels
+# python generate_tasklabels.py --model NA --proc-id 0 --num-runs 100 --num-tasks 250 --num-dim 3 --max-length 10000 --run-gpt claude --prompt-version 5 
+## pool generated task labels
+python generate_tasklabels.py --model NA --proc-id 0 --num-runs 100 --num-tasks 250 --num-dim 3 --max-length 10000 --run-gpt claude --prompt-version 5 --pool

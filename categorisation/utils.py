@@ -14,7 +14,7 @@ from baseline_classifiers import benchmark_baseline_models_regex_parsed_random_p
 from baseline_classifiers import LogisticRegressionModel, SVMModel
 
 
-def parse_generated_tasks(path, file_name, gpt, num_datapoints=8, last_task_id=0):
+def parse_generated_tasks(path, file_name, gpt, num_datapoints=8, last_task_id=0, use_generated_tasklabels=False, prompt_version=None):
    
     # load llama generated tasks which were successfully regex parsed
     with open(f"{path}/{file_name}.txt", "rb") as fp:   
@@ -27,10 +27,16 @@ def parse_generated_tasks(path, file_name, gpt, num_datapoints=8, last_task_id=0
     df = None 
     task_id = last_task_id
 
+    # load task labels if use_generated_tasklabels is True
+    if use_generated_tasklabels:
+        with open(f"{path}/{file_name}_taskids.txt", "rb") as fp:   
+            task_label = pickle.load(fp)
+
     # parse the list using regex
     for task, data in enumerate(datasets):
         # initialize lists to store parsed values
         inputs, targets = [], []
+        #TODO: per data make the target into A or B
 
         # load each input-target pair
         for item in data:
@@ -46,8 +52,14 @@ def parse_generated_tasks(path, file_name, gpt, num_datapoints=8, last_task_id=0
 
             elif gpt == 'claude':
                 #import ipdb; ipdb.set_trace()
-                inputs.append([float(item[0]), float(item[1]), float(item[2])])
-                targets.append(item[3][1] if len(item[3])>1 else item[3])
+                if prompt_version == 3:
+                    inputs.append([item[0], item[1], item[2]])
+                else:
+                    inputs.append([float(item[0]), float(item[1]), float(item[2])])
+                if use_generated_tasklabels:
+                    targets.append(item[3])
+                else:
+                    targets.append(item[3][1] if len(item[3])>1 else item[3])
                 
             else:
                 match = re.match(pattern, item[0])
@@ -64,8 +76,9 @@ def parse_generated_tasks(path, file_name, gpt, num_datapoints=8, last_task_id=0
         # if the number of datapoints is equal to the number of inputs, add to dataframe
         if gpt=='gpt3' or gpt=='gpt4' or gpt=='claude' or ((gpt=='llama') and (len(inputs)==num_datapoints)):
             print(f'inputs lengths {len(inputs)}')
-            df = pd.DataFrame({'input': inputs, 'target': targets, 'trial_id': np.arange(len(inputs)), 'task_id': np.ones((len(inputs),))*(task_id)}) if df is None else pd.concat([df, \
-                 pd.DataFrame({'input': inputs, 'target': targets, 'trial_id': np.arange(len(inputs)), 'task_id': np.ones((len(inputs),))*(task_id)})], ignore_index=True)
+            use_task_index = task_label[task] if use_generated_tasklabels else task_id
+            df = pd.DataFrame({'input': inputs, 'target': targets, 'trial_id': np.arange(len(inputs)), 'task_id': np.ones((len(inputs),))*(use_task_index)}) if df is None else pd.concat([df, \
+                 pd.DataFrame({'input': inputs, 'target': targets, 'trial_id': np.arange(len(inputs)), 'task_id': np.ones((len(inputs),))*(use_task_index)})], ignore_index=True)
             task_id+=1
         else:
             print(f'dataset did not have {num_datapoints} datapoints but instead had {len(inputs)} datapoints')
@@ -78,8 +91,8 @@ def parse_generated_tasks(path, file_name, gpt, num_datapoints=8, last_task_id=0
 
     return task_id
 
-def return_generated_task(path, gpt, model, num_dim, num_data, num_tasks, run, proc_id):
-    return pd.read_csv(f"{path}/{gpt}_generated_tasks_params{model}_dim{num_dim}_data{num_data}_tasks{num_tasks}_run{run}_procid{proc_id}.csv")
+def return_generated_task(path, gpt, model, num_dim, num_data, num_tasks, run, proc_id, prompt_version):
+    return pd.read_csv(f"{path}/{gpt}_generated_tasks_params{model}_dim{num_dim}_data{num_data}_tasks{num_tasks}_run{run}_procid{proc_id}_pversion{prompt_version}.csv")
 
 def pool_generated_tasks(path, models, dims, data, tasks, runs, proc_ids):
     ''' 
@@ -292,26 +305,33 @@ def evaluate_data_against_baselines(data, upto_trial=15, num_trials=None):
 
         trial = upto_trial # fit datapoints upto upto_trial; sort of burn-in trials
         # loop over trials
-        while trial <= num_trials:
+        while trial < num_trials:
             trial_inputs = inputs[:trial]
             trial_targets = targets[:trial]
             # if all targets until then are same, skip this trial
-            if (trial_targets == 0).all() or (trial_targets == 1).all():
-                pass
+            if (trial_targets == 0).all() or (trial_targets == 1).all() or trial<=5:
+                
+                # sample probability from uniform distribution
+                p = torch.distributions.uniform.Uniform(0, 1).sample()
+                lr_model_choice = torch.tensor([[1-p, p]])
+                p = torch.distributions.uniform.Uniform(0, 1).sample()
+                svm_model_choice = torch.tensor([[p, 1-p]])
+                baseline_model_choices.append(torch.stack([lr_model_choice, svm_model_choice]))
+                true_choices.append(targets[[trial]])
+                baseline_model_scores.append(torch.tensor([p, 1-p]))
+            
             else:
-                try:
-                    lr_model = LogisticRegressionModel(trial_inputs, trial_targets)
-                    svm_model = SVMModel(trial_inputs, trial_targets)
-                    lr_score = lr_model.score(inputs[[trial]], targets[[trial]])
-                    svm_score = svm_model.score(inputs[[trial]], targets[[trial]])
-                    lr_model_choice = lr_model.predict_proba(inputs[[trial]])
-                    svm_model_choice = svm_model.predict_proba(inputs[[trial]])#
-                    true_choice = targets[[trial]] #trial:trial+1]
-                    baseline_model_choices.append(torch.tensor([lr_model_choice, svm_model_choice]))
-                    true_choices.append(true_choice)
-                    baseline_model_scores.append(torch.tensor([lr_score, svm_score]))
-                except:
-                    print('error fitting')
+
+                lr_model = LogisticRegressionModel(trial_inputs, trial_targets)
+                svm_model = SVMModel(trial_inputs, trial_targets)
+                lr_score = lr_model.score(inputs[[trial]], targets[[trial]])
+                svm_score = svm_model.score(inputs[[trial]], targets[[trial]])
+                lr_model_choice = lr_model.predict_proba(inputs[[trial]])
+                svm_model_choice = svm_model.predict_proba(inputs[[trial]])#
+                true_choice = targets[[trial]] #trial:trial+1]
+                baseline_model_choices.append(torch.tensor([lr_model_choice, svm_model_choice]))
+                true_choices.append(true_choice)
+                baseline_model_scores.append(torch.tensor([lr_score, svm_score]))
             trial += 1
     
         # calculate accuracy
@@ -418,3 +438,35 @@ def return_data_stats(data):
 
 
     return all_corr, all_coef, posterior_logprob, feature_coef
+
+def retrieve_features_and_categories(path, file_name, task_id):
+    df = pd.read_csv(f'{path}/{file_name}.csv')
+    df = df[df.task_id==task_id]
+    features = eval(df.feature_names.values[0])
+    categories = eval(df.category_names.values[0])
+    return features, categories
+
+def pool_tasklabels(path_to_dir, run_gpt, model, num_dim, num_tasks, num_runs, proc_id, prompt_version, num_categories=2):
+    df, last_task_id = None, 0
+    for run_id in range(num_runs):
+        data = None
+        try:
+            filename = f'{run_gpt}_generated_tasklabels_params{model}_dim{num_dim}_tasks{num_tasks}_run{run_id}_procid{proc_id}_pversion{prompt_version}'
+            data = pd.read_csv(f'{path_to_dir}/{filename}.csv')       
+        except:
+            print(f'error loading {filename}')
+        if data is not None:
+            # does number of features match the number of dimensions
+            features = [eval(feature) for feature in data.feature_names.values]
+            features_match = np.array([len(feature) for feature in features])==num_dim 
+            # does number of categories match the number of dimensions
+            categories = [eval(category) for category in data.category_names.values]
+            categories_match = np.array([len(category) for category in categories])==num_categories
+            # if both match, add to dataframe
+            both_match = features_match*categories_match
+            processed_data = pd.DataFrame({'feature_names': data.feature_names.values[both_match], 'category_names': data.category_names.values[both_match], 'task_id': data.task_id.values[both_match] + last_task_id})
+            df = processed_data if df is None else pd.concat([df, processed_data], ignore_index=True)
+            last_task_id = df.task_id.values[-1]  
+
+    num_tasks = df.task_id.max()+1
+    df.to_csv(f'{path_to_dir}/{run_gpt}_generated_tasklabels_params{model}_dim{num_dim}_tasks{num_tasks}_pversion{prompt_version}.csv')             

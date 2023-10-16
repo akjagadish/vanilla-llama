@@ -7,7 +7,7 @@
 #SBATCH --mem=200G
 #SBATCH --cpus-per-task=20
 #SBATCH --mail-type=ALL
-#SBATCH --mail-user=akshay.jagadish@tuebingen.mpg.de
+#SBATCH --mail-user=akshaykjagadish@gmail.com
 
 cd ~/vanilla-llama/categorisation/
 
@@ -20,4 +20,15 @@ pip3 install --user accelerate openai gym ipdb transformers tensorboard
 pip3 install --user fire sentencepiece ipdb accelerate tqdm
 export OMP_NUM_THREADS=${SLURM_CPUS_PER_TASK}
 
-python parse_generated_tasks.py
+python parse_generated_tasks.py  --gpt claude --dims 3 --num-data 100 --tasks 2000 --runs 0  --prompt_version 4 --use_generated_tasklabels --proc_ids "{2000: [0]}"
+
+# path = '/raven/u/ajagadish/vanilla-llama/categorisation/data'#archive
+# gpt = 'claude' #'gpt4' #'llama'
+# models = ['NA'] #['65B'] #['NA']
+# dims = [3]
+# num_data_points = [100] #[8]
+# tasks = [2000]#[100, 300] #[1000, 2000, 500, 1500] #[20, 10] #[1000, 2000, 500, 1500]
+# runs = [0] #{1000: 0, 2000: 0}
+# proc_ids = {2000: [0]} #{100: [0, 2], 300: [3]} #{2000: [0, 1, 2, 3, 4, 5, 6]}
+# prompt_version = 4
+# use_generated_tasklabels = True

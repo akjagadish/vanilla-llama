@@ -162,9 +162,11 @@ cython_debug/
 # custom
 categorisation/data/archive
 categorisation/data/parsed
+categorisation/data/raw_data
 categorisation/data/parsed_csvs
 categorisation/data/unparsed
 categorisation/logs
 categorisation/runs
 categorisation/dump.py
+categorisation/figures/
 /shell-scripts/*

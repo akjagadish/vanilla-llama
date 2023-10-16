@@ -7,7 +7,7 @@
 #SBATCH --mem=200G
 #SBATCH --cpus-per-task=20
 #SBATCH --mail-type=ALL
-#SBATCH --mail-user=akshay.jagadish@tuebingen.mpg.de
+#SBATCH --mail-user=akshaykjagadish@gmail.com
 
 cd ~/vanilla-llama/categorisation/
 

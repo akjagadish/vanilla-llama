@@ -1,32 +1,61 @@
 import numpy as np
 import torch
-from envs import CategorisationTask
+from envs import CategorisationTask, ShepardsTask, NosofskysTask, LeveringsTask, SyntheticCategorisationTask
 import argparse
 from baseline_classifiers import LogisticRegressionModel, SVMModel
 
 # evaluate a model
-def evaluate_1d(env_name=None, model_path=None, env=None, model=None, mode='val', policy='greedy', return_all=False):
+def evaluate_1d(env_name=None, model_path=None, experiment='categorisation', env=None, model=None, mode='val', shuffle_trials=False, policy='binomial', beta=1., max_steps=70, device='cpu', return_all=False):
     
     if env is None:
         # load environment
-        env = CategorisationTask(data=env_name, mode=mode)
+        if experiment == 'synthetic':
+            env = SyntheticCategorisationTask(max_steps=max_steps, noise=0., shuffle_trials=shuffle_trials)
+        if experiment == 'categorisation':
+            env = CategorisationTask(data=env_name, mode=mode, shuffle_trials=shuffle_trials)
+        elif experiment == 'shepard_categorisation':
+            env = ShepardsTask(task=env_name)
+        elif experiment == 'nosofsky_categorisation':
+            env = NosofskysTask(task=env_name)
+        elif experiment == 'levering_categorisation':
+            env = LeveringsTask(task=env_name)
+
     if model is None:
         # load model
-        model = torch.load(model_path)[1]
+        model = torch.load(model_path)[1].to(device)
         
     with torch.no_grad():
         model.eval()
         packed_inputs, sequence_lengths, targets = env.sample_batch()
-        model_choices = model(packed_inputs, sequence_lengths)
+
+        model.beta = beta  # model beta is adjustable at test time
+        model.device = device
+        model_choices = model(packed_inputs.float().to(device), sequence_lengths)
+        
+        # sample from model choices probs using binomial distribution
+        if policy=='binomial':
+            model_choices = torch.distributions.Binomial(probs=model_choices).sample()
+        elif policy=='greedy':
+            model_choices = model_choices.round()
+
+        # MetaLearner model with LSTM core (without beta within the model)
+        # sigmoid = torch.nn.Sigmoid()
+        # model_choices = sigmoid(model_choices*0.5) #0.85 (used 0.5 for ac summer school)
+        # model_choices = torch.distributions.Binomial(probs=model_choices).sample()
+        
+        # deprecated
+        # model_choices = model_choices.round()
         # true_choices = targets.view(-1).float()
         # model_choices = model_choices.view(-1).float()
-        model_choices = torch.concat([model_choices[i, :seq_len] for i, seq_len in enumerate(sequence_lengths)], axis=0).squeeze().float()
-        true_choices = torch.concat(targets, axis=0).float()
 
-        accuracy = (model_choices.round()==true_choices).sum()/(model_choices.shape[0])
+        #TODO: this reshaping limits the future possilibites chagne it
+        model_choices = torch.concat([model_choices[i, :seq_len] for i, seq_len in enumerate(sequence_lengths)], axis=0).squeeze().float()
+        true_choices = targets.reshape(-1).float().to(device) if experiment == 'synthetic' else torch.concat(targets, axis=0).float().to(device)
+        category_labels = torch.concat(env.stacked_labels, axis=0).float() if experiment=='nosofsky_categorisation' else None
+        accuracy = (model_choices==true_choices).sum()/(model_choices.shape[0])
         
     if return_all:
-        return accuracy, model_choices, true_choices, sequence_lengths
+        return accuracy, model_choices, true_choices, sequence_lengths, category_labels
     else:    
         return accuracy
     
@@ -119,3 +148,36 @@ def evaluate_against_baselines(env_name, model_path, mode='val', return_all=Fals
         return accuracy, all_model_choices, all_true_choices
     else:    
         return accuracy
+    
+def evaluate_metalearner(env_name, model_path, experiment='categorisation', mode='test', shuffle_trials=False, beta=1., num_trials=96, num_runs=5, return_choices=False):
+    
+    for run_idx in range(num_runs):
+
+        _, model_choices, true_choices, sequences, category_labels = evaluate_1d(env_name=env_name,\
+                    model_path=model_path, experiment=experiment, mode=mode, shuffle_trials=shuffle_trials, \
+                    beta=beta, return_all=True)
+        
+        cum_sum = np.array(sequences).cumsum()
+        correct = np.ones((num_runs, len(cum_sum), np.diff(cum_sum).max())) if run_idx==0 else correct
+        model_choices_unpacked = np.ones((num_runs, len(cum_sum), np.diff(cum_sum).max())) if run_idx==0 else model_choices_unpacked
+        true_choices_unpacked = np.ones((num_runs, len(cum_sum), np.diff(cum_sum).max())) if run_idx==0 else true_choices_unpacked
+        labels_unpacked = np.ones((num_runs, len(cum_sum), np.diff(cum_sum).max())) if run_idx==0 else labels_unpacked
+        model_choices = model_choices.round()
+
+        for task_idx, _ in enumerate(cum_sum[:-1]):
+            # task corrects
+            task_correct = (model_choices==true_choices.squeeze())[cum_sum[task_idx]:cum_sum[task_idx+1]]
+            model_choices_unpacked[run_idx, task_idx, :(cum_sum[task_idx+1]-cum_sum[task_idx])] = model_choices[cum_sum[task_idx]:cum_sum[task_idx+1]]
+            true_choices_unpacked[run_idx, task_idx, :(cum_sum[task_idx+1]-cum_sum[task_idx])] = true_choices.squeeze()[cum_sum[task_idx]:cum_sum[task_idx+1]]
+            if experiment=='nosofsky_categorisation':
+                labels_unpacked[run_idx, task_idx, :(cum_sum[task_idx+1]-cum_sum[task_idx])] = category_labels.squeeze()[cum_sum[task_idx]:cum_sum[task_idx+1]]
+            correct[run_idx, task_idx, :(cum_sum[task_idx+1]-cum_sum[task_idx])] = task_correct.numpy()
+
+    # return mean over runs
+    correct = correct[...,:num_trials].mean(0) if num_trials is not None else correct.mean(0) 
+
+    if return_choices:
+        return correct, model_choices_unpacked, true_choices_unpacked, labels_unpacked
+    else:
+        return correct
+

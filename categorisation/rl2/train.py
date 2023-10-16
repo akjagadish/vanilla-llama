@@ -5,68 +5,25 @@ import torch
 import torch.optim as optim
 import torch.nn.functional as F
 from torch.utils.tensorboard import SummaryWriter
-from envs import CategorisationTask
-from model import RL2, MetaLearner
+from envs import CategorisationTask, SyntheticCategorisationTask
+from model import MetaLearner, NoisyMetaLearner
 import argparse
 from tqdm import tqdm
 from evaluate import evaluate, evaluate_1d
 from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 
-def run_old(env_name, num_episodes, synthetic, max_steps, print_every, save_every, num_hidden, save_dir, device, lr, batch_size=64):
-
-    writer = SummaryWriter('runs/' + save_dir)
-    env = CategorisationTask(data=env_name, max_steps=max_steps, batch_size=batch_size, synthetic_data=synthetic, device=device).to(device)
-    model = RL2(num_input=env.num_dims, num_output=env.num_choices, num_hidden=num_hidden, num_layers=1).to(device)
-    optimizer = optim.Adam(model.parameters(), lr=lr)
-    losses = [] # keep track of losses
-    accuracy = [] # keep track of accuracies
-    for t in tqdm(range(int(num_episodes))):
-        inputs, targets, prev_targets, done, info = env.reset()
-        hx, cx = model.initial_states(batch_size)
-        model_choices = []
-        true_choices = []
-        
-        while not done:
-            inputs = model.make_inputs(inputs, prev_targets) 
-            model_choice, hx, cx = model(inputs.float(), hx, cx)
-            true_choice = targets.detach().clone()
-            model_choices.append(model_choice)
-            true_choices.append(true_choice)
-            inputs, targets, prev_targets, done, info = env.step() 
-        
-        # convert to tensors
-        model_choices = torch.stack(model_choices)
-        true_choices = torch.stack(true_choices)
-        # reshape to (batch_size * num_steps, num_choices)
-        model_choices = model_choices.view(-1, model_choices.size(-1)).double()
-        true_choices = true_choices.view(-1)
-
-        # gradient step
-        loss = model.compute_loss(model_choices, true_choices)
-        optimizer.zero_grad()
-        loss.backward()
-        optimizer.step()
-
-        # logging
-        losses.append(loss.item())
-        
-        if (not t % print_every):
-            writer.add_scalar('Loss', loss, t)
-            
-
-        if (not t % save_every):
-            torch.save([t, model], save_dir)
-            acc = evaluate(env_name=env_name, model_path=save_dir, mode='val', policy='greedy')
-            accuracy.append(acc)
-            writer.add_scalar('Val. Acc.', acc, t)
-        
-    return losses, accuracy
 
 def run(env_name, num_episodes, synthetic, max_steps, noise, shuffle, print_every, save_every, num_hidden, save_dir, device, lr, batch_size=64):
 
     writer = SummaryWriter('runs/' + save_dir)
-    env = CategorisationTask(data=env_name, max_steps=max_steps, batch_size=batch_size, synthetic_data=synthetic, noise=noise, shuffle_trials=shuffle, device=device).to(device)
-    model = MetaLearner(num_input=env.num_dims, num_output=env.num_choices, num_hidden=num_hidden, num_layers=1).to(device)
+    if synthetic:
+        env = SyntheticCategorisationTask(max_steps=max_steps, batch_size=batch_size, noise=noise, shuffle_trials=shuffle, device=device).to(device)
+    else:
+        env = CategorisationTask(data=env_name, max_steps=max_steps, batch_size=batch_size, noise=noise, shuffle_trials=shuffle, device=device).to(device)
+    
+    # setup model
+    #model = MetaLearner(num_input=env.num_dims, num_output=env.num_choices, num_hidden=num_hidden, num_layers=1).to(device)
+    model = NoisyMetaLearner(num_input=env.num_dims, num_output=env.num_choices, num_hidden=num_hidden, num_layers=1).to(device)
     
     optimizer = optim.Adam(model.parameters(), lr=lr)
     losses = [] # keep track of losses
@@ -80,7 +37,7 @@ def run(env_name, num_episodes, synthetic, max_steps, noise, shuffle, print_ever
         #model_choices = model_choices.view(-1).float()
         #import ipdb ; ipdb.set_trace()
         model_choices = torch.concat([model_choices[i, :seq_len] for i, seq_len in enumerate(sequence_lengths)], axis=0).squeeze().float()
-        true_choices = torch.concat(targets, axis=0).float()
+        true_choices = targets.reshape(-1).float() if synthetic else torch.concat(targets, axis=0).float()
         
         # gradient step
         loss = model.compute_loss(model_choices,true_choices)
@@ -97,6 +54,7 @@ def run(env_name, num_episodes, synthetic, max_steps, noise, shuffle, print_ever
 
         if (not t % save_every):
             torch.save([t, model], save_dir)
+            #TODO: eval on experiment='synthetic' if synthetic else 'categorisation'
             acc = evaluate_1d(env_name=env_name, model_path=save_dir, mode='val', policy='greedy')
             accuracy.append(acc)
             writer.add_scalar('Val. Acc.', acc, t)
@@ -121,6 +79,7 @@ if __name__ == "__main__":
     parser.add_argument('--synthetic', action='store_true', default=False, help='train models on synthetic data')
     parser.add_argument('--noise', type=float, default=0., help='noise level')
     parser.add_argument('--shuffle', action='store_true', default=False, help='shuffle trials')
+    # parser.add_argument('--eval', default='categorisation', help='what to eval your meta-learner on')
 
     args = parser.parse_args()
     use_cuda = not args.no_cuda and torch.cuda.is_available()
@@ -134,8 +93,4 @@ if __name__ == "__main__":
             save_dir = f'{args.save_dir}env={args.env_name}_num_episodes{str(args.num_episodes)}_num_hidden={str(args.num_hidden)}_lr{str(args.lr)}_noise{str(args.noise)}_shuffle{str(args.shuffle)}_run={str(args.first_run_id + i)}.pt'
         if args.synthetic:
             save_dir = save_dir.replace('.pt', '_synthetic.pt')
-        # if args.noise > 0.:
-        #     save_dir = save_dir.replace('.pt', f'_noise{str(args.noise)}.pt')
-        # if args.shuffle:
-        #     save_dir = save_dir.replace('.pt', f'_shuffle{str(args.shuffle)}.pt')
         run(env_name, args.num_episodes, args.synthetic, args.max_steps, args.noise, args.shuffle, args.print_every, args.save_every, args.num_hidden, save_dir, device, args.lr)

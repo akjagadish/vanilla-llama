@@ -1,0 +1,248 @@
+,feature_names,category_names,task_id
+0,"['shade', 'shape', 'size']","['furniture', 'vehicles']",0
+1,"['wavelength', 'luminosity', 'duration']","['stars', 'planets']",1
+2,"['pitch', 'tempo', 'instrument']","['classical', 'pop']",2
+3,"['legs', 'wings', 'fins']","['mammals', 'fish']",3
+4,"['acidity', 'color', 'aroma']","['fruits', 'vegetables']",4
+5,"['hardness', 'luster', 'streak']","['metals', 'nonmetals']",5
+6,"['voltage', 'current', 'resistance']","['conductors', 'insulators']",6
+7,"['nucleus', 'electrons', 'neutrons']","['metals', 'nonmetals']",7
+8,"['sepals', 'petals', 'stamens']","['monocots', 'dicots']",8
+9,"['habitat', 'diet', 'lifespan']","['carnivores', 'herbivores']",9
+10,"['clouds', 'precipitation', 'pressure']","['frontal', 'occluded']",10
+11,"['elasticity', 'ductility', 'conductivity']","['metals', 'nonmetals']",11
+12,"['convexity', 'circumference', 'diameter']","['circles', 'polygons']",12
+13,"['mass', 'velocity', 'momentum']","['moving', 'stationary']",13
+14,"['valence', 'atomicradius', 'electronegativity']","['metals', 'nonmetals']",14
+15,"['legs', 'habitat', 'diet']","['insects', 'arachnids']",15
+16,"['temperature', 'particles', 'phase']","['gas', 'liquid']",16
+17,"['charge', 'spin', 'strangeness']","['mesons', 'baryons']",17
+18,"['crest', 'beak', 'plumage']","['seabirds', 'landbirds']",18
+19,"['segments', 'tracheae', 'reproduction']","['insects', 'arachnids']",19
+20,"['isotopes', 'half-life', 'radiation']","['stable', 'unstable']",20
+21,"['producers', 'consumers', 'decomposers']","['autotrophs', 'heterotrophs']",21
+22,"['domain', 'kingdom', 'phylum']","['plants', 'animals']",22
+23,"['root', 'stem', 'leaf']","['monocots', 'dicots']",23
+24,"['carat', 'cut', 'clarity']","['diamonds', 'gems']",24
+25,"['texture', 'pattern', 'material']","['textiles', 'ceramics']",25
+26,"['longitude', 'latitude', 'elevation']","['mountains', 'valleys']",26
+27,"['frequency', 'amplitude', 'phase']","['waves', 'particles']",27
+28,"['length', 'diameter', 'curvature']","['lines', 'circles']",28
+29,"['mass', 'charge', 'spin']","['fermions', 'bosons']",29
+30,"['tentacles', 'symmetry', 'skeleton']","['echinoderms', 'mollusks']",30
+31,"['orbit', 'atmosphere', 'rings']","['gasgiants', 'icegiants']",31
+32,"['claws', 'fins', 'gills']","['fish', 'amphibians']",32
+33,"['cilia', 'pseudopods', 'shells']","['protists', 'prokaryotes']",33
+34,"['leaves', 'bark', 'roots']","['angiosperms', 'gymnosperms']",34
+35,"['beak', 'wings', 'eggs']","['birds', 'reptiles']",35
+36,"['segments', 'venation', 'spiracles']","['insects', 'arachnids']",36
+37,"['cotyledons', 'vascular', 'seeds']","['gymnosperms', 'angiosperms']",37
+38,"['carats', 'cut', 'clarity']","['diamonds', 'emeralds']",38
+39,"['gears', 'pulleys', 'levers']","['simple', 'complex']",39
+40,"['mass', 'charge', 'spin']","['fermions', 'bosons']",40
+41,"['habitat', 'locomotion', 'diet']","['aquatic', 'terrestrial']",41
+42,"['lithosphere', 'atmosphere', 'hydrosphere']","['spheres', 'systems']",42
+43,"['pitch', 'timbre', 'volume']","['high', 'low']",43
+44,"['carps', 'rays', 'sharks']","['cartilaginous', 'bony']",44
+45,"['apocrine', 'eccrine', 'sebaceous']","['sweat', 'oil']",45
+46,"['grana', 'stroma', 'thylakoids']","['chloroplasts', 'mitochondria']",46
+47,"['burying', 'climbing', 'web-building']","['hunters', 'trappers']",47
+48,"['carapace', 'chelipeds', 'pleopods']","['crabs', 'shrimp']",48
+49,"['radial', 'bilateral', 'segmentation']","['worms', 'mollusks']",49
+50,"['breeding', 'flocking', 'feeding']","['birds', 'mammals']",50
+51,"['rapids', 'pools', 'falls']","['moving', 'still']",51
+52,"['producers', 'consumers', 'decomposers']","['living', 'nonliving']",52
+53,"['igneous', 'metamorphic', 'sedimentary']","['rocks', 'minerals']",53
+54,"['caruncle', 'comb', 'wattle']","['male', 'female']",54
+55,"['tropical', 'temperate', 'taiga']","['biomes', 'zones']",55
+56,"['granum', 'thylakoid', 'stroma']","['chloroplasts', 'mitochondria']",56
+57,"['aquarium', 'terrarium', 'vivarium']","['wet', 'dry']",57
+58,"['carpospores', 'sporophytes', 'gametophytes']","['diploid', 'haploid']",58
+59,"['kingdom', 'phylum', 'class']","['taxa', 'groups']",59
+60,"['carnivore', 'herbivore', 'omnivore']","['meat', 'plants']",60
+61,"['rainforest', 'desert', 'grassland']","['wet', 'dry']",61
+62,"['convex', 'concave', 'flat']","['curves', 'planes']",62
+63,"['song', 'call', 'cry']","['sounds', 'noises']",63
+64,"['carapace', 'plastron', 'shell']","['protection', 'exposure']",64
+65,"['photosystem', 'cytochromes', 'ATPsynthase']","['light', 'dark']",65
+66,"['tropical', 'temperate', 'boreal']","['hot', 'cold']",66
+67,"['gametophyte', 'sporophyte', 'spore']","['diploid', 'haploid']",67
+68,"['carbon', 'hydrogen', 'oxygen']","['organic', 'inorganic']",68
+69,"['carpospores', 'sporophytes', 'gametophytes']","['asexual', 'sexual']",69
+70,"['producer', 'consumer', 'decomposer']","['creation', 'destruction']",70
+71,"['carbohydrates', 'proteins', 'lipids']","['organic', 'inorganic']",71
+72,"['coniferous', 'deciduous', 'mixed']","['evergreen', 'leafless']",72
+73,"['cortex', 'medulla', 'cerebellum']","['parts', 'systems']",73
+74,"['cardiac', 'skeletal', 'smooth']","['voluntary', 'involuntary']",74
+75,"['photosynthesis', 'respiration', 'fermentation']","['production', 'consumption']",75
+76,"['cilia', 'flagella', 'pseudopods']","['locomotion', 'sensing']",76
+77,"['cambium', 'xylem', 'phloem']","['vascular', 'nonvascular']",77
+78,"['capillaries', 'arteries', 'veins']","['oxygenated', 'deoxygenated']",78
+79,"['carnassials', 'canines', 'molars']","['meat', 'plants']",79
+80,"['capillary', 'venous', 'arterial']","['oxygenated', 'deoxygenated']",80
+81,"['capitalism', 'communism', 'socialism']","['economics', 'politics']",81
+82,"['capitulum', 'peduncle', 'pappus']","['flower', 'fruit']",82
+83,"['carapace', 'abdomen', 'cephalothorax']","['anterior', 'posterior']",83
+84,"['caps', 'stems', 'stipes']","['fruiting', 'vegetative']",84
+85,"['capillary', 'interstitial', 'lymphatic']","['blood', 'lymph']",85
+86,"['capsule', 'cortex', 'medulla']","['inside', 'outside']",86
+87,"['carbaminohemoglobin', 'oxyhemoglobin']","['binding', 'releasing']",87
+88,"['carbohydrates', 'lipids', 'proteins']","['energy', 'structure']",88
+89,"['cardiac', 'smooth', 'skeletal']","['involuntary', 'voluntary']",89
+90,"['carnivore', 'omnivore', 'herbivore']","['meat', 'plants']",90
+91,"['carpal', 'metacarpal', 'phalanges']","['wrist', 'fingers']",91
+92,"['carotid', 'brachial', 'femoral']","['neck', 'thigh']",92
+93,"['cartilage', 'tendons', 'ligaments']","['flexible', 'attachments']",93
+94,"['cascades', 'waterfalls', 'rapids']","['fast', 'slow']",94
+95,"['catabolic', 'anabolic']","['breakingdown', 'buildingup']",95
+96,"['caudal', 'cervical', 'lumbar']","['tail', 'neck']",96
+97,"['cecum', 'colon', 'smallintestine']","['start', 'end']",97
+98,"['cellulose', 'lignin', 'pectin']","['structure', 'bonding']",98
+99,"['centrioles', 'lysosomes', 'peroxisomes']","['movement', 'cleanup']",99
+100,"['cerebellum', 'medulla', 'pons']","['hindbrain', 'midbrain']",100
+101,"['cerebrum', 'hippocampus', 'amygdala']","['logic', 'emotion']",101
+102,"['cervical', 'thoracic', 'lumbar']","['neck', 'lowerback']",102
+103,"['cheetah', 'lion', 'tiger']","['spots', 'stripes']",103
+104,"['chemical', 'kinetic', 'potential']","['stored', 'moving']",104
+105,"['chemosynthesis', 'respiration', 'fermentation']","['inorganic', 'organic']",105
+106,"['chloroplasts', 'mitochondria', 'vacuoles']","['energy', 'storage']",106
+107,"['chlorophyll', 'carotenoids', 'anthocyanins']","['green', 'othercolors']",107
+108,"['cholecystokinin', 'secretin', 'incretins']","['release', 'inhibit']",108
+109,"['chordates', 'echinoderms', 'arthropods']","['vertebrates', 'invertebrates']",109
+110,"['cilia', 'flagella', 'pseudopodia']","['movement', 'sensing']",110
+111,"['circadian', 'estrus', 'menstrual']","['daily', 'monthly']",111
+112,"['claws', 'venom', 'constricting']","['grabbing', 'injecting']",112
+113,"['clavicle', 'scapula', 'sternum']","['shoulders', 'chest']",113
+114,"['clay', 'silt', 'sand']","['size', 'composition']",114
+115,"['climaxcommunity', 'pioneercommunity']","['stable', 'changing']",115
+116,"['cloning', 'transgenic', 'selectivebreeding']","['copies', 'newtraits']",116
+117,"['cochlea', 'eardrum', 'ossicles']","['hearing', 'balance']",117
+118,"['cohesion', 'adhesion', 'surfacetension']","['sticking', 'shape']",118
+119,"['collembola', 'diplopoda', 'chilopoda']","['springtails', 'centipedes']",119
+120,"['colon', 'rectum', 'anus']","['reabsorption', 'elimination']",120
+121,"['commensalism', 'parasitism', 'mutualism', 'neutral']","['harmful', 'beneficial']",121
+122,"['communication', 'reproduction', 'excretion']","['interacting', 'living']",122
+123,"['communities', 'populations', 'organisms']","['groups', 'individuals']",123
+124,"['competition', 'parasitism', 'neutralism']","['negative', 'neutral']",124
+125,"['composite', 'pinnate', 'palmate']","['divided', 'undivided']",125
+126,"['composting', 'combustion', 'distillation', 'decay']","['burning', 'vaporizing']",126
+127,"['compound', 'connective', 'epithelial', 'many']","['connecting', 'covering']",127
+128,"['concentrationgradient', 'diffusion', 'osmosis']","['difference', 'movement']",128
+129,"['condensation', 'precipitation', 'collection']","['gastoliquid', 'falling']",129
+130,"['cones', 'rods', 'retinal']","['daytime', 'nighttime']",130
+131,"['conifers', 'flowering', 'spores']","['pollen', 'reproduction']",131
+132,"['consonant', 'vowel', 'phoneme']","['meaning', 'sound']",132
+133,"['continental', 'marine', 'transitional', 'land']","['ocean', 'mixed']",133
+134,"['control', 'experimental', 'variables']","['compare', 'change']",134
+135,"['convex', 'concave', 'flat', 'curvedout']","['curvedin', 'smooth']",135
+136,"['cooperation', 'selfishness', 'spite', 'helping']","['hurting', 'neutral']",136
+137,"['corolla', 'calyx', 'stamen', 'petals']","['sepals', 'pollen']",137
+138,"['cortex', 'medulla', 'cerebellum', 'outer']","['inner', 'coordination']",138
+139,"['covalent', 'ionic', 'metallic', 'sharing']","['transferring', 'sea']",139
+140,"['cranial', 'spinal', 'nerves']","['brain', 'spine']",140
+141,"['cuticle', 'epidermis', 'mesophyll']","['protection', 'photosynthesis']",141
+142,"['cytoplasm', 'nucleoplasm', 'organelles']","['jelly', 'genes']",142
+143,"['deciduous', 'evergreen', 'mixed']","['seasonal', 'year-round']",143
+144,"['decomposition', 'combustion', 'distillation', 'rotting']","['burning', 'evaporating']",144
+145,"['deductive', 'inductive', 'reasoning']","['general', 'specific']",145
+146,"['demospongiae', 'hexactinellida', 'calcarea']","['siliceous', 'calcareous']",146
+147,"['density', 'viscosity', 'volume', 'compactness']","['thickness', 'amount']",147
+148,"['deoxyribose', 'adenine']","['phosphate', 'buildingblocks']",148
+149,"['dermis', 'epidermis', 'hypodermis', 'middle']","['outer', 'inner']",149
+150,"['desert', 'grassland', 'tundra', 'dry']","['plains', 'cold']",150
+151,"['detritivore', 'herbivore', 'carnivore', 'eatsdead']","['eatsplants', 'eatsanimals']",151
+152,"['development', 'growth', 'reproduction', 'maturity']","['size', 'offspring']",152
+153,"['digestion', 'absorption', 'elimination', 'breakdown']","['uptake', 'removal']",153
+154,"['diploid', 'haploid', 'chromosomes']","['pairs', 'single']",154
+155,"['direction', 'duration', 'intensity', 'orientation']","['time', 'strength']",155
+156,"['distal', 'medial', 'proximal', 'far']","['middle', 'near']",156
+157,"['divergence', 'convergence', 'radiation', 'separating']","['merging', 'expanding']",157
+158,"['dominant', 'recessive', 'alleles']","['expressed', 'hidden']",158
+159,"['dorsal', 'ventral', 'posterior', 'back']","['front', 'rear']",159
+160,"['dripping', 'flowing', 'rushing', 'slow']","['medium', 'fast']",160
+161,"['duodenum', 'jejunum', 'ileum', 'first']","['second', 'third']",161
+162,"['duramater', 'piamater', 'arachnoid', 'outer']","['middle', 'inner']",162
+163,"['Earth', 'Jupiter', 'Saturn', 'inner']","['outer', 'gas']",163
+164,"['echidna', 'platypus', 'marsupial']","['egg-laying', 'pouched']",164
+165,"['ecology', 'physiology', 'anatomy', 'environment']","['function', 'structure']",165
+166,"['ectotherm', 'endotherm', 'temperature']","['outside', 'inside']",166
+167,"['egg', 'sperm', 'zygote', 'female']","['male', 'fertilized']",167
+168,"['elastic', 'kinetic', 'potential', 'rebounds']","['moving', 'stored']",168
+169,"['electrical', 'light', 'thermal', 'electrons']","['photons', 'heat']",169
+170,"['electron', 'proton', 'neutron', 'negative']","['positive', 'neutral']",170
+171,"['elephants', 'rhinoceros', 'manatees', 'tusks']","['horns', 'flippers']",171
+172,"['endocrine', 'nervous', 'system']","['hormones', 'neurons']",172
+173,"['endoplasmicreticulum', 'golgiapparatus', 'vesicles', 'folding']","['packaging', 'transporting']",173
+174,"['endotherm', 'ectotherm']","['warm-blooded', 'cold-blooded']",174
+175,"['energy', 'matter', 'fundamental']","['capacity', 'substance']",175
+176,"['entomology', 'etymology', 'ecology', 'insects']","['meanings', 'relationships']",176
+177,"['enzyme', 'substrate', 'product', 'protein']","['material', 'result']",177
+178,"['epithelium', 'glands', 'connectivetissue', 'lines']","['secretes', 'supports']",178
+179,"['equatorial', 'tropical', 'polar', 'middle']","['hot', 'cold']",179
+180,"['erosion', 'weathering', 'deposition', 'removal']","['change', 'addition']",180
+181,"['esophagus', 'trachea', 'lungs']","['eating', 'breathing']",181
+182,"['ethnography', 'ethnology', 'ethnomusicology', 'culture']","['socialrelations', 'music']",182
+183,"['eukaryote', 'prokaryote', 'nucleus']","['hasnucleus', 'nonucleus']",183
+184,"['evaporation', 'condensation', 'precipitation', 'gas']","['liquid', 'rain']",184
+185,"['evergreen', 'deciduous', 'mixed', 'alwaysgreen']","['seasonalleaves', 'both']",185
+186,"['excretion', 'secretion', 'absorption', 'wasteremoval']","['release', 'intake']",186
+187,"['exhaust', 'intake', 'combustion', 'output']","['input', 'burning']",187
+188,"['existential', 'humanist', 'behaviorist', 'meaning']","['choice', 'observable']",188
+189,"['exocrine', 'endocrine', 'ducts', 'hormones']","['outside', 'inside']",189
+190,"['exoskeleton', 'endoskeleton', 'hydrostaticskeleton', 'out']","['in', 'fluid']",190
+191,"['experiment', 'observation', 'theory', 'test']","['watch', 'explain']",191
+192,"['expiration', 'inspiration', 'ventilation', 'out']","['in', 'airflow']",192
+193,"['extinct', 'endangered', 'invasive', 'gone']","['atrisk', 'spreading']",193
+194,"['faceted', 'compound', 'simple', 'panels']","['manylenses', 'onelens']",194
+195,"['fahrenheit', 'celsius', 'kelvin', 'water']","['Celsius', 'absolute']",195
+196,"['fallopiantube', 'uterus', 'vagina']","['ovarytouterus', 'babyexit']",196
+197,"['family', 'genus', 'species', 'biggroup']","['smallergroup', 'smallestgroup']",197
+198,"['farsighted', 'nearsighted', 'astigmatism', 'farblurry']","['nearblurry', 'distorted']",198
+199,"['feathers', 'fur', 'scales', 'birds']","['mammals', 'reptiles']",199
+200,"['Federalism', 'Republicanism', 'Absolutism', 'shared']","['elected', 'totalpower']",200
+201,"['feet', 'yards', 'miles', 'small']","['medium', 'large']",201
+202,"['fermentation', 'respiration', 'photosynthesis', 'nooxygen']","['oxygen', 'light']",202
+203,"['fertilization', 'gestation', 'birth', 'conception']","['development', 'labor']",203
+204,"['fibroblasts', 'macrophages', 'lymphocytes', 'connective']","['eater', 'immune']",204
+205,"['fightorflight', 'feeding', 'mating', 'surviving']","['eating', 'reproducing']",205
+206,"['finches', 'warblers', 'ravens', 'beaks']","['songs', 'intelligence']",206
+207,"['fists', 'feet', 'weapons', 'body']","['body', 'objects']",207
+208,"['flatworms', 'earthworms', 'leeches', 'flattened']","['cylindrical', 'segmented']",208
+209,"['flexibility', 'strength', 'density', 'bends']","['withstands', 'compactness']",209
+210,"['floral', 'vegetative', 'dormant', 'flowering']","['leaves', 'resting']",210
+211,"['flower', 'fruit', 'leaf', 'reproductive']","['seedbearing', 'photosynthesis']",211
+212,"['fly', 'walk', 'swim', 'air']","['ground', 'water']",212
+213,"['folivore', 'frugivore', 'nectarivore', 'leaves']","['fruit', 'nectar']",213
+214,"['foodchain', 'foodweb', 'levels']","['singlepath', 'interconnected']",214
+215,"['forebrain', 'midbrain', 'hindbrain', 'front']","['middle', 'back']",215
+216,"['forest', 'grassland', 'desert', 'wooded']","['plains', 'dry']",216
+217,"['frontal', 'parietal', 'occipital', 'front']","['side', 'back']",217
+218,"['frugivore', 'nectivore', 'folivore', 'fruit']","['nectar', 'leaves']",218
+219,"['fungi', 'plants', 'animals', 'decomposers']","['producers', 'consumers']",219
+220,"['galactose', 'glucose', 'fructose', 'milksugar']","['bloodsugar', 'fruitsugar']",220
+221,"['gallbladder', 'pancreas', 'liver', 'storage']","['enzymes', 'detoxification']",221
+222,"['gasexchange', 'reproduction', 'excretion', 'breathing']","['breeding', 'wasteremoval']",222
+223,"['gecko', 'iguana', 'chameleon', 'pads']","['scales', 'colorchange']",223
+224,"['gelatinous', 'chordate', 'arthropod', 'jelly-like']","['backbone', 'exoskeleton']",224
+225,"['genetics', 'physiology', 'anatomy', 'heredity']","['function', 'structure']",225
+226,"['genotype', 'phenotype', 'genes', 'traits']","['blueprint', 'physical']",226
+227,"['germination', 'flowering', 'dormancy', 'sprouting']","['blooming', 'resting']",227
+228,"['gesneriads', 'bromeliads', 'orchids', 'leaves']","['tanks', 'complexflowers']",228
+229,"['glucagon', 'insulin', 'somatostatin', 'raiseglucose']","['lowerglucose', 'inhibit']",229
+230,"['granite', 'shale', 'limestone', 'igneous']","['sedimentary', 'metamorphic']",230
+231,"['grasshoppers', 'beetles', 'flies', 'hopping']","['hardwings', 'onepairwings']",231
+232,"['grazing', 'foraging', 'hunting', 'eatingplants']","['searching', 'killingprey']",232
+233,"['gymnosperm', 'angiosperm', 'seed', 'flower']","['exposedseed', 'enclosedseed']",233
+234,"['hair', 'scentglands', 'horns', 'mammals']","['markingterritory', 'defense']",234
+235,"['halophile', 'thermophile', 'acidophile', 'saltloving']","['heatloving', 'acidloving']",235
+236,"['hardness', 'streak', 'luster', 'scratchresistant']","['color', 'lightreflection']",236
+237,"['head', 'thorax', 'abdomen', 'sensing']","['locomotion', 'digestive']",237
+238,"['hearing', 'smell', 'sight', 'sound']","['chemicals', 'light']",238
+239,"['heart', 'brain', 'skin', 'circulation']","['control', 'protection']",239
+240,"['heartwood', 'sapwood', 'bark', 'deadxylem']","['livingxylem', 'protection']",240
+241,"['height', 'weight', 'temperature', 'size']","['mass', 'warmth']",241
+242,"['helix', 'antihelix', 'concha', 'curves']","['oppositecurves', 'hollows']",242
+243,"['herbaceous', 'woody', 'aquatic', 'softstems']","['hardstems', 'waterplants']",243
+244,"['herbivore', 'omnivore', 'carnivore', 'plants']","['plants&meat', 'meat']",244
+245,"['hierarchy', 'specialization', 'organization', 'levels']","['divisions', 'structure']",245
+246,"['hips', 'knees', 'ankles', 'toplegs']","['middlelegs', 'bottomlegs']",246

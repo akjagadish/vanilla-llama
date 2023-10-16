@@ -8,7 +8,7 @@
 #SBATCH --mem=240G
 #SBATCH --cpus-per-task=72
 #SBATCH --mail-type=ALL
-#SBATCH --mail-user=akshay.jagadish@tuebingen.mpg.de
+#SBATCH --mail-user=akshaykjagadish@gmail.com
 
 cd ~/vanilla-llama/optimism-bias/
 

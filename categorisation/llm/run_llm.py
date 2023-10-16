@@ -1,6 +1,5 @@
 import numpy as np
 import pandas as pd
-import jsonlines
 import ipdb
 import anthropic
 from dotenv import load_dotenv
@@ -87,8 +86,8 @@ def run_llm_on_categorisation(mode='llm', model='claude-2'):
                         # add to block instructions
                         block_instructions += '- In trial '+ str(t_idx+1) +', you picked category ' + str(response) + ' for ' + object_name + ' and category ' + str(t) + ' was correct.\n'
         
-        # save df with llm predicted category and true category
-        df.to_csv(dataset.replace('.csv', f'llm_choices{mode}.csv'), index=False)
+            # save df with llm predicted category and true category
+            df.to_csv(dataset.replace('.csv', f'llm_choices{mode}.csv'), index=False)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

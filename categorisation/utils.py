@@ -41,21 +41,29 @@ def parse_generated_tasks(path, file_name, gpt, num_datapoints=8, last_task_id=0
         # load each input-target pair
         for item in data:
             if gpt == 'gpt3':
-                #import ipdb; ipdb.set_trace()
+    
                 inputs.append([float(item[0]), float(item[1]), float(item[2])])
                 targets.append(item[3])
 
             elif gpt == 'gpt4':
-                #import ipdb; ipdb.set_trace()
+       
                 inputs.append([float(item[0]), float(item[1]), float(item[2])])
                 targets.append(item[3][1] if len(item[3])>1 else item[3])
 
             elif gpt == 'claude':
-                #import ipdb; ipdb.set_trace()
+
                 if prompt_version == 3:
                     inputs.append([item[0], item[1], item[2]])
+                elif prompt_version == 4:
+                    try:
+                        inputs.append([float(item[0]), float(item[1]), float(item[2])])
+                    except:
+                        # print([item[0], item[1], item[2]])
+                        print(f'{task} not parsable as float')
+                        continue
                 else:
                     inputs.append([float(item[0]), float(item[1]), float(item[2])])
+                    
                 if use_generated_tasklabels:
                     targets.append(item[3])
                 else:
@@ -63,7 +71,7 @@ def parse_generated_tasks(path, file_name, gpt, num_datapoints=8, last_task_id=0
                 
             else:
                 match = re.match(pattern, item[0])
-                #import ipdb; ipdb.set_trace()
+
                 if match:
                     try:
                         inputs.append([float(match.group(1)), float(match.group(2)), float(match.group(3))])
@@ -75,7 +83,7 @@ def parse_generated_tasks(path, file_name, gpt, num_datapoints=8, last_task_id=0
 
         # if the number of datapoints is equal to the number of inputs, add to dataframe
         if gpt=='gpt3' or gpt=='gpt4' or gpt=='claude' or ((gpt=='llama') and (len(inputs)==num_datapoints)):
-            print(f'inputs lengths {len(inputs)}')
+            print(f'{task} has inputs of length {len(inputs)}')
             use_task_index = task_label[task] if use_generated_tasklabels else task_id
             df = pd.DataFrame({'input': inputs, 'target': targets, 'trial_id': np.arange(len(inputs)), 'task_id': np.ones((len(inputs),))*(use_task_index)}) if df is None else pd.concat([df, \
                  pd.DataFrame({'input': inputs, 'target': targets, 'trial_id': np.arange(len(inputs)), 'task_id': np.ones((len(inputs),))*(use_task_index)})], ignore_index=True)
@@ -440,6 +448,7 @@ def return_data_stats(data):
     return all_corr, all_coef, posterior_logprob, feature_coef
 
 def retrieve_features_and_categories(path, file_name, task_id):
+ 
     df = pd.read_csv(f'{path}/{file_name}.csv')
     df = df[df.task_id==task_id]
     features = eval(df.feature_names.values[0])

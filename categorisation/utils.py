@@ -473,9 +473,10 @@ def pool_tasklabels(path_to_dir, run_gpt, model, num_dim, num_tasks, num_runs, p
             categories_match = np.array([len(category) for category in categories])==num_categories
             # if both match, add to dataframe
             both_match = features_match*categories_match
-            processed_data = pd.DataFrame({'feature_names': data.feature_names.values[both_match], 'category_names': data.category_names.values[both_match], 'task_id': data.task_id.values[both_match] + last_task_id})
+            processed_data = pd.DataFrame({'feature_names': data.feature_names.values[both_match], 'category_names': data.category_names.values[both_match], 'task_id': np.arange(len(data.task_id.values[both_match])) + last_task_id})
             df = processed_data if df is None else pd.concat([df, processed_data], ignore_index=True)
-            last_task_id = df.task_id.values[-1]  
+            last_task_id = df.task_id.values[-1] + 1
+
 
     num_tasks = df.task_id.max()+1
     df.to_csv(f'{path_to_dir}/{run_gpt}_generated_tasklabels_params{model}_dim{num_dim}_tasks{num_tasks}_pversion{prompt_version}.csv')             

@@ -8,19 +8,23 @@ import pandas as pd
 
 
 # load and filter data
-env_name='claude_generated_tasks_paramsNA_dim3_data100_tasks2000_pversion4' ##_pversion1
+env_name='claude_generated_tasks_paramsNA_dim3_data100_tasks4000_pversion4' ##_pversion1
 data = pd.read_csv(f'/raven/u/ajagadish/vanilla-llama/categorisation/data/{env_name}.csv') 
 data = data.groupby(['task_id']).filter(lambda x: len(x['target'].unique()) == 2) # check if data has only two values for target in each task
+data.input = data['input'].apply(lambda x: np.array(eval(x)))
 
 ## analyse llm generated data
-from plots import label_imbalance, plot_mean_number_tasks, plot_data_stats, plot_trial_by_trial_performance
+from plots import label_imbalance, plot_mean_number_tasks, plot_data_stats, plot_trial_by_trial_performance, plot_burstiness_training_curriculum
 # label_imbalance(data)
 # plot_mean_number_tasks(data)
-# plot_data_stats(data)
-min_trials, burn_in = 50, 1
-df = data.groupby('task_id').filter(lambda x: len(x)>=min_trials)
-data = data[data.trial_id<=min_trials] # keep only min_trials for all tasks for model fitting
-plot_trial_by_trial_performance(df, burn_in, min_trials-burn_in, min_trials)
+plot_data_stats(data, poly_degree=2)
+# plot_burstiness_training_curriculum(data, num_tasks=100)
+
+# plot trial by trial performance
+# min_trials, burn_in = 50, 1
+# df = data.groupby('task_id').filter(lambda x: len(x)>=min_trials)
+# data = data[data.trial_id<=min_trials] # keep only min_trials for all tasks for model fitting
+# plot_trial_by_trial_performance(df, burn_in, min_trials-burn_in, min_trials)
 
 ## replot experimental plots
 # from plots import replot_nosofsky1988, replot_nosofsky1994, replot_levering2020

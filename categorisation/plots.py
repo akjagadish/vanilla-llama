@@ -801,7 +801,7 @@ def plot_burstiness_training_curriculum(data,  num_tasks=10000):
     sns.despine()
     f.tight_layout()
     plt.show()
-    f.savefig('/raven/u/ajagadish/vanilla-llama/categorisation/figures/claude_median_lock_length.png', bbox_inches='tight')
+    f.savefig('/raven/u/ajagadish/vanilla-llama/categorisation/figures/claude_median_block_length.png', bbox_inches='tight')
 
     # histogram of burstiness
     categories = ['original', 'shuffled']

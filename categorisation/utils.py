@@ -7,6 +7,9 @@ import sys
 from sklearn.linear_model import LogisticRegression
 from sklearn.preprocessing import PolynomialFeatures
 import statsmodels.api as sm
+sys.path.append("/u/ajagadish/vanilla-llama/categorisation/rl2")
+sys.path.append("/u/ajagadish/vanilla-llama/categorisation/")
+sys.path.append("/u/ajagadish/vanilla-llama/categorisation/data")
 sys.path.append('/raven/u/ajagadish/vanilla-llama/categorisation/')
 sys.path.append('/raven/u/ajagadish/vanilla-llama/categorisation/data')
 sys.path.append('/raven/u/ajagadish/vanilla-llama/categorisation/rl2')

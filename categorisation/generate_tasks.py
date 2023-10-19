@@ -6,6 +6,8 @@ import numpy as np
 import torch
 import argparse
 import sys
+sys.path.append("..")
+sys.path.insert(1, '/u/ajagadish/vanilla-llama/')
 sys.path.insert(1, '/raven/u/ajagadish/vanilla-llama/')
 from inference import LLaMAInference
 from prompts import retrieve_prompt

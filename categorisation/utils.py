@@ -309,9 +309,13 @@ def evaluate_data_against_baselines(data, upto_trial=15, num_trials=None):
     for task in tasks:
         baseline_model_choices, true_choices, baseline_model_scores = [], [], []   
         # get the inputs for this task which is numpy array of dim (num_trials, 3)
-        inputs = np.stack([eval(val) for val in data[data.task_id==task].input.values])
+        inputs = np.stack(data[data.task_id==task].input.values)
+        # normalise data for each task to be between 0 and 1
+        inputs = (inputs - inputs.min())/(inputs.max() - inputs.min())
         # get the targets for this task which is numpy array of dim (num_trials, 1)
-        targets = torch.stack([torch.tensor(0) if val=='A' else torch.tensor(1) for val in data[data.task_id==task].target.values])
+        # targets = torch.stack([torch.tensor(0) if val=='A' else torch.tensor(1) for val in data[data.task_id==task].target.values])
+        targets = data[data.task_id==task].target.to_numpy()
+        targets = torch.from_numpy(np.unique(targets, return_inverse=True)[1])
         num_trials = data[data.task_id==task].trial_id.max() if num_trials is None else num_trials
 
         trial = upto_trial # fit datapoints upto upto_trial; sort of burn-in trials
@@ -340,9 +344,9 @@ def evaluate_data_against_baselines(data, upto_trial=15, num_trials=None):
                 lr_model_choice = lr_model.predict_proba(inputs[[trial]])
                 svm_model_choice = svm_model.predict_proba(inputs[[trial]])#
                 true_choice = targets[[trial]] #trial:trial+1]
-                baseline_model_choices.append(torch.tensor([lr_model_choice, svm_model_choice]))
+                baseline_model_choices.append(torch.tensor(np.array([lr_model_choice, svm_model_choice])))
                 true_choices.append(true_choice)
-                baseline_model_scores.append(torch.tensor([lr_score, svm_score]))
+                baseline_model_scores.append(torch.tensor(np.array([lr_score, svm_score])))
             trial += 1
     
         # calculate accuracy
@@ -389,33 +393,39 @@ def bin_data_points(num_bins, data, min_value=0, max_value=1):
     target_counts = np.array(target_counts)
     return bin_counts, target_counts
 
-def return_data_stats(data):
+def return_data_stats(data, poly_degree=2):
 
     df = data.copy()
     max_tasks = int(df['task_id'].max() + 1)
     all_corr, all_coef, all_bics_linear, all_bics_quadratic  = [], [], [], []
     f1_ceof, f2_coef, f3_coef = [], [], []
+    f1_corr, f2_corr, f3_corr = [], [], []
     for i in range(0, max_tasks):
         df_task = df[df['task_id'] == i]
-        if len(df_task) > 40: # arbitary data size threshold
+        if len(df_task) > 50: # arbitary data size threshold
             y = df_task['target'].to_numpy()
             y = np.unique(y, return_inverse=True)[1]
 
-            df_task['input'] = df_task['input'].apply(eval).apply(np.array)
+            # df_task['input'] = df_task['input'].apply(eval).apply(np.array)
             X = df_task["input"].to_numpy()
             X = np.stack(X)
+            X = (X - X.min())/(X.max() - X.min())  # normalize data
             
             # correlations
             all_corr.append(np.corrcoef(X[:, 0], X[:, 1])[0, 1])
             all_corr.append(np.corrcoef(X[:, 0], X[:, 2])[0, 1])
             all_corr.append(np.corrcoef(X[:, 1], X[:, 2])[0, 1])
 
+            # per feature correlations
+            f1_corr.append(np.corrcoef(X[:, 0], X[:, 1])[0, 1])
+            f2_corr.append(np.corrcoef(X[:, 0], X[:, 2])[0, 1])
+            f3_corr.append(np.corrcoef(X[:, 1], X[:, 2])[0, 1])
 
             if (y == 0).all() or (y == 1).all():
                 pass
             else:
                 X_linear = PolynomialFeatures(1).fit_transform(X)
-                log_reg = sm.Logit(y, X_linear).fit(method='bfgs')
+                log_reg = sm.Logit(y, X_linear).fit(method='bfgs', maxiter=10000)
 
                 # weights
                 all_coef.append(log_reg.params[1])
@@ -428,13 +438,16 @@ def return_data_stats(data):
                 f3_coef.append(log_reg.params[3])
 
 
-                X_poly = PolynomialFeatures(2).fit_transform(X)
-                log_reg_quadratic = sm.Logit(y, X_poly).fit(method='bfgs')
+                X_poly = PolynomialFeatures(poly_degree).fit_transform(X)
+                # try:
+                log_reg_quadratic = sm.Logit(y, X_poly).fit(method='bfgs', maxiter=10000)
 
                 # bics
                 all_bics_linear.append(log_reg.bic)
                 all_bics_quadratic.append(log_reg_quadratic.bic)
-
+                # except:
+                #     print('error fitting quadratic')
+                    
     # compute posterior probabilities
     logprobs = torch.from_numpy(-0.5 * np.stack((all_bics_linear, all_bics_quadratic), -1))
     joint_logprob = logprobs + torch.log(torch.ones([]) /logprobs.shape[1])
@@ -446,9 +459,14 @@ def return_data_stats(data):
     f2_coef = np.array(f2_coef)
     f3_coef = np.array(f3_coef)
     feature_coef = np.stack((f1_ceof, f2_coef, f3_coef), -1)
+    # horizontal task the feature coefficients
+    # hfeature_coef = feature_coef.reshape(-1, 3)
+
+    # horizontal stack per feature correlations
+    features_corrs = np.stack((f1_corr, f2_corr, f3_corr), -1)
 
 
-    return all_corr, all_coef, posterior_logprob, feature_coef
+    return all_corr, all_coef, posterior_logprob, feature_coef, features_corrs
 
 def retrieve_features_and_categories(path, file_name, task_id):
  
@@ -483,4 +501,6 @@ def pool_tasklabels(path_to_dir, run_gpt, model, num_dim, num_tasks, num_runs, p
 
 
     num_tasks = df.task_id.max()+1
+    # df.feature_names = df['feature_names'].apply(lambda x: eval(x))
+    # df.category_names = df['category_names'].apply(lambda x: eval(x))
     df.to_csv(f'{path_to_dir}/{run_gpt}_generated_tasklabels_params{model}_dim{num_dim}_tasks{num_tasks}_pversion{prompt_version}.csv')             

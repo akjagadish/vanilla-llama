@@ -64,7 +64,7 @@ def compare_llm_uniform_data_samples(data, random=False):
 def label_imbalance(data, categories=['A','B']):
 
     num_tasks = int(data.task_id.max()+1)
-    num_targets = np.stack([(data[data.task_id==task_id].target=='A').sum() for task_id in data.task_id.unique()])
+    num_targets = np.stack([(data[data.task_id==task_id].target==data[data.task_id==task_id].target.unique()[0]).sum() for task_id in data.task_id.unique()])
     expected_number_points = np.nanmean(np.array([data[data.task_id==ii].trial_id.max()+1 for ii in np.arange(num_tasks)]))
     f, ax = plt.subplots(1, 1, figsize=(5,5))
     bar_positions = [0, 0.55]
@@ -90,13 +90,10 @@ def label_imbalance(data, categories=['A','B']):
 # plot mean number of tasks
 def plot_mean_number_tasks(data):
     f, ax = plt.subplots(1, 1, figsize=(5,5))
-    expected_number_points = np.array([data[data.task_id==ii].trial_id.max()+1 for ii in np.arange(data.task_id.max()+1)])
-    mean_number_points = expected_number_points.mean()
-    print('mean: ', expected_number_points.mean())
-    # ax.hist(expected_number_points)
-    sns.histplot(expected_number_points, kde=False, bins=50, color=COLORS['metal2'])
-    plt.axvline(mean_number_points, color='#8b9da7', linestyle='--', label=f'Mean: {mean_number_points:.2f}', linewidth=2)
-    # plt.legend(fontsize=FONTSIZE-2,  loc="upper center", bbox_to_anchor=(.45, 1.1), ncol=3, frameon=False)
+    expected_number_points = np.array([data[data.task_id==ii].trial_id.max()+1 for ii in np.unique(data.task_id)])
+    sns.histplot(expected_number_points, kde=False, bins=50, color='#8b9da7')
+    plt.axvline(expected_number_points.mean(), color=COLORS['metal2'], linestyle='--', label=f'Mean: {expected_number_points.mean():.2f}', linewidth=2)
+    plt.legend(fontsize=FONTSIZE-4,  loc="lower right", frameon=False)
     ax.set_ylabel('Counts', fontsize=FONTSIZE)
     ax.set_xlabel('Number of data points per task', fontsize=FONTSIZE) #$a_{name_trials}$
     plt.xticks(fontsize=FONTSIZE-2)
@@ -264,9 +261,10 @@ def plot_sorted_volumes(data, num_bins, min_value=0, max_value=1):
     plt.show()
 
 
-def plot_data_stats(data):
+def plot_data_stats(data, poly_degree=2):
 
-    all_corr, all_coef, posterior_logprob, _ = return_data_stats(data)
+    all_corr, all_coef, posterior_logprob, per_feature_coef, per_feature_corrs = return_data_stats(data, poly_degree)
+
     COLORS['stats'] = '#173b4f'
     fig, axs = plt.subplots(1, 3,  figsize=(15,5))
     sns.histplot(np.array(all_corr), ax=axs[0], bins=10, stat='probability', edgecolor='w', linewidth=1, color=COLORS['stats'])
@@ -300,6 +298,56 @@ def plot_data_stats(data):
 
     # save figure
     fig.savefig(f'/raven/u/ajagadish/vanilla-llama/categorisation/figures/data_stats.svg', bbox_inches='tight', dpi=300)
+
+    # plot the 3 pairwise correlation between features in separate subplots
+    f, axs = plt.subplots(1, 3, figsize=(15,5))
+    for i in range(per_feature_corrs.shape[1]):
+        sns.histplot(per_feature_corrs[:, i], ax=axs[i], bins=10, stat='probability', edgecolor='w', linewidth=1, color=COLORS[f'feature_{i+1}'])
+    axs[0].set_xlabel('feature 1 and feature 2', fontsize=FONTSIZE)
+    axs[1].set_xlabel('feature 1 and feature 3', fontsize=FONTSIZE)
+    axs[2].set_xlabel('feature 2 and feature 3', fontsize=FONTSIZE)
+    axs[0].set_ylabel('Percentage', fontsize=FONTSIZE)
+    axs[1].set_ylabel('')
+    axs[2].set_ylabel('')
+    axs[0].set_ylim(0, 0.5)
+    axs[1].set_ylim(0, 0.5)
+    axs[2].set_ylim(0, 0.5)
+    axs[0].set_yticks(np.arange(0, 0.5, 0.1))
+    axs[1].set_yticks(np.arange(0, 0.5, 0.1))
+    axs[2].set_yticks(np.arange(0, 0.5, 0.1))
+    # set tick size
+    axs[0].tick_params(axis='both', which='major', labelsize=FONTSIZE-2)
+    axs[1].tick_params(axis='both', which='major', labelsize=FONTSIZE-2)
+    axs[2].tick_params(axis='both', which='major', labelsize=FONTSIZE-2)
+    sns.despine()
+    plt.tight_layout()
+    plt.show()
+    f.savefig(f'/raven/u/ajagadish/vanilla-llama/categorisation/figures/correlation_features.svg', bbox_inches='tight', dpi=300)
+
+    # plot the regression coefficients for the 3 features in separate subplots
+    f, axs = plt.subplots(1, 3, figsize=(15,5))
+    for i in range(per_feature_coef.shape[1]):
+        sns.histplot(per_feature_coef[:, i], ax=axs[i], bins=11, binrange=(-10, 10), stat='probability', edgecolor='w', linewidth=1, color=COLORS[f'feature_{i+1}'])
+    axs[0].set_xlabel('Coefficient for feature 1', fontsize=FONTSIZE)
+    axs[1].set_xlabel('Coefficient for feature 2', fontsize=FONTSIZE)
+    axs[2].set_xlabel('Coefficient for feature 3', fontsize=FONTSIZE)
+    axs[0].set_ylabel('Percentage', fontsize=FONTSIZE)
+    axs[1].set_ylabel('')
+    axs[2].set_ylabel('')
+    axs[0].set_ylim(0, 0.5)
+    axs[1].set_ylim(0, 0.5)
+    axs[2].set_ylim(0, 0.5)
+    axs[0].set_yticks(np.arange(0, 0.5, 0.1))
+    axs[1].set_yticks(np.arange(0, 0.5, 0.1))
+    axs[2].set_yticks(np.arange(0, 0.5, 0.1))
+    # set tick size
+    axs[0].tick_params(axis='both', which='major', labelsize=FONTSIZE-2)
+    axs[1].tick_params(axis='both', which='major', labelsize=FONTSIZE-2)
+    axs[2].tick_params(axis='both', which='major', labelsize=FONTSIZE-2)
+    sns.despine()
+    plt.tight_layout()
+    plt.show()
+    f.savefig(f'/raven/u/ajagadish/vanilla-llama/categorisation/figures/coefficient_features.svg', bbox_inches='tight', dpi=300)
 
 def plot_cue_validity(data):
 
@@ -721,7 +769,7 @@ def longest_consecutive_sequence(arr):
 def compute_burstiness(signal):
     return (len(signal)-(np.diff(signal)==0).sum())/len(signal)
 
-def plot_burstiness_training_curriculum(data,  num_tasks= 10000):
+def plot_burstiness_training_curriculum(data,  num_tasks=10000):
 
     # sub-select task
     list_tasks = data.task_id.unique()[:num_tasks] 
@@ -729,8 +777,10 @@ def plot_burstiness_training_curriculum(data,  num_tasks= 10000):
 
     burstinesss, shuffled_burstinesss, block_length, shuffled_block_length  = [], [], [], []
     for task_id in list_tasks:
-        data_As = data_subselected[data_subselected.task_id==task_id].target.values
-        signal = np.stack([2. if val=='A' else 1. for val in data_As])
+        y = data_subselected[data_subselected.task_id==task_id]['target'].to_numpy()
+        signal = np.unique(y, return_inverse=True)[1]+1
+        # data_As = data_subselected[data_subselected.task_id==task_id].target.values
+        # signal = np.stack([2. if val=='A' else 1. for val in data_As])
         
         burstinesss.append(compute_burstiness(signal))
         block_length.append(longest_consecutive_sequence(signal))
@@ -751,7 +801,7 @@ def plot_burstiness_training_curriculum(data,  num_tasks= 10000):
     sns.despine()
     f.tight_layout()
     plt.show()
-    f.savefig('/raven/u/ajagadish/vanilla-llama/categorisation/figures/claude_median_lock_length.png', bbox_inches='tight')
+    f.savefig('/raven/u/ajagadish/vanilla-llama/categorisation/figures/claude_median_block_length.png', bbox_inches='tight')
 
     # histogram of burstiness
     categories = ['original', 'shuffled']

@@ -308,7 +308,9 @@ def evaluate_data_against_baselines(data, upto_trial=15, num_trials=None):
         # get the inputs for this task which is numpy array of dim (num_trials, 3)
         inputs = np.stack([eval(val) for val in data[data.task_id==task].input.values])
         # get the targets for this task which is numpy array of dim (num_trials, 1)
-        targets = torch.stack([torch.tensor(0) if val=='A' else torch.tensor(1) for val in data[data.task_id==task].target.values])
+        # targets = torch.stack([torch.tensor(0) if val=='A' else torch.tensor(1) for val in data[data.task_id==task].target.values])
+        targets = data[data.task_id==task].target.to_numpy()
+        targets = torch.from_numpy(np.unique(targets, return_inverse=True)[1])
         num_trials = data[data.task_id==task].trial_id.max() if num_trials is None else num_trials
 
         trial = upto_trial # fit datapoints upto upto_trial; sort of burn-in trials
@@ -426,12 +428,15 @@ def return_data_stats(data):
 
 
                 X_poly = PolynomialFeatures(2).fit_transform(X)
+                # try:
                 log_reg_quadratic = sm.Logit(y, X_poly).fit(method='bfgs')
 
                 # bics
                 all_bics_linear.append(log_reg.bic)
                 all_bics_quadratic.append(log_reg_quadratic.bic)
-
+                # except:
+                #     print('error fitting quadratic')
+                    
     # compute posterior probabilities
     logprobs = torch.from_numpy(-0.5 * np.stack((all_bics_linear, all_bics_quadratic), -1))
     joint_logprob = logprobs + torch.log(torch.ones([]) /logprobs.shape[1])
@@ -479,4 +484,6 @@ def pool_tasklabels(path_to_dir, run_gpt, model, num_dim, num_tasks, num_runs, p
 
 
     num_tasks = df.task_id.max()+1
+    # df.feature_names = df['feature_names'].apply(lambda x: eval(x))
+    # df.category_names = df['category_names'].apply(lambda x: eval(x))
     df.to_csv(f'{path_to_dir}/{run_gpt}_generated_tasklabels_params{model}_dim{num_dim}_tasks{num_tasks}_pversion{prompt_version}.csv')             

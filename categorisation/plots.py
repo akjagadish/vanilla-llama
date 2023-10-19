@@ -64,7 +64,7 @@ def compare_llm_uniform_data_samples(data, random=False):
 def label_imbalance(data, categories=['A','B']):
 
     num_tasks = int(data.task_id.max()+1)
-    num_targets = np.stack([(data[data.task_id==task_id].target=='A').sum() for task_id in data.task_id.unique()])
+    num_targets = np.stack([(data[data.task_id==task_id].target==data[data.task_id==task_id].target.unique()[0]).sum() for task_id in data.task_id.unique()])
     expected_number_points = np.nanmean(np.array([data[data.task_id==ii].trial_id.max()+1 for ii in np.arange(num_tasks)]))
     f, ax = plt.subplots(1, 1, figsize=(5,5))
     bar_positions = [0, 0.55]

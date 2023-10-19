@@ -453,10 +453,11 @@ def return_data_stats(data):
 def retrieve_features_and_categories(path, file_name, task_id):
  
     df = pd.read_csv(f'{path}/{file_name}.csv')
-    df = df[df.task_id==task_id]
+    task_id = df.task_id[task_id]
+    df = df[df.task_id==df.task_id[task_id]]
     features = eval(df.feature_names.values[0])
     categories = eval(df.category_names.values[0])
-    return features, categories
+    return features, categories, task_id
 
 def pool_tasklabels(path_to_dir, run_gpt, model, num_dim, num_tasks, num_runs, proc_id, prompt_version, num_categories=2):
     df, last_task_id = None, 0

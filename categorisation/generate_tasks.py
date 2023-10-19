@@ -174,7 +174,8 @@ if __name__ == "__main__":
             ## LLM acts
             if run_gpt == 'claude' and args.use_generated_tasklabels:
                 assert args.file_name_tasklabels is not None, "Please provide a file name for the task labels"
-                features, categories = retrieve_features_and_categories(path=args.path_tasklabels,\
+                
+                features, categories, task_id = retrieve_features_and_categories(path=args.path_tasklabels,\
                                                                         file_name=args.file_name_tasklabels,\
                                                                         task_id=t)
                 assert len(features) == num_dim, "Number of features does not match the number of dimensions"
@@ -188,7 +189,7 @@ if __name__ == "__main__":
                 matches = re.findall(pattern, action, re.MULTILINE)
                 if len(matches) > 0:
                     data.append(matches)
-                    task_ids.append(t)
+                    task_ids.append(task_id)
                     break
 
             if len(matches) == 0:

@@ -769,7 +769,7 @@ def longest_consecutive_sequence(arr):
 def compute_burstiness(signal):
     return (len(signal)-(np.diff(signal)==0).sum())/len(signal)
 
-def plot_burstiness_training_curriculum(data,  num_tasks= 10000):
+def plot_burstiness_training_curriculum(data,  num_tasks=10000):
 
     # sub-select task
     list_tasks = data.task_id.unique()[:num_tasks] 
@@ -777,8 +777,10 @@ def plot_burstiness_training_curriculum(data,  num_tasks= 10000):
 
     burstinesss, shuffled_burstinesss, block_length, shuffled_block_length  = [], [], [], []
     for task_id in list_tasks:
-        data_As = data_subselected[data_subselected.task_id==task_id].target.values
-        signal = np.stack([2. if val=='A' else 1. for val in data_As])
+        y = data_subselected[data_subselected.task_id==task_id]['target'].to_numpy()
+        signal = np.unique(y, return_inverse=True)[1]+1
+        # data_As = data_subselected[data_subselected.task_id==task_id].target.values
+        # signal = np.stack([2. if val=='A' else 1. for val in data_As])
         
         burstinesss.append(compute_burstiness(signal))
         block_length.append(longest_consecutive_sequence(signal))

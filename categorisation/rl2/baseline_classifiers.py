@@ -9,8 +9,7 @@ class LogisticRegressionModel:
     # take more inputs for different parameters
     def __init__(self, X, y):
         # self.model = LogisticRegression(penalty='l2', C=1.0, solver='lbfgs', max_iter=1000)
-        # most powerful logistic regression model
-        self.model = LogisticRegression(penalty='l2', C=1.0, solver='sag', max_iter=10000)
+        self.model = LogisticRegression(penalty='l2', C=1.0, solver='sag', max_iter=20000)
         self.model.fit(X, y)
 
     def predict(self, X):

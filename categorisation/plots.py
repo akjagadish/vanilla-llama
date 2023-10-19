@@ -261,9 +261,10 @@ def plot_sorted_volumes(data, num_bins, min_value=0, max_value=1):
     plt.show()
 
 
-def plot_data_stats(data):
+def plot_data_stats(data, poly_degree=2):
 
-    all_corr, all_coef, posterior_logprob, _ = return_data_stats(data)
+    all_corr, all_coef, posterior_logprob, per_feature_coef, per_feature_corrs = return_data_stats(data, poly_degree)
+
     COLORS['stats'] = '#173b4f'
     fig, axs = plt.subplots(1, 3,  figsize=(15,5))
     sns.histplot(np.array(all_corr), ax=axs[0], bins=10, stat='probability', edgecolor='w', linewidth=1, color=COLORS['stats'])
@@ -297,6 +298,56 @@ def plot_data_stats(data):
 
     # save figure
     fig.savefig(f'/raven/u/ajagadish/vanilla-llama/categorisation/figures/data_stats.svg', bbox_inches='tight', dpi=300)
+
+    # plot the 3 pairwise correlation between features in separate subplots
+    f, axs = plt.subplots(1, 3, figsize=(15,5))
+    for i in range(per_feature_corrs.shape[1]):
+        sns.histplot(per_feature_corrs[:, i], ax=axs[i], bins=10, stat='probability', edgecolor='w', linewidth=1, color=COLORS[f'feature_{i+1}'])
+    axs[0].set_xlabel('feature 1 and feature 2', fontsize=FONTSIZE)
+    axs[1].set_xlabel('feature 1 and feature 3', fontsize=FONTSIZE)
+    axs[2].set_xlabel('feature 2 and feature 3', fontsize=FONTSIZE)
+    axs[0].set_ylabel('Percentage', fontsize=FONTSIZE)
+    axs[1].set_ylabel('')
+    axs[2].set_ylabel('')
+    axs[0].set_ylim(0, 0.5)
+    axs[1].set_ylim(0, 0.5)
+    axs[2].set_ylim(0, 0.5)
+    axs[0].set_yticks(np.arange(0, 0.5, 0.1))
+    axs[1].set_yticks(np.arange(0, 0.5, 0.1))
+    axs[2].set_yticks(np.arange(0, 0.5, 0.1))
+    # set tick size
+    axs[0].tick_params(axis='both', which='major', labelsize=FONTSIZE-2)
+    axs[1].tick_params(axis='both', which='major', labelsize=FONTSIZE-2)
+    axs[2].tick_params(axis='both', which='major', labelsize=FONTSIZE-2)
+    sns.despine()
+    plt.tight_layout()
+    plt.show()
+    f.savefig(f'/raven/u/ajagadish/vanilla-llama/categorisation/figures/correlation_features.svg', bbox_inches='tight', dpi=300)
+
+    # plot the regression coefficients for the 3 features in separate subplots
+    f, axs = plt.subplots(1, 3, figsize=(15,5))
+    for i in range(per_feature_coef.shape[1]):
+        sns.histplot(per_feature_coef[:, i], ax=axs[i], bins=11, binrange=(-10, 10), stat='probability', edgecolor='w', linewidth=1, color=COLORS[f'feature_{i+1}'])
+    axs[0].set_xlabel('Coefficient for feature 1', fontsize=FONTSIZE)
+    axs[1].set_xlabel('Coefficient for feature 2', fontsize=FONTSIZE)
+    axs[2].set_xlabel('Coefficient for feature 3', fontsize=FONTSIZE)
+    axs[0].set_ylabel('Percentage', fontsize=FONTSIZE)
+    axs[1].set_ylabel('')
+    axs[2].set_ylabel('')
+    axs[0].set_ylim(0, 0.5)
+    axs[1].set_ylim(0, 0.5)
+    axs[2].set_ylim(0, 0.5)
+    axs[0].set_yticks(np.arange(0, 0.5, 0.1))
+    axs[1].set_yticks(np.arange(0, 0.5, 0.1))
+    axs[2].set_yticks(np.arange(0, 0.5, 0.1))
+    # set tick size
+    axs[0].tick_params(axis='both', which='major', labelsize=FONTSIZE-2)
+    axs[1].tick_params(axis='both', which='major', labelsize=FONTSIZE-2)
+    axs[2].tick_params(axis='both', which='major', labelsize=FONTSIZE-2)
+    sns.despine()
+    plt.tight_layout()
+    plt.show()
+    f.savefig(f'/raven/u/ajagadish/vanilla-llama/categorisation/figures/coefficient_features.svg', bbox_inches='tight', dpi=300)
 
 def plot_cue_validity(data):
 

@@ -90,13 +90,10 @@ def label_imbalance(data, categories=['A','B']):
 # plot mean number of tasks
 def plot_mean_number_tasks(data):
     f, ax = plt.subplots(1, 1, figsize=(5,5))
-    expected_number_points = np.array([data[data.task_id==ii].trial_id.max()+1 for ii in np.arange(data.task_id.max()+1)])
-    mean_number_points = expected_number_points.mean()
-    print('mean: ', expected_number_points.mean())
-    # ax.hist(expected_number_points)
-    sns.histplot(expected_number_points, kde=False, bins=50, color=COLORS['metal2'])
-    plt.axvline(mean_number_points, color='#8b9da7', linestyle='--', label=f'Mean: {mean_number_points:.2f}', linewidth=2)
-    # plt.legend(fontsize=FONTSIZE-2,  loc="upper center", bbox_to_anchor=(.45, 1.1), ncol=3, frameon=False)
+    expected_number_points = np.array([data[data.task_id==ii].trial_id.max()+1 for ii in np.unique(data.task_id)])
+    sns.histplot(expected_number_points, kde=False, bins=50, color='#8b9da7')
+    plt.axvline(expected_number_points.mean(), color=COLORS['metal2'], linestyle='--', label=f'Mean: {expected_number_points.mean():.2f}', linewidth=2)
+    plt.legend(fontsize=FONTSIZE-4,  loc="lower right", frameon=False)
     ax.set_ylabel('Counts', fontsize=FONTSIZE)
     ax.set_xlabel('Number of data points per task', fontsize=FONTSIZE) #$a_{name_trials}$
     plt.xticks(fontsize=FONTSIZE-2)

@@ -839,4 +839,35 @@ def plot_burstiness_training_curriculum(data,  num_tasks=10000):
     plt.show()
     f.savefig('/raven/u/ajagadish/vanilla-llama/categorisation/figures/claude_burstiness.png', bbox_inches='tight')
 
+def plot_frequency_tasklabels(file_name, path='/u/ajagadish/vanilla-llama/categorisation/data/tasklabels'):
+    from collections import Counter
+    df = pd.read_csv(f'{path}/{file_name}.csv')
+    df.feature_names = df['feature_names'].apply(lambda x: eval(x))
+    def to_lower(ff):
+        return [x.lower() for x in ff]
+    df.feature_names = df['feature_names'].apply(lambda x: to_lower(x))
+
+    # count of number of times a type of features occurs
+    list_counts = Counter([tuple(features) for features in df['feature_names']])
+
+    # sort the Counter by counts in descending order
+    sorted_list_counts = sorted(list_counts.items(), key=lambda x: x[1], reverse=True)
+
+    # extract the counts and names for the top 50 labels
+    top_labels = 50
+    task_labels = np.array([task_label[0] for task_label in sorted_list_counts[:top_labels]])
+    label_counts= np.array([task_label[1] for task_label in sorted_list_counts[:top_labels]])
+    label_names = ['-'.join(task_labels[idx]) for idx in range(len(task_labels))]
+
+    # plot the bars of labels and counts
+    f, ax = plt.subplots(1, 1, figsize=(10,10))
+    ax.bar(label_names, label_counts)
+    plt.xticks(label_names, label_names, rotation=90, fontsize=FONTSIZE-6.5)
+    plt.yticks(fontsize=FONTSIZE-6)
+    ax.set_xlabel('Feature Names', fontsize=FONTSIZE)
+    ax.set_ylabel('Counts', fontsize=FONTSIZE)
+    ax.set_title(f'Top {top_labels} Tasks', fontsize=FONTSIZE)
+    sns.despine()
+    f.tight_layout()
+    plt.show()
 

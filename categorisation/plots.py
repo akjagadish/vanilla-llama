@@ -267,7 +267,7 @@ def plot_data_stats(data, poly_degree=2):
 
     COLORS['stats'] = '#173b4f'
     fig, axs = plt.subplots(1, 3,  figsize=(15,5))
-    sns.histplot(np.array(all_corr), ax=axs[0], bins=10, stat='probability', edgecolor='w', linewidth=1, color=COLORS['stats'])
+    sns.histplot(np.array(all_corr), ax=axs[0], bins=11, binrange=(-1., 1.), stat='probability', edgecolor='w', linewidth=1, color=COLORS['stats'])
     sns.histplot(np.array(all_coef), ax=axs[1], bins=11, binrange=(-10, 10), stat='probability', edgecolor='w', linewidth=1, color=COLORS['stats'])
     sns.histplot(posterior_logprob[:, 0].exp().detach(), ax=axs[2], bins=5, stat='probability', edgecolor='w', linewidth=1, color=COLORS['stats'])
     
@@ -302,7 +302,7 @@ def plot_data_stats(data, poly_degree=2):
     # plot the 3 pairwise correlation between features in separate subplots
     f, axs = plt.subplots(1, 3, figsize=(15,5))
     for i in range(per_feature_corrs.shape[1]):
-        sns.histplot(per_feature_corrs[:, i], ax=axs[i], bins=10, stat='probability', edgecolor='w', linewidth=1, color=COLORS[f'feature_{i+1}'])
+        sns.histplot(per_feature_corrs[:, i], ax=axs[i], bins=11, binrange=(-1., 1.), stat='probability', edgecolor='w', linewidth=1, color=COLORS[f'feature_{i+1}'])
     axs[0].set_xlabel('feature 1 and feature 2', fontsize=FONTSIZE)
     axs[1].set_xlabel('feature 1 and feature 3', fontsize=FONTSIZE)
     axs[2].set_xlabel('feature 2 and feature 3', fontsize=FONTSIZE)

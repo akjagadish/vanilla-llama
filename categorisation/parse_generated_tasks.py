@@ -29,7 +29,6 @@ def parse_and_pool_generated_tasks(path, gpt, models, dims, data, tasks, runs, p
     '''
 
     df = None
-    total_tasks = 0
     for model in models:
         for dim in dims:
             for num_data in data:
@@ -37,22 +36,22 @@ def parse_and_pool_generated_tasks(path, gpt, models, dims, data, tasks, runs, p
                 for num_tasks in tasks:
                     for run in runs:
                         for proc_id in proc_ids[num_tasks]:
-                            total_tasks += num_tasks
                             
                             filename = f'{gpt}_generated_tasks_params{model}_dim{dim}_data{num_data}_tasks{num_tasks}_run{run}_procid{proc_id}_pversion{prompt_version}'
                             #if os.path.exists(f"{path}/{filename}.csv"): 
                             last_task_id = parse_generated_tasks(path+'/parsed', filename, gpt, num_data, last_task_id, use_generated_tasklabels, prompt_version)
                             print(f'parsed: {filename}')
                            
-                            # load llama generated tasks which were successfully regex parsed
+                            # load llm generated tasks which were successfully regex parsed
                             df = return_generated_task(path+'/parsed', gpt, model, dim, num_data, num_tasks, run, proc_id, prompt_version) if df is None else pd.concat([df, \
                                     return_generated_task(path+'/parsed', gpt, model, dim, num_data, num_tasks, run, proc_id, prompt_version)], ignore_index=True)
                             print(f'pooled: {filename}')
+                
                 # save the pooled dataframe to csv
-                print(df)
                 df = df if use_generated_tasklabels else df.query('target == "A" or target == "B"')
-                df.to_csv(f"{path}/{gpt}_generated_tasks_params{model}_dim{dim}_data{num_data}_tasks{total_tasks}_pversion{prompt_version}.csv")
-    
+                total_tasks = df.task_id.max()+1
+                df.to_csv(f"{path}/{gpt}_generated_tasks_params{model}_dim{dim}_data{num_data}_tasks{int(total_tasks)}_pversion{prompt_version}.csv")
+                print(f'saved: {gpt}_generated_tasks_params{model}_dim{dim}_data{num_data}_tasks{int(total_tasks)}_pversion{prompt_version}.csv')
     return df
 
 

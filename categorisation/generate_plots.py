@@ -11,16 +11,16 @@ from plots import replot_nosofsky1988, replot_nosofsky1994, replot_levering2020
 from plots import compare_metalearners
 
 # load and filter data
-# env_name='claude_generated_tasks_paramsNA_dim3_data100_tasks4000_pversion4' ##_pversion1
-# data = pd.read_csv(f'/raven/u/ajagadish/vanilla-llama/categorisation/data/{env_name}.csv') 
-# data = data.groupby(['task_id']).filter(lambda x: len(x['target'].unique()) == 2) # check if data has only two values for target in each task
-# data.input = data['input'].apply(lambda x: np.array(eval(x)))
+env_name='claude_generated_tasks_paramsNA_dim3_data100_tasks2517_pversion4' ##_pversion1
+data = pd.read_csv(f'/raven/u/ajagadish/vanilla-llama/categorisation/data/{env_name}.csv') 
+data = data.groupby(['task_id']).filter(lambda x: len(x['target'].unique()) == 2) # check if data has only two values for target in each task
+data.input = data['input'].apply(lambda x: np.array(eval(x)))
 
 ## analyse llm generated data
-# label_imbalance(data)
-# plot_mean_number_tasks(data)
-# plot_data_stats(data, poly_degree=2)
-# plot_burstiness_training_curriculum(data, num_tasks=100)
+label_imbalance(data)
+plot_mean_number_tasks(data)
+plot_data_stats(data, poly_degree=2)
+plot_burstiness_training_curriculum(data, num_tasks=100)
 
 # plot trial by trial performance
 # min_trials, burn_in = 50, 1
@@ -43,11 +43,11 @@ from plots import compare_metalearners
 
 ## meta-leaner trained on shuffled llm data
 # env_model_name = 'claude_generated_tasks_paramsNA_dim3_data100_tasks14000_pversion1_model=transformer_num_episodes500000_num_hidden=256_lr0.0003_num_layers=6_d_model=64_num_head=8'
-env_model_name = 'claude_generated_tasks_paramsNA_dim3_data100_tasks14000_pversion1_model=transformer_num_episodes500000_num_hidden=256_lr0.0003_num_layers=6_d_model=64_num_head=8'
-beta=0.3
-evaluate_nosofsky1988(env_name=env_model_name, experiment=2, beta=beta, noises=[0.0], shuffles=[True], num_runs=50, num_blocks=1, num_eval_tasks=64)
-evaluate_levering2020(env_name=env_model_name, noises=[0.0], beta=beta,  shuffles=[True], num_runs=50, num_eval_tasks=64, num_trials=150)
-evaluate_nosofsky1994(env_name=env_model_name, tasks=np.arange(1,7), beta=beta, noises=[0.0], shuffles=[True], shuffle_evals=[False], experiment='shepard_categorisation', num_runs=10, num_eval_tasks=64)
+# env_model_name = 'claude_generated_tasks_paramsNA_dim3_data100_tasks14000_pversion1_model=transformer_num_episodes500000_num_hidden=256_lr0.0003_num_layers=6_d_model=64_num_head=8'
+# beta=0.3
+# evaluate_nosofsky1988(env_name=env_model_name, experiment=2, beta=beta, noises=[0.0], shuffles=[True], num_runs=50, num_blocks=1, num_eval_tasks=64)
+# evaluate_levering2020(env_name=env_model_name, noises=[0.0], beta=beta,  shuffles=[True], num_runs=50, num_eval_tasks=64, num_trials=150)
+# evaluate_nosofsky1994(env_name=env_model_name, tasks=np.arange(1,7), beta=beta, noises=[0.0], shuffles=[True], shuffle_evals=[False], experiment='shepard_categorisation', num_runs=10, num_eval_tasks=64)
 
 ## meta-leaner trained on synthetic data
 # env_model_name = 'transformer_metalearning_synthetic_model=transformer_num_episodes500000_num_hidden=128_lr0.0003_num_layers=6_d_model=64_num_head=4'

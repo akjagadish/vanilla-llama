@@ -9,7 +9,7 @@ class CategorisationTask(nn.Module):
     Categorisation task inspired by Shepard et al. (1961)
     Note: generates one task at a time, each containing max_steps datapoints, with no repitition of datapoints over blocks
     """
-    def __init__(self, data, max_steps=8, num_dims=3, num_categories=2, batch_size=64, mode='train', split=[0.8, 0.1, 0.1], device='cpu', synthetic_data=False, num_tasks=10000, noise=0.1, shuffle_trials=False, normalize_inputs=True): 
+    def __init__(self, data, max_steps=8, num_dims=3, num_categories=2, batch_size=64, mode='train', split=[0.8, 0.1, 0.1], device='cpu', synthetic_data=False, num_tasks=10000, noise=0., shuffle_trials=False, normalize_inputs=True): 
         """ 
         Initialise the environment
         Args: 
@@ -147,7 +147,7 @@ class SyntheticCategorisationTask(nn.Module):
     """
     Generate synthetic data for the Categorisation task inspired by Shepard et al. (1961)
     """
-    def __init__(self, max_steps=8, num_dims=3, batch_size=64, mode='train', split=[0.8, 0.1, 0.1], device='cpu', num_tasks=10000, noise=0.1, shuffle_trials=False): 
+    def __init__(self, max_steps=8, num_dims=3, batch_size=64, mode='train', split=[0.8, 0.1, 0.1], device='cpu', num_tasks=10000, noise=0., shuffle_trials=False): 
         """ 
         Initialise the environment
         Args: 

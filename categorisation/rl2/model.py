@@ -193,27 +193,20 @@ class TransformerDecoder(nn.Module):
         self.criterion = nn.BCELoss()
         self.beta = beta
 
+    def make_sequence_mask(self, sz):
+            mask = (torch.triu(torch.ones(sz, sz)) == 1).transpose(0, 1)
+            mask = mask.float().masked_fill(mask == 0, float('-inf')).masked_fill(mask == 1, float(0.0))
+            return mask
+    
     def generate_square_subsequent_mask(self, seq_len, batch_size):
 
         seq_len = torch.tensor(seq_len)
         if (seq_len == seq_len[0]).all() and len(seq_len)>1: # check if elements of the list seq_len are equal
-            sz = seq_len[0]
-            mask = (torch.triu(torch.ones(sz, sz)) == 1).transpose(0, 1)
-            mask = mask.float().masked_fill(mask == 0, float('-inf')).masked_fill(mask == 1, float(0.0))
-            return mask
+            mask = self.make_sequence_mask(seq_len[0])
         else:
-            sz = max(seq_len)
-            mask = (torch.triu(torch.ones(sz, sz)) == 1).transpose(0, 1)
-            mask = mask.float().masked_fill(mask == 0, float('-inf')).masked_fill(mask == 1, float(0.0))
+            mask = self.make_sequence_mask(max(seq_len))
             mask = mask.unsqueeze(0).repeat(batch_size*self.num_head, 1, 1) # repeat the mask matrix self.num_head times
-            # mask = torch.zeros(batch_size*self.num_head, sz, sz)
-            # for i in range(len(seq_len)):
-            #     mask[i*self.num_head:(i+1)*self.num_head, :seq_len[i], :seq_len[i]] = (torch.triu(torch.ones(seq_len[i], seq_len[i])) == 1).transpose(0, 1)
-                # mask[i, :seq_len[i], :seq_len[i]] = (torch.triu(torch.ones(seq_len[i], seq_len[i])) == 1).transpose(0, 1)
-            # mask = mask.float().masked_fill(mask == 0, float('-inf')).masked_fill(mask == 1, float(0.0))
-            # repeat the mask matrix self.num_head times
-            # mask = mask.unsqueeze(0).repeat(batch_size*self.num_head, 1, 1)
-            return mask
+        return mask
 
     def forward(self, packed_inputs, sequence_lengths):
             

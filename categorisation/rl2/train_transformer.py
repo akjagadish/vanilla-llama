@@ -48,7 +48,7 @@ def run(env_name, num_episodes, synthetic, num_dims, max_steps, noise, shuffle, 
         if (not t % save_every):
             torch.save([t, model], save_dir)
             experiment = 'synthetic' if synthetic else 'categorisation'
-            acc = evaluate_1d(env_name=env_name, model_path=save_dir, experiment=experiment, mode='val', device=device)
+            acc = evaluate_1d(env_name=env_name, model_path=save_dir, experiment=experiment, mode='val', max_steps=max_steps, device=device)
             accuracy.append(acc)
             writer.add_scalar('Val. Acc.', acc, t)
         

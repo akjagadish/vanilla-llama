@@ -10,9 +10,9 @@ def evaluate_1d(env_name=None, model_path=None, experiment='categorisation', env
     if env is None:
         # load environment
         if experiment == 'synthetic':
-            env = SyntheticCategorisationTask(max_steps=max_steps, noise=0., shuffle_trials=shuffle_trials)
+            env = SyntheticCategorisationTask(max_steps=max_steps, shuffle_trials=shuffle_trials)
         if experiment == 'categorisation':
-            env = CategorisationTask(data=env_name, mode=mode, shuffle_trials=shuffle_trials)
+            env = CategorisationTask(data=env_name, mode=mode, max_steps=max_steps, shuffle_trials=shuffle_trials)
         elif experiment == 'shepard_categorisation':
             env = ShepardsTask(task=env_name)
         elif experiment == 'nosofsky_categorisation':

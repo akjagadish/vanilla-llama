@@ -267,7 +267,7 @@ def plot_data_stats(data, poly_degree=2):
 
     COLORS['stats'] = '#173b4f'
     fig, axs = plt.subplots(1, 3,  figsize=(15,5))
-    sns.histplot(np.array(all_corr), ax=axs[0], bins=10, stat='probability', edgecolor='w', linewidth=1, color=COLORS['stats'])
+    sns.histplot(np.array(all_corr), ax=axs[0], bins=11, binrange=(-1., 1.), stat='probability', edgecolor='w', linewidth=1, color=COLORS['stats'])
     sns.histplot(np.array(all_coef), ax=axs[1], bins=11, binrange=(-10, 10), stat='probability', edgecolor='w', linewidth=1, color=COLORS['stats'])
     sns.histplot(posterior_logprob[:, 0].exp().detach(), ax=axs[2], bins=5, stat='probability', edgecolor='w', linewidth=1, color=COLORS['stats'])
     
@@ -302,7 +302,7 @@ def plot_data_stats(data, poly_degree=2):
     # plot the 3 pairwise correlation between features in separate subplots
     f, axs = plt.subplots(1, 3, figsize=(15,5))
     for i in range(per_feature_corrs.shape[1]):
-        sns.histplot(per_feature_corrs[:, i], ax=axs[i], bins=10, stat='probability', edgecolor='w', linewidth=1, color=COLORS[f'feature_{i+1}'])
+        sns.histplot(per_feature_corrs[:, i], ax=axs[i], bins=11, binrange=(-1., 1.), stat='probability', edgecolor='w', linewidth=1, color=COLORS[f'feature_{i+1}'])
     axs[0].set_xlabel('feature 1 and feature 2', fontsize=FONTSIZE)
     axs[1].set_xlabel('feature 1 and feature 3', fontsize=FONTSIZE)
     axs[2].set_xlabel('feature 2 and feature 3', fontsize=FONTSIZE)
@@ -839,4 +839,35 @@ def plot_burstiness_training_curriculum(data,  num_tasks=10000):
     plt.show()
     f.savefig('/raven/u/ajagadish/vanilla-llama/categorisation/figures/claude_burstiness.png', bbox_inches='tight')
 
+def plot_frequency_tasklabels(file_name, path='/u/ajagadish/vanilla-llama/categorisation/data/tasklabels'):
+    from collections import Counter
+    df = pd.read_csv(f'{path}/{file_name}.csv')
+    df.feature_names = df['feature_names'].apply(lambda x: eval(x))
+    def to_lower(ff):
+        return [x.lower() for x in ff]
+    df.feature_names = df['feature_names'].apply(lambda x: to_lower(x))
+
+    # count of number of times a type of features occurs
+    list_counts = Counter([tuple(features) for features in df['feature_names']])
+
+    # sort the Counter by counts in descending order
+    sorted_list_counts = sorted(list_counts.items(), key=lambda x: x[1], reverse=True)
+
+    # extract the counts and names for the top 50 labels
+    top_labels = 50
+    task_labels = np.array([task_label[0] for task_label in sorted_list_counts[:top_labels]])
+    label_counts= np.array([task_label[1] for task_label in sorted_list_counts[:top_labels]])
+    label_names = ['-'.join(task_labels[idx]) for idx in range(len(task_labels))]
+
+    # plot the bars of labels and counts
+    f, ax = plt.subplots(1, 1, figsize=(10,10))
+    ax.bar(label_names, label_counts)
+    plt.xticks(label_names, label_names, rotation=90, fontsize=FONTSIZE-6.5)
+    plt.yticks(fontsize=FONTSIZE-6)
+    ax.set_xlabel('Feature Names', fontsize=FONTSIZE)
+    ax.set_ylabel('Counts', fontsize=FONTSIZE)
+    ax.set_title(f'Top {top_labels} Tasks', fontsize=FONTSIZE)
+    sns.despine()
+    f.tight_layout()
+    plt.show()
 

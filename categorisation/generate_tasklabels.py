@@ -32,7 +32,7 @@ def act(text=None, run_gpt='llama', temperature=1., max_length=300):
     elif run_gpt=='gpt4':
         
         openai.api_key = os.getenv("OPENAI_API_KEY_GPT4") # load key from env
-        text = [{"role": "system", "content": "Do not generate any text other than the list of objects with their feature values and their corresponding category label in the format specified by the user."}, \
+        text = [{"role": "system", "content": "Do not generate any text other than the list of feature names for the stimuli and their corresponding category label in the format specified by the user."}, \
                 {"role": "user", "content": text}]
         engine = 'gpt-4'
         try:
@@ -154,7 +154,7 @@ if __name__ == "__main__":
             action = act(instructions, run_gpt, temperature, max_length)
             # print(action)
             matches = re.findall(patterns[0], action, re.MULTILINE)
-            #ipdb.set_trace()
+ 
             if len(matches)>0:
                 for match in matches: 
                     categories.append(match.split(',')[-2:]) # last two labels are categories

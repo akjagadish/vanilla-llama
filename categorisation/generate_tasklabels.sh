@@ -20,7 +20,17 @@ pip3 install --user accelerate openai gym ipdb transformers tensorboard python-d
 pip3 install --user fire sentencepiece ipdb accelerate tqdm
 export OMP_NUM_THREADS=${SLURM_CPUS_PER_TASK}
 
-## generate task labels
+## generate task labels:  3-dim
 # python generate_tasklabels.py --model NA --proc-id 0 --num-runs 100 --num-tasks 250 --num-dim 3 --max-length 10000 --run-gpt claude --prompt-version 5 
-## pool generated task labels
-python generate_tasklabels.py --model NA --proc-id 0 --num-runs 100 --num-tasks 250 --num-dim 3 --max-length 10000 --run-gpt claude --prompt-version 5 --pool
+## pool generated task labels:  3-dim
+# python generate_tasklabels.py --model NA --proc-id 0 --num-runs 100 --num-tasks 250 --num-dim 3 --max-length 10000 --run-gpt claude --prompt-version 5 --pool
+
+## generate task labels:  4-dim
+# python generate_tasklabels.py --model NA --proc-id 0 --num-runs 100 --num-tasks 250 --num-dim 4 --max-length 10000 --run-gpt claude --prompt-version 5 
+## pool generated task labels:  4-dim
+# python generate_tasklabels.py --model NA --proc-id 0 --num-runs 100 --num-tasks 250 --num-dim 4 --max-length 10000 --run-gpt claude --prompt-version 5 --pool
+
+## generate task labels:  6-dim
+# python generate_tasklabels.py --model NA --proc-id 0 --num-runs 100 --num-tasks 250 --num-dim 6 --max-length 10000 --run-gpt claude --prompt-version 5
+## pool generated task labels:  6-dim
+python generate_tasklabels.py --model NA --proc-id 0 --num-runs 100 --num-tasks 250 --num-dim 6 --max-length 10000 --run-gpt claude --prompt-version 5 --pool

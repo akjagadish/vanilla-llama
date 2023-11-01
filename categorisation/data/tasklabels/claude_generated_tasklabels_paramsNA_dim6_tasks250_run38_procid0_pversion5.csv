@@ -1,0 +1,20 @@
+,feature_names,category_names,task_id
+0,"['Color', 'Shape', 'Size', 'Texture', 'Weight', 'Temperature']","['Plants', 'Animals']",0
+1,"['Pitch', 'Timbre', 'Loudness', 'Rhythm', 'Melody', 'Harmony']","['ClassicalMusic', 'PopMusic']",1
+2,"['Length', 'Width', 'Height', 'Area', 'Volume', 'Density']","['GeometricShapes', 'OrganicShapes']",2
+3,"['Sodium', 'Fat', 'Carbs', 'Protein', 'Vitamins', 'Calories']","['HealthyFoods', 'JunkFoods']",3
+4,"['Length', 'Stiffness', 'Weight', 'Balance', 'Grip', 'Flexibility']","['GoodTennisRacquets', 'BadTennisRacquets']",4
+5,"['Horsepower', 'Torque', '0-60Time', 'FuelEconomy', 'Seating', 'SafetyRating']","['SportCars', 'EconomyCars']",5
+6,"['Acidity', 'Sweetness', 'Bitterness', 'Smell', 'Color', 'Carbonation']","['FruityDrinks', 'BlandDrinks']",6
+7,"['Friendliness', 'Intelligence', 'Beauty', 'Wealth', 'Fame', 'Humor']","['DesirablePartners', 'UndesirablePartners']",7
+8,"['LegRoom', 'SeatWidth', 'OverheadSpace', 'TrayTableSize', 'Entertainment', 'Service']","['GoodAirlines', 'BadAirlines']",8
+9,"['LineSpacing', 'FontSize', 'Margins', 'PaperQuality', 'Binding', 'Illustrations']","['ProfessionalBooks', 'AmateurBooks']",9
+10,"['Brightness', 'Contrast', 'Resolution', 'RefreshRate', 'Size', 'Speakers']","['QualityTVs', 'CheapTVs']",10
+11,"['Cushion', 'Suspension', 'Upholstery', 'LumbarSupport', 'Headrest', 'Adjustability']","['ErgonomicChairs', 'UncomfortableChairs']",11
+12,"['Accuracy', 'Range', 'RateofFire', 'MagazineSize', 'Recoil', 'Weight']","['AssaultRifles', 'SMGs']",12
+13,"['Durability', 'WaterResistance', 'Style', 'BatteryLife', 'Connectivity', 'Fit']","['GoodSmartwatches', 'BadSmartwatches']",13
+14,"['Protein', 'GoodFats', 'Fiber', 'Vitamins', 'Minerals', 'Sugar']","['HealthyCereals', 'SugaryCereals']",14
+15,"['Cuteness', 'Affection', 'Shedding', 'Barking', 'EnergyLevel', 'Trainability']","['GoodFamilyDogs', 'ChallengingDogs']",15
+16,"['Lighting', 'Ambience', 'Service', 'Taste', 'Presentation', 'Value']","['GoodRestaurants', 'DisappointingRestaurants']",16
+17,"['Acting', 'Plot', 'Effects', 'Soundtrack', 'Pacing', 'Writing']","['GoodMovies', 'BadMovies']",17
+18,"['LegRoom', 'Amenities', 'Staff', 'Food', 'Cleanliness', 'Safety']","['GoodAirlines', 'UncomfortableAirlines']",18

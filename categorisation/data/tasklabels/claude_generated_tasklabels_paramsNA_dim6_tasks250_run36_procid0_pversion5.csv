@@ -1,0 +1,20 @@
+,feature_names,category_names,task_id
+0,"['Shade', 'Shape', 'Size', 'Texture', 'Taste', 'Smell']","['Fruits', 'Vegetables']",0
+1,"['Length', 'Width', 'Height', 'Weight', 'Speed', 'Cost']","['Cars', 'Trucks']",1
+2,"['BeakShape', 'FeatherColor', 'Wingspan', 'Habitat', 'Diet', 'Song']","['Hawks', 'Finches']",2
+3,"['Atom', 'Charge', 'Reactivity', 'State', 'Bonding', 'MeltingPoint']","['Metals', 'Nonmetals']",3
+4,"['Rhythm', 'Harmony', 'Tempo', 'Dynamics', 'Tonality', 'Lyrics']","['Classical', 'Pop']",4
+5,"['BrushStroke', 'Composition', 'Color', 'Medium', 'Style', 'Subject']","['Realism', 'Abstract']",5
+6,"['CloudType', 'Precipitation', 'Temperature', 'Pressure', 'WindSpeed', 'Humidity']","['Fronts', 'Cyclones']",6
+7,"['Order', 'Family', 'Genus', 'Species', 'Habitat', 'Diet']","['Mammals', 'Reptiles']",7
+8,"['Axis', 'Symmetry', 'Size', 'Habitat', 'Respiration', 'Motility']","['Radial', 'Bilateral']",8
+9,"['Consonants', 'Vowels', 'Tone', 'Grammar', 'Script', 'Loanwords']","['Sino-Tibetan', 'Indo-European']",9
+10,"['Length', 'Symmetry', 'Spots', 'Wingspan', 'Song', 'Habitat']","['Flycatchers', 'Sparrows']",10
+11,"['Durability', 'Balance', 'Flexibility', 'Cushion', 'Traction', 'Weight']","['Running', 'Basketball']",11
+12,"['Aroma', 'Acidity', 'Sweetness', 'Body', 'Roast', 'Region']","['Arabica', 'Robusta']",12
+13,"['SepalSize', 'PetalColor', 'Scent', 'BloomSeason', 'Height', 'Sunlight']","['Annuals', 'Perennials']",13
+14,"['Scale', 'ChordProgression', 'Tempo', 'Lyrics', 'Instrumentation', 'Vocals']","['Indie', 'Pop']",14
+15,"['Hue', 'Saturation', 'Texture', 'Form', 'Contrast', 'Balance']","['Impressionism', 'Cubism']",15
+16,"['pH', 'Nitrogen', 'Phosphorus', 'Potassium', 'Drainage', 'Irrigation']","['Vegetables', 'Grains']",16
+17,"['Carapace', 'Chelae', 'Legs', 'Habitat', 'Diet', 'Size']","['Crabs', 'Lobsters']",17
+18,"['Gravity', 'Orbit', 'Atmosphere', 'Moons', 'Rings', 'Size']","['Terrestrial', 'GasGiants']",18

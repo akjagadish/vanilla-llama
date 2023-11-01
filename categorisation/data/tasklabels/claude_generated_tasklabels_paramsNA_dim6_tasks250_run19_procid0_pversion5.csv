@@ -1,0 +1,197 @@
+,feature_names,category_names,task_id
+0,"['length', 'width', 'height', 'weight', 'color', 'material']","['furniture', 'clothing']",0
+1,"['wingspan', 'beakshape', 'feathercolor', 'leglength', 'habitat', 'diet']","['bird', 'mammal']",1
+2,"['cylindercount', 'displacement', 'torque', 'horsepower', 'transmission', 'drivetrain']","['sedan', 'SUV']",2
+3,"['sodium', 'calories', 'protein', 'fiber', 'sugar', 'fat']","['healthy', 'unhealthy']",3
+4,"['legs', 'armor', 'size', 'habitat', 'diet', 'temperament']","['herbivore', 'carnivore']",4
+5,"['SepalLengthCm', 'SepalWidthCm', 'PetalLengthCm', 'PetalWidthCm', 'Species']","['setosa', 'versicolor']",5
+6,"['amplitude', 'frequency', 'phase', 'duration', 'timbre', 'harmonics']","['piano', 'violin']",6
+7,"['altitude', 'cloudcover', 'precipitation', 'windspeed', 'humidity', 'temperature']","['rainy', 'sunny']",7
+8,"['branches', 'leaves', 'flowers', 'roots', 'bark', 'seeds']","['deciduous', 'coniferous']",8
+9,"['orbit', 'mass', 'radius', 'composition', 'temperature', 'atmosphere']","['terrestrial', 'gasgiant']",9
+10,"['rhythm', 'melody', 'harmony', 'timbre', 'lyrics', 'instrumentation']","['rock', 'classical']",10
+11,"['viscosity', 'volatility', 'density', 'burnrate', 'octanerating', 'additives']","['gasoline', 'diesel']",11
+12,"['processor', 'RAM', 'storage', 'screensize', 'batterylife', 'weight']","['laptop', 'desktop']",12
+13,"['sprintspeed', 'endurance', 'strength', 'agility', 'jumping', 'kicking']","['striker', 'defender']",13
+14,"['wheat', 'hops', 'yeast', 'alcohol', 'color', 'carbonation']","['ale', 'lager']",14
+15,"['icing', 'layers', 'filling', 'shape', 'decoration', 'texture']","['cake', 'pie']",15
+16,"['plot', 'characters', 'narrator', 'setting', 'theme', 'style']","['drama', 'mystery']",16
+17,"['bass', 'drums', 'guitar', 'keyboards', 'vocals', 'lyrics']","['rock', 'pop']",17
+18,"['length', 'clauses', 'vocabulary', 'tone', 'audience', 'purpose']","['persuasive', 'descriptive']",18
+19,"['integers', 'equations', 'geometry', 'algebra', 'trigonometry', 'calculus']","['arithmetic', 'analytics']",19
+20,"['brushstrokes', 'composition', 'color', 'medium', 'style', 'subject']","['abstract', 'realism']",20
+21,"['cruisingspeed', 'range', 'capacity', 'wingspan', 'engines', 'fueltype']","['propeller', 'jet']",21
+22,"['memory', 'storage', 'display', 'battery', 'camera', 'processor']","['phone', 'tablet']",22
+23,"['bpm', 'timesignature', 'key', 'chordprogression', 'melody', 'structure']","['classical', 'rock']",23
+24,"['fineness', 'extractiontime', 'region', 'aroma', 'acidity', 'body']","['lightroast', 'darkroast']",24
+25,"['proof', 'color', 'nose', 'taste', 'body', 'finish']","['bourbon', 'scotch']",25
+26,"['precision', 'power', 'balance', 'timing', 'footwork', 'conditioning']","['striker', 'grappler']",26
+27,"['annualreturn', 'risklevel', 'diversification', 'costs', 'liquidity', 'strategy']","['growth', 'value']",27
+28,"['clarity', 'cut', 'carat', 'color', 'setting', 'metal']","['diamond', 'gemstone']",28
+29,"['flourtype', 'leavening', 'fat', 'sugar', 'eggs', 'flavorings']","['cake', 'bread']",29
+30,"['consonants', 'vowels', 'syllables', 'rhyme', 'meter', 'imagery']","['freeverse', 'sonnet']",30
+31,"['leadingactor', 'supportingcast', 'director', 'genre', 'budget', 'studio']","['indie', 'blockbuster']",31
+32,"['ph', 'nitrates', 'phosphates', 'solids', 'chlorine', 'alkalinity']","['freshwater', 'saltwater']",32
+33,"['malts', 'hops', 'yeast', 'fermentation', 'aging', 'abv']","['ale', 'lager']",33
+34,"['engine', 'transmission', 'chassis', 'interior', 'electronics', 'handling']","['sportscar', 'SUV']",34
+35,"['pace', 'surface', 'distance', 'location', 'competition', 'weather']","['roadrace', 'trailrace']",35
+36,"['cleanser', 'moisturizer', 'toner', 'serum', 'spf', 'concern']","['oily', 'dry']",36
+37,"['protein', 'carbs', 'fats', 'fiber', 'vitamins', 'minerals']","['balanced', 'lowcalorie']",37
+38,"['acidity', 'body', 'tannins', 'oak', 'region', 'varietal']","['red', 'white']",38
+39,"['nuance', 'expression', 'technique', 'sound', 'interpretation', 'emotion']","['classical', 'jazz']",39
+40,"['crust', 'sauce', 'cheese', 'toppings', 'spices', 'cookingmethod']","['thin', 'deepdish']",40
+41,"['wool', 'leather', 'hardware', 'stitching', 'lining', 'craftsmanship']","['formalwear', 'casualwear']",41
+42,"['plot', 'acting', 'cinematography', 'editing', 'sound', 'visuals']","['drama', 'comedy']",42
+43,"['strings', 'percussion', 'brass', 'woodwind', 'composition', 'era']","['orchestra', 'chamber']",43
+44,"['hue', 'value', 'intensity', 'temperature', 'complement', 'scheme']","['analogic', 'monochromatic']",44
+45,"['incubation', 'nesting', 'migration', 'plumage', 'diet', 'habitat']","['songbird', 'waterfowl']",45
+46,"['consonance', 'tempo', 'melody', 'rhythm', 'lyrics', 'arrangement']","['ballad', 'dance']",46
+47,"['proof', 'nose', 'palette', 'finish', 'casktype', 'distillery']","['singlemalt', 'blend']",47
+48,"['processor', 'memory', 'display', 'battery', 'camera', 'connectivity']","['productivity', 'gaming']",48
+49,"['votingrecord', 'endorsements', 'experience', 'policies', 'integrity', 'electability']","['liberal', 'conservative']",49
+50,"['shape', 'icing', 'filling', 'layers', 'decorations', 'texture']","['birthday', 'wedding']",50
+51,"['act', 'scene', 'characters', 'dialogue', 'staging', 'genre']","['comedy', 'drama']",51
+52,"['Hide', 'hair', 'hooves', 'horns', 'habitat', 'diet']","['cattle', 'deer']",52
+53,"['wingspan', 'beak', 'plumage', 'legs', 'habitat', 'diet']","['waterbird', 'landbird']",53
+54,"['consonants', 'vowels', 'syllables', 'rhyme', 'meter', 'form']","['freeverse', 'structured']",54
+55,"['aperture', 'shutterspeed', 'ISO', 'lens', 'lighting', 'postprocessing']","['portrait', 'landscape']",55
+56,"['Pitching', 'hitting', 'fielding', 'running', 'experience', 'attitude']","['starter', 'utility']",56
+57,"['Size', 'cushioning', 'support', 'flexibility', 'durability', 'terrain']","['walking', 'running']",57
+58,"['Timing', 'phrasing', 'technique', 'expression', 'repertoire', 'instrument']","['classical', 'jazz']",58
+59,"['Setting', 'plot', 'characters', 'pointofview', 'style', 'themes']","['mystery', 'romance']",59
+60,"['leader', 'values', 'strategy', 'culture', 'communication', 'motivation']","['authoritarian', 'participative']",60
+61,"['', 'pressure', 'volume', 'temperature', 'compounds', 'viscosity']","['crudeoil', 'naturalgas']",61
+62,"['Strands', 'elasticity', 'texture', 'shine', 'porosity', 'volume']","['curly', 'straight']",62
+63,"['fruits', 'spices', 'grains', 'proteins', 'fats', 'cookingmethod']","['salad', 'stew']",63
+64,"['consonance', 'melody', 'tempo', 'rhythm', 'lyrics', 'genre']","['pop', 'classical']",64
+65,"['GPU', 'CPU', 'RAM', 'storage', 'display', 'battery']","['gamingPC', 'workstation']",65
+66,"['Length', 'wingspan', 'engine', 'range', 'capacity', 'avionics']","['airliner', 'fighter']",66
+67,"['aperture', 'sensor', 'lens', 'stabilizer', 'focus', 'software']","['DSLR', 'mirrorless']",67
+68,"['topics', 'claims', 'evidence', 'reasoning', 'style', 'length']","['argumentative', 'descriptive']",68
+69,"['tempo', 'harmony', 'melody', 'lyrics', 'arrangement', 'genre']","['rock', 'country']",69
+70,"['crust', 'toppings', 'cheese', 'sauce', 'bakingmethod', 'style']","['Neapolitan', 'Chicago']",70
+71,"['setting', 'characters', 'plot', 'theme', 'style', 'format']","['play', 'novel']",71
+72,"['color', 'clarity', 'cut', 'carats', 'setting', 'metal']","['sapphire', 'emerald']",72
+73,"['malts', 'yeast', 'hops', 'alcohol', 'flavor', 'aging']","['ale', 'lager']",73
+74,"['pitchselection', 'control', 'movement', 'command', 'mentality', 'experience']","['starter', 'reliever']",74
+75,"['airpressure', 'treadpattern', 'rubbercompound', 'stiffness', 'grip', 'noise']","['summer', 'winter']",75
+76,"['aperture', 'shutterspeed', 'ISO', 'focus', 'lighting', 'lens']","['portrait', 'action']",76
+77,"['scale', 'articulation', 'tone', 'intonation', 'technique', 'interpretation']","['wind', 'string']",77
+78,"['pleasantness', 'energy', 'tension', 'texture', 'motion', 'tempo']","['upbeat', 'relaxed']",78
+79,"['crust', 'cheese', 'sauce', 'toppings', 'bakingmethod', 'style']","['NewYork', 'Chicago']",79
+80,"['wood', 'strings', 'pickups', 'hardware', 'electronics', 'craftsmanship']","['solid-body', 'archtop']",80
+81,"['region', 'varietal', 'vinification', 'oak', 'body', 'finish']","['Bordeaux', 'Burgundy']",81
+82,"['upper', 'midsole', 'outsole', 'support', 'cushioning', 'durability']","['stability', 'neutral']",82
+83,"['positioning', 'timing', 'footwork', 'power', 'technique', 'strategy']","['aggressive', 'defensive']",83
+84,"['rhythm', 'melody', 'harmony', 'lyrics', 'arrangement', 'genre']","['country', 'pop']",84
+85,"['aperture', 'shutterspeed', 'ISO', 'lighting', 'lens', 'stabilizer']","['landscape', 'sport']",85
+86,"['plot', 'characters', 'setting', 'narrator', 'themes', 'style']","['drama', 'comedy']",86
+87,"['proof', 'nose', 'palette', 'finish', 'casktype', 'region']","['bourbon', 'scotch']",87
+88,"['CPU', 'GPU', 'memory', 'storage', 'display', 'batterylife']","['desktop', 'laptop']",88
+89,"['crust', 'cheese', 'sauce', 'toppings', 'cookingmethod', 'style']","['NewYork', 'Chicago']",89
+90,"['sensor', 'lensmount', 'autofocus', 'stabilization', 'low-light', 'resolution']","['mirrorless', 'DSLR']",90
+91,"['steepingtime', 'origin', 'leaves', 'aroma', 'flavor', 'caffeine']","['black', 'herbal']",91
+92,"['risingaction', 'climax', 'resolution', 'themes', 'pacing', 'pov']","['literaryfiction', 'genrefiction']",92
+93,"['grain', 'hops', 'yeast', 'barrel-aging', 'abv', 'style']","['IPA', 'stout']",93
+94,"['cushion', 'support', 'flexibility', 'breathability', 'traction', 'purpose']","['running', 'cross-training']",94
+95,"['movement', 'complications', 'casematerial', 'waterresistance', 'accuracy', 'history']","['diver', 'dress']",95
+96,"['bass', 'drums', 'guitar', 'keyboards', 'vocals', 'lyrics']","['indierock', 'heavymetal']",96
+97,"['proof', 'age', 'grain', 'distillation', 'flavor', 'smokeyness']","['rye', 'bourbon']",97
+98,"['complexity', 'tannins', 'acidity', 'varietal', 'terroir', 'oak']","['oldworld', 'newworld']",98
+99,"['crust', 'sauce', 'cheese', 'toppings', 'cookingstyle']","['thincrust', 'deepdish']",99
+100,"['aperture', 'focallength', 'stabilization', 'lowlight', 'resolution', 'size']","['DSLR', 'mirrorless']",100
+101,"['narrative', 'characters', 'setting', 'themes', 'style', 'genre']","['literaryfiction', 'commercialfiction']",101
+102,"['agility', 'dribbling', 'passing', 'shooting', 'tactics', 'experience']","['midfielder', 'striker']",102
+103,"['neckshape', 'fretboard', 'electronics', 'hardware', 'craftsmanship']","['solid-body', 'semi-hollow']",103
+104,"['proofs', 'nose', 'taste', 'cask', 'age', 'distillery']","['singlemalt', 'blend']",104
+105,"['phrases', 'meter', 'rhymescheme', 'imagery', 'theme', 'era']","['sonnet', 'freeverse']",105
+106,"['tuning', 'strings', 'neck', 'body', 'electronics', 'style']","['acousticsteel-string', 'electricsolid-body']",106
+107,"['CPU', 'GPU', 'RAM', 'storage', 'display', 'batterylife']","['ultrabook', 'gaminglaptop']",107
+108,"['yeast', 'malts', 'hops', 'alcoholcontent', 'flavor', 'aging']","['ale', 'lager']",108
+109,"['crust', 'sauce', 'cheese', 'toppings', 'bakingstyle']","['panpizza', 'thincrust']",109
+110,"['sensorsize', 'lensmount', 'imagequality', 'autofocus', 'ergonomics', 'format']","['cropsensor', 'fullframe']",110
+111,"['region', 'grapes', 'aging', 'acidity', 'tannins', 'oak']","['oldworld', 'newworld']",111
+112,"['upper', 'outsole', 'midsole', 'support', 'cushioning', 'purpose']","['stability', 'neutral']",112
+113,"['rhythm', 'melody', 'lyrics', 'instrumentation', 'arrangement', 'genre']","['hiphop', 'country']",113
+114,"['steepingtime', 'origin', 'oxidation', 'leaves', 'flavor', 'caffeinelevel']","['black', 'herbal']",114
+115,"['actstructure', 'characters', 'dialogue', 'themes', 'genres']","['comedy', 'drama']",115
+116,"['neckprofile', 'bodywood', 'electronics', 'hardware', 'sound', 'feel']","['shredder', 'blues']",116
+117,"['viscosity', 'scent', 'application', 'skintype', 'ingredients', 'concern']","['serum', 'moisturizer']",117
+118,"['aperture', 'shutterspeed', 'ISO', 'stabilization', 'autofocus', 'flash']","['portrait', 'sports']",118
+119,"['proteinsources', 'carbs', 'fats', 'vitamins', 'minerals', 'calories']","['highprotein', 'balanced']",119
+120,"['engine', 'handling', 'interior', 'tech', 'luxury', 'performance']","['sportscar', 'sedan']",120
+121,"['actstructure', 'dialogue', 'characters', 'setting', 'genre']","['comedy', 'tragedy']",121
+122,"['grains', 'hops', 'yeast', 'alcohol', 'flavor', 'aging']","['IPA', 'stout']",122
+123,"['cushioning', 'support', 'flexibility', 'breathability', 'traction', 'training']","['running', 'crosstraining']",123
+124,"['body', 'complexity', 'tannins', 'oakinfluence', 'terroir', 'varietal']","['Bordeaux', 'Burgundy']",124
+125,"['liverecordings', 'overdubs', 'mixing', 'mastering', 'arrangements', 'concept']","['studio', 'live']",125
+126,"['neckprofile', 'fretboard', 'pickups', 'hardware', 'craftsmanship']","['Stratocaster', 'LesPaul']",126
+127,"['aperture', 'ISO', 'shutterspeed', 'stabilization', 'autofocus', 'flash']","['portraits', 'sports']",127
+128,"['steepingtime', 'oxidation', 'origin', 'leaves', 'caffeine', 'flavor']","['black', 'herbal']",128
+129,"['moisture', 'cleansers', 'treatments', 'sunscreen', 'concern', 'skintype']","['acne', 'anti-aging']",129
+130,"['sensor', 'lensmount', 'imagequality', 'stabilization', 'autofocus']","['mirrorless', 'DSLR']",130
+131,"['actstructure', 'characters', 'dialogue', 'themes']","['comedy', 'tragedy']",131
+132,"['agility', 'dribbling', 'passing', 'shooting', 'experience']","['midfield', 'striker']",132
+133,"['grain', 'hops', 'yeast', 'alcohol', 'barrel-aging']","['IPA', 'stout']",133
+134,"['cushioning', 'stability', 'flexibility', 'support', 'purpose']","['trail', 'road']",134
+135,"['complexity', 'oak', 'terroir', 'varietal', 'acidity']","['oldworld', 'newworld']",135
+136,"['lyrics', 'melody', 'harmony', 'arrangement', 'instrumentation']","['folk', 'pop']",136
+137,"['aperture', 'shutter', 'ISO', 'stabilization', 'focus', 'flash']","['portrait', 'sports']",137
+138,"['processor', 'GPU', 'RAM', 'storage', 'display', 'battery']","['productivity', 'gaming']",138
+139,"['crust', 'cheese', 'sauce', 'toppings', 'bakingstyle']","['deepdish', 'thin']",139
+140,"['neckshape', 'wood', 'fretboard', 'pickups', 'hardware']","['Telecaster', 'Stratocaster']",140
+141,"['steeping', 'oxidation', 'origin', 'leaves', 'caffeine', 'flavor']","['black', 'herbal']",141
+142,"['plot', 'characters', 'narrator', 'setting', 'themes']","['drama', 'romance']",142
+143,"['proteinsources', 'carbs', 'fats', 'vitamins', 'minerals', 'calories']","['balanced', 'highprotein']",143
+144,"['upper', 'cushioning', 'support', 'flexibility', 'traction']","['neutral', 'stability']",144
+145,"['yeast', 'malt', 'hops', 'alcohol', 'flavor', 'aging']","['ale', 'lager']",145
+146,"['aperture', 'ISO', 'shutterspeed', 'stabilization', 'flash']","['portrait', 'sports']",146
+147,"['intricacy', 'texture', 'acidity', 'fruit', 'climate', 'aging']","['oldworld', 'newworld']",147
+148,"['structure', 'dialogue', 'staging', 'style', 'genre']","['comedy', 'drama']",148
+149,"['distortion', 'fuzz', 'delay', 'reverb', 'tremolo', 'modulation']","['rock', 'ambient']",149
+150,"['sensorsize', 'stabilization', 'autofocus', 'lowlight', 'resolution']","['cropsensor', 'fullframe']",150
+151,"['neckprofile', 'strings', 'frets', 'neckwidth', 'bodystyle', 'playability']","['shredder', 'rhythm']",151
+152,"['yeaststrain', 'malt', 'hops', 'alcohol', 'flavor', 'aging']","['ale', 'lager']",152
+153,"['upper', 'cushioning', 'support', 'flexibility', 'pronation']","['neutral', 'stability']",153
+154,"['timing', 'pacing', 'structure', 'narrator', 'themes']","['literaryfiction', 'genrefiction']",154
+155,"['gain', 'distortion', 'cabinet', 'EQ', 'effects']","['tube', 'solidstate']",155
+156,"['aperture', 'shutterspeed', 'IS0', 'flash', 'lens', 'focus']","['portrait', 'sports']",156
+157,"['grapes', 'region', 'aging', 'oak', 'acidity', 'varietal']","['oldworld', 'newworld']",157
+158,"['cheese', 'sauce', 'toppings', 'crust', 'bakingstyle']","['deepdish', 'thincrust']",158
+159,"['distortion', 'delay', 'reverb', 'overdrive', 'modulation', 'ambient']","['rock', 'experimental']",159
+160,"['actstructure', 'characters', 'dialogue', 'genre', 'themes']","['comedy', 'drama']",160
+161,"['neckrelief', 'nutwidth', 'frets', 'wood', 'electronics', 'feel']","['shredder', 'rhythm']",161
+162,"['proteinsources', 'carbs', 'fats', 'vitamins', 'minerals', 'calories']","['highprotein', 'balanced']",162
+163,"['aperture', 'shutterspeed', 'ISO', 'stabilization', 'focus']","['sports', 'portrait']",163
+164,"['grapes', 'terroir', 'varietal', 'aging', 'oak', 'acidity']","['oldworld', 'newworld']",164
+165,"['compression', 'distortion', 'reverb', 'delay', 'chorus']","['rock', 'ambient']",165
+166,"['shape', 'length', 'flexibility', 'cushioning', 'support']","['walking', 'running']",166
+167,"['gainstructure', 'EQ', 'compression', 'effects', 'cabinet']","['tube', 'solidstate']",167
+168,"['origin', 'oxidation', 'leaves', 'caffeine', 'flavor', 'aroma']","['black', 'herbal']",168
+169,"['yeast', 'malt', 'hops', 'alcohol', 'barrel-aging']","['IPA', 'stout']",169
+170,"['sensorsize', 'imagequality', 'stabilization', 'autofocus', 'format']","['cropsensor', 'fullframe']",170
+171,"['gain', 'distortion', 'EQ', 'effects', 'speaker']","['tube', 'solidstate']",171
+172,"['aperture', 'shutterspeed', 'ISO', 'stabilization', 'focus']","['portrait', 'action']",172
+173,"['grapes', 'region', 'aging', 'varietal', 'oak']","['oldworld', 'newworld']",173
+174,"['softness', 'absorbency', 'durability', 'lintresistance', 'weave']","['modal', 'cotton']",174
+175,"['neckprofile', 'strings', 'fretboard', 'bridge', 'electronics']","['shredder', 'blues']",175
+176,"['steepingtime', 'origin', 'leaves', 'oxidation', 'aroma']","['black', 'herbal']",176
+177,"['yeast', 'grains', 'hops', 'alcohol', 'flavor']","['IPA', 'stout']",177
+178,"['stability', 'cushioning', 'flexibility', 'support', 'pronationcontrol']","['neutral', 'motioncontrol']",178
+179,"['effects', 'distortion', 'delay', 'modulation', 'reverb']","['rock', 'ambient']",179
+180,"['dialogue', 'characters', 'plot', 'narrator', 'themes']","['literaryfiction', 'genrefiction']",180
+181,"['aperture', 'ISO', 'shutterspeed', 'stabilization', 'flash']","['portrait', 'sports']",181
+182,"['grapes', 'aging', 'varietal', 'terroir', 'oak', 'acidity']","['oldworld', 'newworld']",182
+183,"['distortion', 'overdrive', 'reverb', 'delay', 'chorus']","['rock', 'blues']",183
+184,"['origin', 'oxidation', 'leaves', 'steeping', 'aroma']","['black', 'herbal']",184
+185,"['neckshape', 'strings', 'frets', 'pickups', 'feel']","['shredder', 'rhythm']",185
+186,"['crumb', 'yeast', 'flour', 'shaping', 'flavor']","['baguette', 'ciabatta']",186
+187,"['upper', 'cushioning', 'stability', 'flexibility', 'motioncontrol']","['overpronation', 'neutral']",187
+188,"['timing', 'movement', 'power', 'agility', 'strategy']","['striker', 'defender']",188
+189,"['gain', 'EQ', 'effects', 'speaker', 'tubes']","['rock', 'jazz']",189
+190,"['sensorsize', 'stabilization', 'lowlight', 'resolution']","['mirrorless', 'DSLR']",190
+191,"['dialogue', 'characters', 'setting', 'narrator']","['literaryfiction', 'genrefiction']",191
+192,"['neckshape', 'wood', 'electronics', 'strings', 'feel']","['shredder', 'rhythm']",192
+193,"['aperture', 'shutterspeed', 'ISO', 'flash', 'focus']","['portrait', 'sports']",193
+194,"['origin', 'oxidation', 'leaves', 'aroma', 'caffeine']","['black', 'herbal']",194
+195,"['grapes', 'climate', 'aging', 'oak', 'acidity', 'tannins']","['oldworld', 'newworld']",195

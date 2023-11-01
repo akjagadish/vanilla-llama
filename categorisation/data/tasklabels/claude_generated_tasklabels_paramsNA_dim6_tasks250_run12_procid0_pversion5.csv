@@ -1,0 +1,26 @@
+,feature_names,category_names,task_id
+0,"['length', 'width', 'height', 'color', 'texture', 'shape']","['vehicles', 'animals']",0
+1,"['size', 'weight', 'speed', 'flavor', 'scent', 'origin']","['fruits', 'vegetables']",1
+2,"['pitch', 'tempo', 'genre', 'lyrics', 'vocals', 'instrumentation']","['pop', 'rock']",2
+3,"['legs', 'wings', 'fins', 'fur', 'scales', 'feathers']","['mammals', 'birds']",3
+4,"['price', 'quality', 'brand', 'size', 'style', 'material']","['clothing', 'accessories']",4
+5,"['processor', 'memory', 'graphics', 'display', 'battery', 'ports']","['laptops', 'desktops']",5
+6,"['consonants', 'vowels', 'syllables', 'rhyme', 'meter', 'language']","['poetry', 'prose']",6
+7,"['latitude', 'longitude', 'climate', 'terrain', 'population', 'borders']","['countries', 'states']",7
+8,"['mass', 'volume', 'density', 'state', 'reactivity', 'meltingpoint']","['metals', 'nonmetals']",8
+9,"['systolic', 'diastolic', 'rate', 'rhythm', 'oxygen', 'pressure']","['healthy', 'unhealthy']",9
+10,"['salty', 'sweet', 'sour', 'bitter', 'savory', 'spicy']","['appetizers', 'entrees']",10
+11,"['durable', 'comfortable', 'adjustable', 'customizable', 'portable', 'stylish']","['office', 'outdoor']",11
+12,"['absurd', 'ironic', 'sarcastic', 'dark', 'dry', 'satire']","['comedy', 'drama']",12
+13,"['friendly', 'loyal', 'energetic', 'mellow', 'independent', 'gentle']","['dogs', 'cats']",13
+14,"['crust', 'toppings', 'sauce', 'cheese', 'spices', 'protein']","['pizza', 'pasta']",14
+15,"['tone', 'timbre', 'tuning', 'strings', 'frets', 'pickups']","['acoustic', 'electric']",15
+16,"['power', 'handling', 'comfort', 'cargo', 'seats', 'roof']","['SUVs', 'sedans']",16
+17,"['amplitude', 'frequency', 'timbre', 'melody', 'harmony', 'rhythm']","['classical', 'jazz']",17
+18,"['calories', 'fat', 'carbs', 'protein', 'fiber', 'vitamins']","['healthy', 'unhealthy']",18
+19,"['atoms', 'molecules', 'phases', 'polarity', 'reactivity', 'density']","['solids', 'liquids']",19
+20,"['beats', 'lyrics', 'vocals', 'melody', 'harmony', 'production']","['hiphop', 'pop']",20
+21,"['organization', 'timeliness', 'communication', 'adaptability', 'positivity', 'dependability']","['strong', 'needsimprovement']",21
+22,"['plot', 'characters', 'themes', 'setting', 'pacing', 'realism']","['fantasy', 'sciencefiction']",22
+23,"['legs', 'wings', 'antennae', 'size', 'color', 'markings']","['bees', 'wasps']",23
+24,"['expression', 'gesture', 'gaze', 'posture', 'proximity', 'touch']","['friendly', 'unfriendly']",24

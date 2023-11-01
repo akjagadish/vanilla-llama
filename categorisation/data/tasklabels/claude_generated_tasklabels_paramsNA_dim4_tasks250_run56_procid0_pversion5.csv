@@ -1,0 +1,246 @@
+,feature_names,category_names,task_id
+0,"['size', 'shape', 'color', 'texture']","['fruits', 'vegetables']",0
+1,"['length', 'width', 'pattern', 'material']","['birds', 'mammals']",1
+2,"['temperature', 'pressure', 'density', 'viscosity']","['gases', 'liquids']",2
+3,"['pitch', 'timbre', 'tempo', 'rhythm']","['classical', 'pop']",3
+4,"['altitude', 'speed', 'wingspan', 'weight']","['jets', 'propplanes']",4
+5,"['hardness', 'luster', 'streak', 'cleavage']","['metals', 'nonmetals']",5
+6,"['voltage', 'current', 'resistance', 'frequency']","['circuits', 'electronics']",6
+7,"['mass', 'charge', 'spin', 'halflife']","['baryons', 'leptons']",7
+8,"['latitude', 'annualrain', 'avgtemp', 'ecosystem']","['forests', 'deserts']",8
+9,"['acidity', 'minerals', 'drainage', 'horizon']","['fertilesoil', 'poorsoil']",9
+10,"['height', 'hair', 'eyes', 'build']","['elves', 'dwarves']",10
+11,"['robes', 'staff', 'spellbook', 'familiar']","['wizards', 'witches']",11
+12,"['hull', 'sails', 'cannons', 'crew']","['navy', 'pirates']",12
+13,"['saddle', 'reins', 'stirrups', 'gait']","['racers', 'pacers']",13
+14,"['engine', 'tires', 'aerodynamics', 'fueleff']","['sedans', 'trucks']",14
+15,"['balance', 'grip', 'flex', 'camber']","['all-mountain', 'freestyle']",15
+16,"['neck', 'body', 'electronics', 'strings']","['acoustic', 'electric']",16
+17,"['blade', 'guard', 'pommel', 'grip']","['epee', 'foil']",17
+18,"['bow', 'arrows', 'armor', 'mount']","['rangers', 'warriors']",18
+19,"['dice', 'miniatures', 'books', 'snacks']","['casual', 'hardcore']",19
+20,"['legs', 'antennae', 'wings', 'size']","['beetles', 'butterflies']",20
+21,"['grazing', 'herding', 'size', 'habitat']","['bovids', 'equids']",21
+22,"['crest', 'beak', 'plumage', 'size']","['songbirds', 'raptors']",22
+23,"['fangs', 'coat', 'size', 'habitat']","['felidae', 'canidae']",23
+24,"['needles', 'cones', 'bark', 'height']","['conifers', 'broadleaf']",24
+25,"['thorns', 'leaves', 'roots', 'height']","['shrubs', 'vines']",25
+26,"['fins', 'scales', 'size', 'habitat']","['saltwater', 'freshwater']",26
+27,"['legs', 'wings', 'size', 'webtype']","['orbweavers', 'hunters']",27
+28,"['shell', 'mobility', 'habitat', 'diet']","['gastropods', 'bivalves']",28
+29,"['petals', 'scent', 'leaves', 'height']","['annuals', 'perennials']",29
+30,"['agility', 'strength', 'speed', 'stamina']","['offense', 'defense']",30
+31,"['dribbling', 'passing', 'shooting', 'defending']","['guards', 'forwards']",31
+32,"['power', 'accuracy', 'spin', 'velocity']","['baseliners', 'serve/volley']",32
+33,"['balance', 'turns', 'jumps', 'flexibility']","['singles', 'pairs']",33
+34,"['batting', 'throwing', 'catching', 'running']","['hitters', 'fielders']",34
+35,"['putting', 'driving', 'chipping', 'bunkers']","['golfers', 'duffers']",35
+36,"['climbing', 'paddling', 'surfing', 'hiking']","['land', 'water']",36
+37,"['punching', 'kicking', 'grappling', 'submissions']","['strikers', 'grapplers']",37
+38,"['lifting', 'cardio', 'flexibility', 'conditioning']","['bulking', 'shredding']",38
+39,"['jogging', 'swimming', 'biking', 'yoga']","['casual', 'competitive']",39
+40,"['melody', 'harmony', 'rhythm', 'timbre']","['pop', 'classical']",40
+41,"['acting', 'singing', 'dancing', 'comedy']","['stage', 'screen']",41
+42,"['shape', 'color', 'texture', 'composition']","['representational', 'abstract']",42
+43,"['plot', 'characters', 'setting', 'style']","['fiction', 'nonfiction']",43
+44,"['framing', 'lighting', 'movement', 'editing']","['narrative', 'experimental']",44
+45,"['ingredients', 'technique', 'presentation', 'taste']","['savory', 'sweet']",45
+46,"['line', 'form', 'texture', 'color']","['minimalist', 'maximalist']",46
+47,"['rhyme', 'meter', 'imagery', 'theme']","['lyric', 'epic']",47
+48,"['costume', 'set', 'lighting', 'acting']","['comedy', 'drama']",48
+49,"['topic', 'argument', 'examples', 'style']","['persuasive', 'informative']",49
+50,"['cpu', 'gpu', 'ram', 'storage']","['desktops', 'laptops']",50
+51,"['range', 'battery', 'camera', 'display']","['android', 'iphone']",51
+52,"['bandwidth', 'latency', 'reliability', 'coverage']","['cable', 'wireless']",52
+53,"['plugins', 'samples', 'midi', 'daw']","['recording', 'live']",53
+54,"['stitching', 'glass', 'stabilization', 'lowlight']","['photography', 'videography']",54
+55,"['tracking', 'smoothing', 'battery', 'modes']","['gaming', 'productivity']",55
+56,"['switches', 'rgb', 'ergonomics', 'compact']","['gaming', 'office']",56
+57,"['frequency', 'impedance', 'sensitivity', 'connector']","['closed', 'open']",57
+58,"['resolution', 'refreshrate', 'contrast', 'curvature']","['flat', 'curved']",58
+59,"['tracking', 'buttons', 'wheel', 'wireless']","['fps', 'mmo']",59
+60,"['compound', 'phase', 'purity', 'reactivity']","['organic', 'inorganic']",60
+61,"['atoms', 'charge', 'bonds', 'geometry']","['ionic', 'covalent']",61
+62,"['reactants', 'conditions', 'yield', 'byproducts']","['synthesis', 'decomposition']",62
+63,"['groups', 'periods', 'electrons', 'protons']","['metals', 'nonmetals']",63
+64,"['phylum', 'class', 'order', 'family']","['genus', 'species']",64
+65,"['cytoplasm', 'membrane', 'nucleus', 'organelles']","['plant', 'animal']",65
+66,"['hypothalamus', 'pituitary', 'adrenal', 'gonads']","['cns', 'endocrine']",66
+67,"['arteries', 'veins', 'capillaries', 'heart']","['pulmonary', 'systemic']",67
+68,"['cranium', 'cervical', 'thoracic', 'lumbar']","['sacrum', 'coccyx']",68
+69,"['abduction', 'flexion', 'extension', 'pronation']","['upper', 'lower']",69
+70,"['rhythm', 'melody', 'harmony', 'timbre']","['classical', 'pop']",70
+71,"['costume', 'set', 'lighting', 'acting']","['comedy', 'drama']",71
+72,"['glazing', 'firing', 'carving', 'assemblage']","['pottery', 'sculpture']",72
+73,"['exposure', 'composition', 'focus', 'lighting']","['portraits', 'landscape']",73
+74,"['pointofview', 'plot', 'setting', 'theme']","['mystery', 'romance']",74
+75,"['serving', 'hitting', 'movement', 'strategy']","['singles', 'doubles']",75
+76,"['nevergiveup', 'maximizestrengths', 'thinkpositively', 'stayfocused']","['motivation', 'strategies']",76
+77,"['colorspectrum', 'value', 'texture', 'shape']","['representational', 'abstract']",77
+78,"['subject', 'predicate', 'clause', 'phrase']","['simple', 'complex']",78
+79,"['demand', 'supply', 'price', 'competition']","['microeconomics', 'macroeconomics']",79
+80,"['cpu', 'gpu', 'ram', 'storage']","['workstation', 'gaming']",80
+81,"['telephoto', 'wideangle', 'prime', 'zoom']","['lenses', 'cameras']",81
+82,"['aperture', 'shutterspeed', 'iso', 'flash']","['light', 'equipment']",82
+83,"['fills', 'transitions', 'arrangement', 'mixing']","['electronic', 'acoustic']",83
+84,"['gain', 'frequency', 'pan', 'plugin']","['recording', 'editing']",84
+85,"['body', 'neck', 'bridge', 'electronics']","['electric', 'acoustic']",85
+86,"['tuning', 'strings', 'pickups', 'controls']","['lead', 'rhythm']",86
+87,"['distortion', 'delay', 'reverb', 'modulation']","['effects', 'pedals']",87
+88,"['diaphragm', 'dynamic', 'condenser', 'pickuppattern']","['vocal', 'instrument']",88
+89,"['pads', 'keys', 'buttons', 'knobs']","['midi', 'analog']",89
+90,"['mileage', 'cargo', 'safety', 'technology']","['sedan', 'suv']",90
+91,"['city', 'highway', 'range', 'rechargetime']","['gas', 'electric']",91
+92,"['trim', 'upholstery', 'soundsystem', 'sunroof']","['basic', 'luxury']",92
+93,"['horsepower', 'torque', 'transmission', 'drivetrain']","['sports', 'muscle']",93
+94,"['spokes', 'derailleur', 'suspension', 'brakes']","['road', 'mountain']",94
+95,"['deck', 'trucks', 'wheels', 'bearings']","['street', 'park']",95
+96,"['beam', 'sails', 'keel', 'crewcapacity']","['daysailer', 'racer']",96
+97,"['seats', 'storage', 'motor', 'fuelcapacity']","['recreation', 'fishing']",97
+98,"['wingspan', 'usefulload', 'cruisespeed', 'range']","['piston', 'turbine']",98
+99,"['cockpit', 'payload', 'altitude', 'speed']","['rotarywing', 'fixedwing']",99
+100,"['sensor', 'lens', 'stabilization', 'video']","['photography', 'videography']",100
+101,"['aperture', 'iso', 'shutterspeed', 'filters']","['naturallight', 'studio']",101
+102,"['leadinglines', 'ruleofthirds', 'symmetry', 'depth']","['composition', 'techniques']",102
+103,"['remjet', 'perfs', 'registration', 'light']","['camera', 'film']",103
+104,"['c-stand', 'flag', 'bounce', 'diffuser']","['grip', 'lighting']",104
+105,"['fill', 'key', 'rim', 'background']","['portrait', 'product']",105
+106,"['dolly', 'crane', 'steadicam', 'handheld']","['camerasupport', 'movement']",106
+107,"['premiere', 'avid', 'finalcut', 'aftereffects']","['editing', 'vfx']",107
+108,"['dialog', 'sfx', 'music', 'foley']","['productionaudio', 'post']",108
+109,"['concept', 'storyboard', 'schedule', 'cast']","['preproduction', 'production']",109
+110,"['userstories', 'classdiagrams', 'flowcharts', 'prototypes']","['analysis', 'design']",110
+111,"['python', 'javascript', 'c++', 'html']","['languages', 'frameworks']",111
+112,"['django', 'express', 'react', 'angular']","['backend', 'frontend']",112
+113,"['sql', 'noSQL', 'transactions', 'queries']","['relational', 'non-relational']",113
+114,"['unittesting', 'integrationtesting', 'systemtesting', 'manualtesting']","['automation', 'testing']",114
+115,"['git', 'svn', 'merges', 'pullrequests']","['versioncontrol', 'collaboration']",115
+116,"['aws', 'gcp', 'azure', 'heroku']","['iaas', 'paas']",116
+117,"['linux', 'windows', 'macOS', 'servers']","['desktops', 'mobile']",117
+118,"['bandwidth', 'latency', 'throughput', 'availability']","['performance', 'capacity']",118
+119,"['ddos', 'encryption', 'accesscontrol', 'backup']","['security', 'resilience']",119
+120,"['brand', 'price', 'comfort', 'style']","['casual', 'dress']",120
+121,"['leather', 'synthetic', 'mesh', 'insulation']","['materials', 'attributes']",121
+122,"['oxford', 'derby', 'loafer', 'boot']","['types', 'styles']",122
+123,"['laceup', 'slipon', 'zip', 'velcro']","['closures', 'features']",123
+124,"['sole', 'upper', 'insole', 'welt']","['components', 'construction']",124
+125,"['size', 'width', 'archsupport', 'cushioning']","['fit', 'comfort']",125
+126,"['handbag', 'clutch', 'tote', 'backpack']","['shoulderbag', 'types']",126
+127,"['leather', 'nylon', 'canvas', 'polyester']","['materials', 'attributes']",127
+128,"['structure', 'embellishments', 'hardware', 'fabric']","['design', 'construction']",128
+129,"['shoulderstrap', 'handles', 'pockets', 'compartments']","['features', 'functionality']",129
+130,"['pointofview', 'characters', 'setting', 'plot']","['literaryfiction', 'genrefiction']",130
+131,"['foreshadowing', 'metaphor', 'allegory', 'irony']","['literarydevices', 'elements']",131
+132,"['fiction', 'nonfiction', 'poetry', 'drama']","['genres', 'forms']",132
+133,"['risingaction', 'climax', 'fallingaction', 'resolution']","['plotstructure', 'elements']",133
+134,"['protagonist', 'antagonist', 'foil', 'flat']","['round', 'charactertypes']",134
+135,"['theme', 'tone', 'mood', 'symbolism']","['elements', 'literarytechniques']",135
+136,"['brushstrokes', 'composition', 'colorpalette', 'medium']","['styles', 'techniques']",136
+137,"['acrylic', 'oil', 'watercolor', 'pastel']","['mediums', 'materials']",137
+138,"['portrait', 'landscape', 'stilllife', 'abstract']","['genres', 'subjects']",138
+139,"['line', 'shape', 'color', 'texture']","['space', 'principlesofdesign']",139
+140,"['timesignature', 'keysignature', 'melody', 'harmony']","['rhythm', 'pitch']",140
+141,"['verse', 'chorus', 'bridge', 'solo']","['songstructure', 'elements']",141
+142,"['guitar', 'bass', 'drums', 'vocals']","['rhythmsection', 'roles']",142
+143,"['country', 'rap', 'rock', 'pop']","['genres', 'styles']",143
+144,"['rehearse', 'perform', 'record', 'release']","['practice', 'production']",144
+145,"['microphone', 'interface', 'speakers', 'instruments']","['gear', 'equipment']",145
+146,"['equalizer', 'compressor', 'reverb', 'delay']","['effects', 'processing']",146
+147,"['harmony', 'counterpoint', 'voiceleading', 'instrumentation']","['theory', 'composition']",147
+148,"['beat', 'rhythm', 'melody', 'lyrics']","['arrangement', 'songwriting']",148
+149,"['practice', 'improvise', 'listen', 'perform']","['skills', 'techniques']",149
+150,"['protagonist', 'antagonist', 'conflict', 'plot']","['theme', 'setting']",150
+151,"['poetry', 'plays', 'novels', 'shortstories']","['genres', 'forms']",151
+152,"['foreshadowing', 'symbolism', 'irony', 'metaphors']","['devices', 'elements']",152
+153,"['characterization', 'dialogue', 'narration', 'description']","['style', 'techniques']",153
+154,"['fiction', 'nonfiction', 'biography', 'essays']","['categories', 'types']",154
+155,"['risingaction', 'climax', 'fallingaction', 'resolution']","['plotstructure', 'elements']",155
+156,"['commas', 'semicolons', 'dashes', 'apostrophes']","['punctuation', 'grammar']",156
+157,"['scary', 'thrilling', 'dramatic', 'romantic']","['moods', 'tones']",157
+158,"['historical', 'futuristic', 'realistic', 'imagined']","['settings', 'environments']",158
+159,"['thoughtful', 'emotional', 'descriptive', 'clear']","['qualities', 'goals']",159
+160,"['multiplication', 'division', 'addition', 'subtraction']","['arithmetic', 'algebra']",160
+161,"['graphs', 'equations', 'inequalities', 'functions']","['modeling', 'analysis']",161
+162,"['numbers', 'operations', 'patterns', 'shapes']","['concepts', 'skills']",162
+163,"['decimals', 'fractions', 'integers', 'rational']","['real', 'types']",163
+164,"['area', 'perimeter', 'volume', 'angles']","['geometry', 'trigonometry']",164
+165,"['mean', 'median', 'mode', 'range']","['statistics', 'probability']",165
+166,"['exponents', 'logarithms', 'derivatives', 'integrals']","['calculus', 'analysis']",166
+167,"['theorems', 'proofs', 'axioms', 'reasoning']","['foundations', 'advanced']",167
+168,"['data', 'variables', 'distribution', 'correlation']","['inference', 'analytics']",168
+169,"['patterns', 'problemsolving', 'quantitative']","['spatial', 'cognitiveskills']",169
+170,[],['passcatchrunblocktacklepositionsoffensedefensefootball'],170
+171,[],['dribbleshootdefendreboundassistpositionsguardsforwardsbasketball'],171
+172,[],['pitchhitfieldthrowpositionspitchercatcherbaseball'],172
+173,[],['skateshootchecksavepositionsforwardsdefensehockey'],173
+174,[],['servevolleysmashpositionssinglesdoublesbadminton'],174
+175,[],['sprinthurdlesrelayjumpthrowpositionstrackfield'],175
+176,[],['punchkickgrapplepositionsstandupgroundmma'],176
+177,[],['strokesprintblocksrelaypositionsfreestylebutterflyswimming'],177
+178,[],['balancebeamfloorbarspositionsall-aroundunevengymnastics'],178
+179,[],['liftsnatchcleanjerkpositionslightheavyweightweightlifting'],179
+180,[],['hydrogenheliumlithiumberylliumalkalialkalineearthmetalsperiodstableelements'],180
+181,[],"[""velocityaccelerationmassforcenewton'slawsofmotionphysicsmechanicsmotion""]",181
+182,[],['cytoplasmmitochondriachloroplastsvacuolestructuresorganellescellsbiologylife'],182
+183,[],['igneousmetamorphicsedimentaryprocessesrocksgeologyearth'],183
+184,[],['arithmeticalgebracalculustrigonometrygeometryrealanalysismathmathematics'],184
+185,[],['newtoneinsteinmaxwellfaradaygalileoscientistsphysicshistory'],185
+186,[],['dramapoetryfictionnonfictiongenresliteraturelanguageartsenglish'],186
+187,[],['spainfrancegermanyitalycountrieseuropegeography'],187
+188,[],['pianoguitardrumsbassinstrumentsbandmusic'],188
+189,[],['soccerbasketballfootballbaseballsportsathleticsrecreationgames'],189
+190,[],['plotthemecharacterssettingpointofviewstorynovelfiction'],190
+191,[],['brushespaletteknifecanvaspanelpaintacrylicoilwatercolorart'],191
+192,[],['integersrationalirrationalrealcomplexnumberssetstheoryalgebramath'],192
+193,[],['proteinslipidscarbohydratesnucleicacidsmacromoleculesbiologybiochemistrycellsmolecular'],193
+194,[],['supplydemandequilibriumpricemarketseconomicsmicromacro'],194
+195,[],['legislativeexecutivejudicialbranchescongresspresidentsupremecourtpoliticsgovernmentcivics'],195
+196,[],['routerswitchfirewallserversclientsdnsnetworkingcomputersittechnology'],196
+197,[],['guitarpianovocalsdrumsbassrolesbandinstrumentsmusic'],197
+198,[],['spinachkalearugularomainelettucevegetablessaladfoodnutritionhealthcooking'],198
+199,[],['dogscatshorsescowsanimalspetsveterinaryzoologybiologynaturewildlife'],199
+200,[],['charactermotivationconflictplotarcresolutionstorydevelopmentfictionwritingliterature'],200
+201,[],['compositionlightingcolorcontrastruleofthirdsframingphotographyaestheticsvisualarts'],201
+202,[],['atomicnumberprotonselectronsisotopesperiodictabletrendselementschemistrysciencephysics'],202
+203,[],['naturalselectionmutationvariationadaptationevolutionbiologyorganismsgeneticslifescience'],203
+204,[],['nounverbadjectiveadverbpronounconjunctionsyntaxgrammarlinguisticslanguageenglish'],204
+205,[],['budgetingsavinginvestingretirementaccountsfinancemoneyeconomicspersonalhousehold'],205
+206,[],['cssjavascripthtmlreactvueframeworklibrarywebdevelopmentprogrammingengineeringsoftware'],206
+207,[],['guitarbassdrumsvocalskeysrolesbandmusicperformanceensemble'],207
+208,[],['steakchickenfishtofubeefporkpoultryseafoodproteinmeatscuisinecookingfood'],208
+209,[],['crimedramahorrorcomedyactiongenrestelevisionshowsseriesstreamingentertainmentmedia'],209
+210,"['characterdevelopment', 'plotstructure', 'theme', 'tone', 'pointofview']","['literaryelements', 'fictionwriting']",210
+211,"['line', 'shape', 'form', 'space', 'texture', 'color', 'principlesofart']","['composition', 'visualdesign']",211
+212,"['atomicstructure', 'chemicalbonding', 'reactions', 'stoichiometry', 'acids']","['bases', 'chemistryconcepts']",212
+213,"['naturalselection', 'biodiversity', 'cells', 'tissues', 'organs']","['organsystems', 'biologyfoundations']",213
+214,"['arithmetic', 'algebra', 'geometry', 'trigonometry', 'statistics']","['calculus', 'branchesofmathematics']",214
+215,"['supply', 'demand', 'markets', 'trade', 'fiscalpolicy']","['monetarypolicy', 'macroeconomicsdomains']",215
+216,"['object-oriented', 'procedural', 'functional', 'logical', 'paradigms']","['programminglanguages', 'computerscience']",216
+217,"['guitar', 'bass', 'drums', 'keys', 'vocals', 'instruments', 'roles']","['bandlayout', 'musicperformance']",217
+218,"['saute', 'bake', 'broil', 'braise', 'roast', 'fry', 'simmer']","['cookingtechniques', 'culinaryskills']",218
+219,"['plot', 'setting', 'characters', 'conflict', 'resolution']","['literarycomponents', 'fictionwritingelements']",219
+220,"['characterization', 'dialogue', 'pacing', 'description', 'narration']","['style', 'fictiontechniques']",220
+221,"['proportion', 'perspective', 'emphasis', 'rhythm', 'unity']","['artprinciples', 'designelements']",221
+222,"['atomicmass', 'electronconfiguration', 'reactivity']","['periodicity', 'periodictabletrends']",222
+223,"['inheritance', 'geneexpression', 'meiosis', 'mitosis']","['centraldogma', 'biologyconcepts']",223
+224,"['numeration', 'operations', 'algebraicthinking', 'equivalence']","['problemsolving', 'mathskills']",224
+225,"['fiscalpolicy', 'monetarypolicy', 'trade', 'inflation']","['GDP', 'macroeconomiclevers']",225
+226,"['abstraction', 'polymorphism', 'inheritance', 'encapsulation']","['OOPprinciples', 'programming']",226
+227,"['melody', 'harmony', 'rhythm', 'texture', 'form']","['musicalcomponents', 'compositionbuildingblocks']",227
+228,"['sauces', 'knifeskills', 'sanitation', 'plating']","['flavorpairing', 'foundationsofcooking']",228
+229,"['protagonist', 'antagonist', 'conflict', 'plot']","['resolution', 'componentsofstorytelling']",229
+230,"['rounding', 'estimating', 'ratios', 'measurement', 'graphs']","['mathematicalthinking', 'numeracy']",230
+231,"['mitochondria', 'chloroplasts', 'cellmembrane', 'nucleus']","['eukaryoticstructures', 'cellbiology']",231
+232,"['pointofview', 'tone', 'style', 'literarydevices']","['elementsoffiction', 'storytellingtools']",232
+233,"['brushtechnique', 'value', 'shading', 'markmaking']","['artisticmedia', 'paintingskills']",233
+234,"['chordprogressions', 'scales', 'keys', 'readingmusic']","['notes', 'musictheoryfoundations']",234
+235,"['servers', 'databases', 'APIs', 'caching']","['webarchitecture', 'backendfundamentals']",235
+236,"['schematics', 'code', 'peripherals']","['ports', 'computerhardwarecomponents']",236
+237,"['sautéing', 'frying', 'grilling', 'braising']","['roasting', 'fundamentalcookingtechniques']",237
+238,"['gravity', 'energy', 'thermodynamics', 'electromagnetism']","['mechanics', 'physicsdomains']",238
+239,"['plot', 'setting', 'theme', 'pointofview']","['characterization', 'literarycomponents']",239
+240,"['meter', 'rhythm', 'rhymescheme', 'figurativelanguage']","['poeticdevices', 'poetryelements']",240
+241,"['lighting', 'posing', 'lenses', 'composition']","['camerasettings', 'portraitphotography']",241
+242,"['atomicradius', 'ionizationenergy', 'electronegativity']","['periodictrends', 'periodictable']",242
+243,"['naturalselection', 'biodiversity', 'evolution', 'ecosystems']","['adaptations', 'biologythemes']",243
+244,"['linearequations', 'quadraticequations', 'polynomials']","['graphing', 'algebraconcepts']",244

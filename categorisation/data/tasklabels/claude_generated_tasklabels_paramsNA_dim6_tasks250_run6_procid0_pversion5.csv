@@ -1,0 +1,11 @@
+,feature_names,category_names,task_id
+0,"['wavelength', 'luminosity', 'temperature', 'viscosity', 'acidity', 'salinity']","['planets', 'stars']",0
+1,"['length', 'width', 'height', 'weight', 'speed', 'torque']","['cars', 'trucks']",1
+2,"['melody', 'rhythm', 'harmony', 'tempo', 'timbre', 'volume']","['jazz', 'classical']",2
+3,"['hue', 'saturation', 'brightness', 'contrast', 'focus', 'exposure']","['portraits', 'landscapes']",3
+4,"['calories', 'fat', 'protein', 'fiber', 'vitamins', 'minerals']","['healthy', 'unhealthy']",4
+5,"['consonants', 'vowels', 'syllables', 'rhyme', 'meter', 'tone']","['poetry', 'prose']",5
+6,"['charge', 'spin', 'isospin', 'strangeness', 'charm', 'mass']","['mesons', 'baryons']",6
+7,"['durability', 'flexibility', 'conductivity', 'strength', 'hardness', 'density']","['metals', 'nonmetals']",7
+8,"['precedent', 'evidence', 'testimony', 'motive', 'circumstance', 'intent']","['guilty', 'notguilty']",8
+9,"['plot', 'character', 'setting', 'theme', 'pacing', 'dialogue']","['drama', 'comedy']",9

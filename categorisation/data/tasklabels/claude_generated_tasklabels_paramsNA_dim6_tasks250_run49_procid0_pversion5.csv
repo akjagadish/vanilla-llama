@@ -1,0 +1,11 @@
+,feature_names,category_names,task_id
+0,"['Color', 'Shape', 'Size', 'Texture', 'Weight', 'Temperature']","['Fruits', 'Vegetables']",0
+1,"['Length', 'Width', 'Height', 'Area', 'Volume', 'Density']","['Solid', 'Liquid']",1
+2,"['Taste', 'Smell', 'Sound', 'Touch', 'Sight', 'Feel']","['Pleasant', 'Unpleasant']",2
+3,"['Speed', 'Direction', 'Distance', 'Acceleration', 'Mass', 'Force']","['MovingObjects', 'StationaryObjects']",3
+4,"['Pitch', 'Timbre', 'Loudness', 'Rhythm', 'Harmony', 'Melody']","['MusicalInstruments', 'Voices']",4
+5,"['Hardness', 'Ductility', 'Malleability', 'Conductivity', 'Luster', 'Magnetism']","['Metals', 'Nonmetals']",5
+6,"['Habitat', 'Diet', 'Lifespan', 'Size', 'SocialStructure', 'Locomotion']","['Mammals', 'Reptiles']",6
+7,"['Orbit', 'Mass', 'Temperature', 'Composition', 'Radius', 'Gravity']","['TerrestrialPlanets', 'JovianPlanets']",7
+8,"['SepalLength', 'SepalWidth', 'PetalLength', 'PetalWidth', 'StamenLength', 'PistilLength']","['Roses', 'Tulips']",8
+9,"['LegLength', 'WingLength', 'BeakShape', 'FeatherColor', 'FeatherPattern', 'Migration']","['Shorebirds', 'Songbirds']",9

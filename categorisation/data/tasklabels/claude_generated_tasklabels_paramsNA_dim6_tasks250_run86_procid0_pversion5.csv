@@ -1,0 +1,20 @@
+,feature_names,category_names,task_id
+0,"['color', 'shape', 'size', 'texture', 'pattern', 'orientation']","['vehicles', 'animals']",0
+1,"['length', 'width', 'height', 'mass', 'flexibility', 'complexity']","['furniture', 'clothing']",1
+2,"['sweetness', 'acidity', 'bitterness', 'creaminess', 'crunchiness', 'juiciness']","['fruits', 'vegetables']",2
+3,"['tempo', 'harmony', 'rhythm', 'melody', 'vocals', 'instrumentation']","['rock', 'classical']",3
+4,"['diameter', 'curvature', 'smoothness', 'hardness', 'temperature', 'weight']","['tools', 'toys']",4
+5,"['agility', 'strength', 'speed', 'endurance', 'coordination', 'balance']","['athletes', 'musicians']",5
+6,"['friendliness', 'assertiveness', 'organization', 'creativity', 'punctuality', 'positivity']","['extroverts', 'introverts']",6
+7,"['humidity', 'cloudiness', 'precipitation', 'wind', 'temperature', 'pressure']","['summer', 'winter']",7
+8,"['sturdiness', 'portability', 'capacity', 'insulation', 'durability', 'style']","['luggage', 'furniture']",8
+9,"['sharpness', 'luster', 'purity', 'rarity', 'cut', 'carat']","['precious', 'semiprecious']",9
+10,"['altitude', 'cloudcover', 'precipitation', 'windspeed', 'temperature', 'airpressure']","['fairweather', 'stormyweather']",10
+11,"['horsepower', 'torque', 'fuelefficiency', 'seatingcapacity', 'safetyrating', 'price']","['economycars', 'luxurycars']",11
+12,"['sodium', 'sugars', 'protein', 'fiber', 'calories', 'fat']","['healthyfoods', 'junkfoods']",12
+13,"['plot', 'characters', 'writing', 'visuals', 'acting', 'music']","['goodmovies', 'badmovies']",13
+14,"['ram', 'cpuspeed', 'gpu', 'storage', 'displayresolution', 'batterylife']","['highendpcs', 'lowendpcs']",14
+15,"['teachingability', 'researchability', 'helpfulness', 'punctuality', 'organization', 'fairness']","['goodprofessors', 'badprofessors']",15
+16,"['diversification', 'pastperformance', 'expenses', 'management', 'liquidity', 'risk']","['goodinvestments', 'badinvestments']",16
+17,"['range', 'accuracy', 'rateoffire', 'reliability', 'concealability', 'cost']","['militaryweapons', 'civilianweapons']",17
+18,"['creativity', 'persistence', 'passion', 'focus', 'confidence', 'workethic']","['successfulentrepreneurs', 'aspiringentrepreneurs']",18

@@ -1,0 +1,20 @@
+,feature_names,category_names,task_id
+0,"['weight', 'temperature', 'size', 'texture']","['fruits', 'vegetables']",0
+1,"['length', 'width', 'color', 'pattern']","['birds', 'fish']",1
+2,"['pitch', 'timbre', 'tempo', 'rhythm']","['classical', 'pop']",2
+3,"['hardness', 'malleability', 'luster', 'density']","['metals', 'nonmetals']",3
+4,"['legs', 'habitat', 'diet', 'size']","['mammals', 'reptiles']",4
+5,"['acidity', 'aroma', 'body', 'tannins']","['redwine', 'whitewine']",5
+6,"['horsepower', 'fueleconomy', 'seating', 'cargospace']","['sedans', 'SUVs']",6
+7,"['processorspeed', 'RAM', 'storage', 'graphics']","['laptops', 'desktops']",7
+8,"['calories', 'protein', 'fat', 'carbohydrates']","['healthyfoods', 'junkfoods']",8
+9,"['altitude', 'cloudcover', 'precipitation', 'wind']","['goodweather', 'badweather']",9
+10,"['absorption', 'diffusion', 'viscosity', 'volatility']","['polar', 'nonpolar']",10
+11,"['valence', 'atomicradius', 'electronegativity', 'atomicmass']","['metalloids', 'halogens']",11
+12,"['rhythm', 'melody', 'harmony', 'timbre']","['classical', 'jazz']",12
+13,"['crust', 'toppings', 'sauce', 'cheese']","['thincrust', 'deepdish']",13
+14,"['plot', 'characters', 'setting', 'theme']","['drama', 'comedy']",14
+15,"['hue', 'saturation', 'brightness', 'contrast']","['warmcolors', 'coolcolors']",15
+16,"['mileage', 'engine', 'transmission', 'interior']","['usedcars', 'newcars']",16
+17,"['UVprotection', 'polarization', 'frametype', 'lenstype']","['sportsglasses', 'casualglasses']",17
+18,"['sodium', 'cholesterol', 'fiber', 'vitamins']","['healthycereal', 'sugarycereal']",18

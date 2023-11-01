@@ -1,0 +1,26 @@
+,feature_names,category_names,task_id
+0,"['speed', 'size', 'texture', 'temperature', 'weight', 'hardness']","['vehicles', 'furniture']",0
+1,"['length', 'width', 'color', 'material', 'pattern', 'style']","['clothes', 'electronics']",1
+2,"['taste', 'aroma', 'acidity', 'body', 'finish', 'variety']","['wine', 'beer']",2
+3,"['melody', 'rhythm', 'tempo', 'dynamics', 'timbre', 'harmony']","['classical', 'pop']",3
+4,"['altitude', 'cloudcover', 'precipitation', 'windspeed', 'temperature', 'pressure']","['rainydays', 'sunnydays']",4
+5,"['caloricdensity', 'protein', 'fat', 'carbohydrate', 'fiber', 'vitamins']","['healthyfoods', 'junkfoods']",5
+6,"['friendliness', 'intelligence', 'creativity', 'empathy', 'motivation', 'reliability']","['goodcoworkers', 'badcoworkers']",6
+7,"['balance', 'coordination', 'flexibility', 'power', 'quickness', 'endurance']","['gymnasts', 'weightlifters']",7
+8,"['affordability', 'fueleconomy', 'passengerspace', 'safety', 'handling', 'horsepower']","['familycars', 'sportscars']",8
+9,"['solubility', 'polarity', 'viscosity', 'pH', 'thermalstability', 'shelflife']","['householdcleaners', 'industrialcleaners']",9
+10,"['actI', 'actII', 'actIII', 'protagonist', 'antagonist', 'themes']","['comedies', 'tragedies']",10
+11,"['bass', 'drums', 'guitar', 'keyboard', 'vocals', 'lyrics']","['rockbands', 'popbands']",11
+12,"['crispness', 'richness', 'sweetness', 'tanginess', 'creaminess', 'bitterness']","['fruits', 'vegetables']",12
+13,"['shape', 'shininess', 'hardness', 'brittleness', 'thermalconductivity', 'electricalconductivity']","['metals', 'nonmetals']",13
+14,"['shotselection', 'editing', 'lighting', 'acting', 'script', 'sounddesign']","['goodmovies', 'badmovies']",14
+15,"['networking', 'strategy', 'financials', 'management', 'culture', 'growth']","['successfulstartups', 'failedstartups']",15
+16,"['tenacity', 'serves', 'forehand', 'backhand', 'volleys', 'fitness']","['maleplayers', 'femaleplayers']",16
+17,"['teaching', 'research', 'advising', 'committees', 'grants', 'publications']","['goodprofessors', 'mediocreprofessors']",17
+18,"['wingspan', 'weight', 'speed', 'verticalleap', 'ballhandling', 'shooting']","['guards', 'bigs']",18
+19,"['range', 'rateoffire', 'armor', 'speed', 'stealth', 'sensors']","['tanks', 'aircraft']",19
+20,"['melody', 'harmony', 'rhythm', 'lyrics', 'genre', 'vocals']","['countrysongs', 'popsongs']",20
+21,"['sauce', 'crust', 'toppings', 'cheese', 'spices', 'bakingmethod']","['goodpizza', 'badpizza']",21
+22,"['foliage', 'flowers', 'fruit', 'height', 'droughttolerance', 'maintenance']","['landscapingtrees', 'ornamentalshrubs']",22
+23,"['consonance', 'assonance', 'metaphor', 'rhymescheme', 'linelength', 'narrativevoice']","['goodpoems', 'badpoems']",23
+24,"['softness', 'support', 'adjustability', 'breathability', 'durability', 'value']","['goodmattresses', 'badmattresses']",24

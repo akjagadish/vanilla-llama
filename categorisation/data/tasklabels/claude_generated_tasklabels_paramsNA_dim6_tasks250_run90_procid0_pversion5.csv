@@ -1,0 +1,20 @@
+,feature_names,category_names,task_id
+0,"['wavelength', 'luminosity', 'temperature', 'hardness', 'malleability', 'density']","['metals', 'nonmetals']",0
+1,"['length', 'width', 'curvature', 'texture', 'color', 'weight']","['rectangles', 'circles']",1
+2,"['size', 'shape', 'spots', 'stripes', 'color', 'legs']","['cats', 'dogs']",2
+3,"['engine', 'doors', 'roof', 'trunk', 'wheels', 'seats']","['sedans', 'trucks']",3
+4,"['sweetness', 'tartness', 'juiciness', 'firmness', 'seeds', 'skin']","['apples', 'oranges']",4
+5,"['pages', 'cover', 'illustrations', 'size', 'genre', 'author']","['fiction', 'nonfiction']",5
+6,"['rhythm', 'melody', 'harmony', 'tempo', 'lyrics', 'instruments']","['rock', 'classical']",6
+7,"['altitude', 'vegetation', 'climate', 'location', 'area', 'population']","['mountains', 'deserts']",7
+8,"['sodium', 'calories', 'fat', 'protein', 'fiber', 'vitamins']","['healthy', 'unhealthy']",8
+9,"['speed', 'maneuverability', 'crew', 'armor', 'weapons', 'range']","['tanks', 'planes']",9
+10,"['amplitude', 'frequency', 'phase', 'harmonics', 'duration', 'timbre']","['wind', 'string']",10
+11,"['germination', 'growth', 'flowering', 'pollination', 'fruiting', 'dormancy']","['annual', 'perennial']",11
+12,"['batting', 'fielding', 'running', 'throwing', 'hitting', 'strategy']","['offense', 'defense']",12
+13,"['acting', 'directing', 'cinematography', 'editing', 'sound', 'visuals']","['drama', 'comedy']",13
+14,"['length', 'pattern', 'material', 'sleeves', 'collar', 'buttons']","['formalwear', 'casualwear']",14
+15,"['cpu', 'gpu', 'ram', 'storage', 'display', 'battery']","['laptops', 'desktops']",15
+16,"['latitude', 'biome', 'fauna', 'climate', 'topology', 'hydrology']","['tropical', 'temperate']",16
+17,"['rhythm', 'melody', 'vocals', 'instrumentation', 'genre', 'lyrics']","['pop', 'rock']",17
+18,"['flavor', 'aroma', 'body', 'acidity', 'processing', 'origin']","['lightroast', 'darkroast']",18

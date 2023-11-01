@@ -1,0 +1,11 @@
+,feature_names,category_names,task_id
+0,"['length', 'width', 'height', 'weight', 'temperature', 'pressure']","['animals', 'vehicles']",0
+1,"['sweetness', 'crispness', 'bitterness', 'saltiness', 'sourness', 'spiciness']","['fruits', 'vegetables']",1
+2,"['loudness', 'pitch', 'tempo', 'rhythm', 'harmony', 'melody']","['rockmusic', 'classicalmusic']",2
+3,"['brightness', 'saturation', 'hue', 'contrast', 'focus', 'resolution']","['summer', 'winter']",3
+4,"['hardness', 'ductility', 'density', 'meltingpoint', 'thermalconductivity', 'electricalresistivity']","['metals', 'nonmetals']",4
+5,"['horsepower', 'torque', 'fuelefficiency', 'cargocapacity', 'passengercapacity', 'safetyrating']","['sedans', 'trucks']",5
+6,"['sodium', 'cholesterol', 'protein', 'fiber', 'fat', 'carbohydrates']","['healthyfoods', 'unhealthyfoods']",6
+7,"['durability', 'comfort', 'traction', 'flexibility', 'cushioning', 'breathability']","['runningshoes', 'casualshoes']",7
+8,"['range', 'accuracy', 'rateoffire', 'magazinecapacity', 'recoil', 'weight']","['pistols', 'rifles']",8
+9,"['altitude', 'speed', 'maneuverability', 'stealth', 'radarsignature', 'payload']","['fighters', 'bombers']",9

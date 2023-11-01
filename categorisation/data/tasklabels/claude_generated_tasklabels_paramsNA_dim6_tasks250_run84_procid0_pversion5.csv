@@ -1,0 +1,15 @@
+,feature_names,category_names,task_id
+0,"['length', 'width', 'area', 'perimeter', 'corners', 'symmetry']","['triangles', 'rectangles']",0
+1,"['loudness', 'pitch', 'tempo', 'instruments', 'vocals', 'genre']","['rock', 'classical']",1
+2,"['size', 'shape', 'color', 'pattern', 'texture', 'material']","['fruit', 'vegetable']",2
+3,"['height', 'speed', 'spin', 'trajectory', 'wind', 'surface']","['tennisserve', 'baseballpitch']",3
+4,"['friendliness', 'honesty', 'intelligence', 'humor', 'generosity', 'loyalty']","['goodfriend', 'badfriend']",4
+5,"['calories', 'fat', 'protein', 'carbs', 'fiber', 'vitamins']","['healthyfood', 'junkfood']",5
+6,"['voltage', 'current', 'resistance', 'capacitance', 'frequency', 'power']","['electroniccomponent', 'householdappliance']",6
+7,"['diameter', 'density', 'hardness', 'ductility', 'meltingpoint', 'thermalconductivity']","['metal', 'nonmetal']",7
+8,"['latitude', 'longitude', 'elevation', 'temperature', 'precipitation', 'vegetation']","['mountains', 'coasts']",8
+9,"['mass', 'velocity', 'momentum', 'acceleration', 'force', 'energy']","['movingobject', 'stationaryobject']",9
+10,"['aroma', 'taste', 'acidity', 'roast', 'origin', 'varietal']","['lightroastcoffee', 'darkroastcoffee']",10
+11,"['legroom', 'seatwidth', 'overheadbins', 'amenities', 'crewrating', 'on-timerating']","['premiumairline', 'budgetairline']",11
+12,"['ram', 'cpucores', 'gpupower', 'storage', 'displayresolution', 'batterylife']","['gaminglaptop', 'worklaptop']",12
+13,"['noterange', 'rhythm', 'melody', 'harmony', 'dynamics', 'articulation']","['classicalcomposition', 'popsong']",13

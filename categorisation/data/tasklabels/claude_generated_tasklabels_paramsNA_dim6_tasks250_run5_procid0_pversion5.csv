@@ -1,0 +1,11 @@
+,feature_names,category_names,task_id
+0,"['color', 'shape', 'size', 'texture', 'pattern', 'material']","['vehicles', 'animals']",0
+1,"['wavelength', 'amplitude', 'duration', 'intensity', 'timbre', 'tempo']","['musicalinstruments', 'householdobjects']",1
+2,"['length', 'width', 'height', 'area', 'volume', 'density']","['solids', 'liquids']",2
+3,"['atomicnumber', 'atomicmass', 'meltingpoint', 'boilingpoint', 'conductivity', 'malleability']","['metals', 'nonmetals']",3
+4,"['limbs', 'habitat', 'diet', 'lifespan', 'size', 'speed']","['mammals', 'reptiles']",4
+5,"['author', 'genre', 'setting', 'protagonist', 'antagonist', 'plot']","['fiction', 'nonfiction']",5
+6,"['slope', 'area', 'circumference', 'radius', 'diameter', 'volume']","['circles', 'triangles']",6
+7,"['latitude', 'longitude', 'temperature', 'precipitation', 'elevation', 'climate']","['continents', 'oceans']",7
+8,"['charge', 'spin', 'baryonnumber', 'strangeness', 'charm', 'bottomness']","['hadrons', 'leptons']",8
+9,"['mass', 'velocity', 'momentum', 'acceleration', 'force', 'energy']","['motion', 'statics']",9

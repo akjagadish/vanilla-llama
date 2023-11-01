@@ -1,0 +1,250 @@
+,feature_names,category_names,task_id
+0,"['length', 'width', 'height', 'weight']","['vehicles', 'animals']",0
+1,"['size', 'shape', 'texture', 'color']","['fruits', 'vegetables']",1
+2,"['pitch', 'tempo', 'rhythm', 'melody']","['classical', 'pop']",2
+3,"['legs', 'wings', 'fins', 'tail']","['mammals', 'reptiles']",3
+4,"['sweet', 'sour', 'bitter', 'salty']","['desserts', 'entrees']",4
+5,"['loudness', 'duration', 'timbre', 'harmony']","['rock', 'jazz']",5
+6,"['temperature', 'pressure', 'volume', 'density']","['solids', 'liquids']",6
+7,"['hardness', 'malleability', 'luster', 'conductivity']","['metals', 'nonmetals']",7
+8,"['convex', 'concave', 'symmetrical', 'edges']","['polygons', 'circles']",8
+9,"['acidic', 'basic', 'polar', 'nonpolar']","['acids', 'bases']",9
+10,"['duration', 'pitch', 'timbre', 'rhythm']","['classical', 'pop']",10
+11,"['shape', 'size', 'texture', 'pattern']","['animals', 'plants']",11
+12,"['legs', 'wings', 'fins', 'tails']","['mammals', 'birds']",12
+13,"['loudness', 'tempo', 'harmony', 'melody']","['rock', 'classical']",13
+14,"['sweet', 'sour', 'bitter', 'salty']","['fruits', 'vegetables']",14
+15,"['hard', 'soft', 'smooth', 'bumpy']","['metals', 'woods']",15
+16,"['long', 'short', 'wide', 'narrow']","['clothes', 'furniture']",16
+17,"['hot', 'cold', 'wet', 'dry']","['summer', 'winter']",17
+18,"['up', 'down', 'left', 'right']","['directions', 'positions']",18
+19,"['fast', 'slow', 'loud', 'quiet']","['vehicles', 'animals']",19
+20,"['stripes', 'spots', 'solid', 'multicolor']","['cats', 'dogs']",20
+21,"['sour', 'sweet', 'salty', 'bitter']","['fruits', 'vegetables']",21
+22,"['red', 'blue', 'green', 'yellow']","['warm', 'cool']",22
+23,"['circle', 'square', 'triangle', 'rectangle']","['shapes', 'symbols']",23
+24,"['run', 'walk', 'swim', 'fly']","['animals', 'transportation']",24
+25,"['hot', 'cold', 'light', 'heavy']","['weather', 'objects']",25
+26,"['rough', 'smooth', 'hard', 'soft']","['textures', 'materials']",26
+27,"['tall', 'short', 'wide', 'narrow']","['people', 'buildings']",27
+28,"['loud', 'quiet', 'high', 'low']","['sounds', 'music']",28
+29,"['fast', 'slow', 'natural', 'synthetic']","['motion', 'speed']",29
+30,"['size', 'shape', 'texture', 'flexibility']","['plants', 'animals']",30
+31,"['loudness', 'pitch', 'tempo', 'harmony']","['rock', 'classical']",31
+32,"['legs', 'wings', 'fins', 'tails']","['mammals', 'aquatic']",32
+33,"['sweet', 'sour', 'salty', 'bitter']","['desserts', 'mains']",33
+34,"['convex', 'concave', 'edges', 'symmetry']","['shapes', 'solids']",34
+35,"['mass', 'volume', 'density', 'viscosity']","['liquid', 'solid']",35
+36,"['acidic', 'basic', 'polar', 'nonpolar']","['organic', 'inorganic']",36
+37,"['rough', 'smooth', 'porous', 'glossy']","['natural', 'synthetic']",37
+38,"['bright', 'dull', 'opaque', 'translucent']","['metals', 'minerals']",38
+39,"['long', 'short', 'wide', 'narrow']","['furniture', 'clothing']",39
+40,"['stripes', 'spots', 'solid', 'multicolor']","['felines', 'canines']",40
+41,"['four', 'six', 'eightlegs', 'zerolegs']","['insects', 'mammals']",41
+42,"['herbivore', 'carnivore', 'omnivore', 'producer']","['animals', 'roles']",42
+43,"['land', 'air', 'water', 'amphibious']","['mammals', 'reptiles']",43
+44,"['biography', 'mystery', 'scifi']","['romance', 'fictiongenres']",44
+45,"['drums', 'guitar', 'piano', 'vocals']","['instruments', 'bands']",45
+46,"['length', 'width', 'angles', 'area']","['shapes', 'geometry']",46
+47,"['comedy', 'drama', 'action']","['horror', 'moviegenres']",47
+48,"['baking', 'sauteing', 'grilling']","['steaming', 'cookingmethods']",48
+49,"['acrylic', 'oil', 'watercolor']","['pastel', 'paintingmediums']",49
+50,"['size', 'shape', 'texture', 'flexibility']","['fruits', 'vegetables']",50
+51,"['rhythm', 'melody', 'harmony', 'timbre']","['jazz', 'classical']",51
+52,"['baking', 'frying', 'sauteing']","['broiling', 'cookingmethods']",52
+53,"['mammal', 'bird', 'reptile']","['amphibian', 'animalclasses']",53
+54,"['stripes', 'spots', 'solid', 'patches']","['bigcats', 'canines']",54
+55,"['sweet', 'sour', 'salty', 'bitter']","['flavors', 'taste']",55
+56,"['biography', 'mystery', 'romance']","['scifi', 'bookgenres']",56
+57,"['herbivore', 'omnivore', 'carnivore']","['producer', 'feeders']",57
+58,"['comedy', 'drama', 'horror']","['action', 'movietypes']",58
+59,"['length', 'width', 'symmetry', 'angles']","['shapes', 'geometry']",59
+60,"['size', 'shape', 'firmness', 'taste']","['fruits', 'vegetables']",60
+61,"['stripes', 'spots', 'solid', 'multicolor']","['cats', 'dogs']",61
+62,"['herbivore', 'carnivore', 'omnivore', 'producer']","['animals', 'roles']",62
+63,"['drums', 'guitar', 'piano', 'vocals']","['instruments', 'bands']",63
+64,"['land', 'air', 'water', 'amphibious']","['mammals', 'reptiles']",64
+65,"['comedy', 'drama', 'action']","['horror', 'moviegenres']",65
+66,"['hard', 'soft', 'smooth', 'bumpy']","['textures', 'materials']",66
+67,"['loud', 'quiet', 'high', 'low']","['sounds', 'music']",67
+68,"['long', 'short', 'wide', 'narrow']","['furniture', 'clothing']",68
+69,"['convex', 'concave', 'edges', 'symmetry']","['shapes', 'solids']",69
+70,"['size', 'shape', 'smell', 'taste']","['fruits', 'vegetables']",70
+71,"['stripes', 'spots', 'solid', 'multicolor']","['felines', 'canines']",71
+72,"['comedy', 'drama', 'thriller']","['romance', 'moviegenres']",72
+73,"['herbivore', 'carnivore', 'omnivore']","['producer', 'feeders']",73
+74,"['land', 'sea', 'air', 'amphibious']","['animals', 'habitats']",74
+75,"['biography', 'mystery', 'romance']","['scifi', 'booktypes']",75
+76,"['drums', 'guitar', 'piano', 'vocals']","['instruments', 'bands']",76
+77,"['hard', 'soft', 'rough', 'smooth']","['textures', 'materials']",77
+78,"['tall', 'short', 'wide', 'narrow']","['people', 'buildings']",78
+79,"['loud', 'quiet', 'high', 'low']","['sounds', 'music']",79
+80,"['shape', 'texture', 'taste', 'aroma']","['fruits', 'vegetables']",80
+81,"['fur', 'feathers', 'scales', 'skin']","['coverings', 'animals']",81
+82,"['stripes', 'spots', 'solid', 'multicolor']","['bigcats', 'canines']",82
+83,"['comedy', 'drama', 'thriller']","['horror', 'moviegenres']",83
+84,"['herbivore', 'carnivore', 'omnivore']","['producer', 'feeders']",84
+85,"['land', 'sea', 'air', 'amphibious']","['animals', 'habitats']",85
+86,"['size', 'sturdiness', 'comfort']","['style', 'furnitureattributes']",86
+87,"['biography', 'mystery', 'romance']","['scifi', 'booktypes']",87
+88,"['drums', 'guitar', 'piano', 'vocals']","['instruments', 'bands']",88
+89,"['hard', 'soft', 'rough', 'smooth']","['textures', 'materials']",89
+90,"['shape', 'color', 'texture', 'flexibility']","['fruits', 'vegetables']",90
+91,"['fur', 'feathers', 'scales']","['skin', 'animalcoverings']",91
+92,"['stripes', 'spots', 'solid', 'patches']","['felines', 'canines']",92
+93,"['comedy', 'drama', 'thriller']","['horror', 'moviegenres']",93
+94,"['cooking', 'baking', 'frying']","['grilling', 'methods']",94
+95,"['land', 'sea', 'air', 'amphibious']","['animals', 'habitats']",95
+96,"['size', 'comfort', 'style']","['durability', 'furniturequalities']",96
+97,"['drums', 'guitar', 'piano', 'vocals']","['instruments', 'bands']",97
+98,"['hard', 'soft', 'rough', 'smooth']","['textures', 'materials']",98
+99,"['biography', 'mystery', 'romance']","['scifi', 'bookgenres']",99
+100,"['shape', 'smell', 'taste', 'texture']","['fruits', 'vegetables']",100
+101,"['comedy', 'drama', 'action']","['thriller', 'moviegenres']",101
+102,"['fur', 'feathers', 'scales']","['skin', 'animalcoverings']",102
+103,"['stripes', 'spots', 'solid', 'multicolor']","['cats', 'dogs']",103
+104,"['herbivore', 'carnivore', 'omnivore']","['producer', 'feeders']",104
+105,"['land', 'sea', 'air', 'amphibious']","['animals', 'habitats']",105
+106,"['size', 'comfort', 'style']","['durability', 'furniturequalities']",106
+107,"['drums', 'guitar', 'piano', 'vocals']","['instruments', 'bands']",107
+108,"['hard', 'soft', 'rough', 'smooth']","['textures', 'materials']",108
+109,"['biography', 'mystery', 'romance']","['scifi', 'booktypes']",109
+110,"['shape', 'aroma', 'taste', 'texture']","['fruits', 'vegetables']",110
+111,"['fur', 'feathers', 'scales']","['skin', 'animalcoverings']",111
+112,"['stripes', 'spots', 'solid', 'patches']","['felines', 'canines']",112
+113,"['comedy', 'drama', 'thriller']","['horror', 'moviegenres']",113
+114,"['herbivore', 'carnivore', 'omnivore']","['producer', 'feeders']",114
+115,"['land', 'sea', 'air', 'amphibious']","['animals', 'habitats']",115
+116,"['size', 'comfort', 'style']","['durability', 'furnitureattributes']",116
+117,"['drums', 'guitar', 'piano', 'vocals']","['instruments', 'bands']",117
+118,"['hard', 'soft', 'rough', 'smooth']","['textures', 'materials']",118
+119,"['biography', 'mystery', 'romance']","['scifi', 'bookgenres']",119
+120,"['shape', 'smell', 'taste', 'firmness']","['fruits', 'vegetables']",120
+121,"['fur', 'feathers', 'scales']","['skin', 'animalcoverings']",121
+122,"['stripes', 'spots', 'solid', 'multicolor']","['cats', 'dogs']",122
+123,"['comedy', 'drama', 'thriller']","['horror', 'movietypes']",123
+124,"['herbivore', 'carnivore', 'omnivore']","['producer', 'feeders']",124
+125,"['land', 'sea', 'air', 'amphibious']","['animals', 'habitats']",125
+126,"['size', 'comfort', 'style']","['durability', 'furniturequalities']",126
+127,"['drums', 'guitar', 'piano', 'vocals']","['instruments', 'bands']",127
+128,"['hard', 'soft', 'rough', 'smooth']","['textures', 'materials']",128
+129,"['biography', 'mystery', 'romance']","['scifi', 'bookgenres']",129
+130,"['shape', 'aroma', 'taste', 'texture']","['fruits', 'veggies']",130
+131,"['fur', 'feathers', 'scales']","['skin', 'animalcoverings']",131
+132,"['stripes', 'spots', 'solid', 'patches']","['felines', 'canines']",132
+133,"['comedy', 'drama', 'action']","['thriller', 'moviegenres']",133
+134,"['herbivore', 'carnivore', 'omnivore']","['producer', 'feeders']",134
+135,"['land', 'sea', 'air', 'amphibious']","['animals', 'habitats']",135
+136,"['size', 'comfort', 'style']","['durability', 'furnitureattributes']",136
+137,"['drums', 'guitar', 'piano', 'vocals']","['instruments', 'bands']",137
+138,"['hard', 'soft', 'rough', 'smooth']","['textures', 'materials']",138
+139,"['biography', 'mystery', 'romance']","['scifi', 'booktypes']",139
+140,"['shape', 'smell', 'taste', 'texture']","['fruits', 'vegetables']",140
+141,"['fur', 'feathers', 'scales']","['skin', 'animalcoverings']",141
+142,"['stripes', 'spots', 'solid', 'multicolor']","['cats', 'dogs']",142
+143,"['comedy', 'drama', 'thriller']","['horror', 'moviegenres']",143
+144,"['herbivore', 'carnivore', 'omnivore']","['producer', 'feeders']",144
+145,"['land', 'sea', 'air', 'amphibious']","['animals', 'habitats']",145
+146,"['size', 'comfort', 'style']","['durability', 'furniturequalities']",146
+147,"['drums', 'guitar', 'piano', 'vocals']","['instruments', 'bands']",147
+148,"['hard', 'soft', 'rough', 'smooth']","['textures', 'materials']",148
+149,"['biography', 'mystery', 'romance']","['scifi', 'booktypes']",149
+150,"['shape', 'aroma', 'taste', 'firmness']","['fruits', 'vegetables']",150
+151,"['fur', 'feathers', 'scales']","['skin', 'animalcoverings']",151
+152,"['stripes', 'spots', 'solid', 'patches']","['felines', 'canines']",152
+153,"['comedy', 'drama', 'thriller']","['action', 'moviegenres']",153
+154,"['herbivore', 'carnivore', 'omnivore']","['producer', 'feeders']",154
+155,"['land', 'sea', 'air', 'amphibious']","['animals', 'habitats']",155
+156,"['size', 'comfort', 'style']","['durability', 'furnitureattributes']",156
+157,"['drums', 'guitar', 'piano', 'vocals']","['instruments', 'bands']",157
+158,"['hard', 'soft', 'rough', 'smooth']","['textures', 'materials']",158
+159,"['biography', 'mystery', 'romance']","['scifi', 'booktypes']",159
+160,"['shape', 'smell', 'taste', 'texture']","['fruits', 'vegetables']",160
+161,"['fur', 'feathers', 'scales']","['skin', 'animalcoverings']",161
+162,"['stripes', 'spots', 'solid', 'multicolor']","['cats', 'dogs']",162
+163,"['comedy', 'drama', 'thriller']","['horror', 'moviegenres']",163
+164,"['herbivore', 'carnivore', 'omnivore']","['producer', 'feeders']",164
+165,"['land', 'sea', 'air', 'amphibious']","['animals', 'habitats']",165
+166,"['size', 'comfort', 'style']","['durability', 'furniturequalities']",166
+167,"['drums', 'guitar', 'piano', 'vocals']","['instruments', 'bands']",167
+168,"['hard', 'soft', 'rough', 'smooth']","['textures', 'materials']",168
+169,"['biography', 'mystery', 'romance']","['scifi', 'booktypes']",169
+170,"['shape', 'aroma', 'taste', 'firmness']","['fruits', 'vegetables']",170
+171,"['fur', 'feathers', 'scales']","['skin', 'animalcoverings']",171
+172,"['stripes', 'spots', 'solid', 'patches']","['felines', 'canines']",172
+173,"['comedy', 'drama', 'action']","['thriller', 'moviegenres']",173
+174,"['herbivore', 'carnivore', 'omnivore']","['producer', 'feeders']",174
+175,"['land', 'sea', 'air', 'amphibious']","['animals', 'habitats']",175
+176,"['size', 'comfort', 'style']","['durability', 'furnitureattributes']",176
+177,"['drums', 'guitar', 'piano', 'vocals']","['instruments', 'bands']",177
+178,"['hard', 'soft', 'rough', 'smooth']","['textures', 'materials']",178
+179,"['biography', 'mystery', 'romance']","['scifi', 'booktypes']",179
+180,"['shape', 'smell', 'taste', 'texture']","['fruits', 'vegetables']",180
+181,"['fur', 'feathers', 'scales']","['skin', 'animalcoverings']",181
+182,"['stripes', 'spots', 'solid', 'multicolor']","['cats', 'dogs']",182
+183,"['comedy', 'drama', 'thriller']","['horror', 'moviegenres']",183
+184,"['herbivore', 'carnivore', 'omnivore']","['producer', 'feeders']",184
+185,"['land', 'sea', 'air', 'amphibious']","['animals', 'habitats']",185
+186,"['size', 'comfort', 'style']","['durability', 'furniturequalities']",186
+187,"['drums', 'guitar', 'piano', 'vocals']","['instruments', 'bands']",187
+188,"['hard', 'soft', 'rough', 'smooth']","['textures', 'materials']",188
+189,"['biography', 'mystery', 'romance']","['scifi', 'booktypes']",189
+190,"['shape', 'aroma', 'taste', 'firmness']","['fruits', 'vegetables']",190
+191,"['fur', 'feathers', 'scales']","['skin', 'animalcoverings']",191
+192,"['stripes', 'spots', 'solid', 'patches']","['felines', 'canines']",192
+193,"['comedy', 'drama', 'thriller']","['action', 'moviegenres']",193
+194,"['herbivore', 'carnivore', 'omnivore']","['producer', 'feeders']",194
+195,"['land', 'sea', 'air', 'amphibious']","['animals', 'habitats']",195
+196,"['size', 'comfort', 'style']","['durability', 'furnitureattributes']",196
+197,"['drums', 'guitar', 'piano', 'vocals']","['instruments', 'bands']",197
+198,"['hard', 'soft', 'rough', 'smooth']","['textures', 'materials']",198
+199,"['biography', 'mystery', 'romance']","['scifi', 'booktypes']",199
+200,"['shape', 'smell', 'taste', 'texture']","['fruits', 'vegetables']",200
+201,"['fur', 'feathers', 'scales']","['skin', 'animalcoverings']",201
+202,"['stripes', 'spots', 'solid', 'multicolor']","['cats', 'dogs']",202
+203,"['comedy', 'drama', 'thriller']","['horror', 'moviegenres']",203
+204,"['herbivore', 'carnivore', 'omnivore']","['producer', 'feeders']",204
+205,"['land', 'sea', 'air', 'amphibious']","['animals', 'habitats']",205
+206,"['size', 'comfort', 'style']","['durability', 'furniturequalities']",206
+207,"['drums', 'guitar', 'piano', 'vocals']","['instruments', 'bands']",207
+208,"['hard', 'soft', 'rough', 'smooth']","['textures', 'materials']",208
+209,"['biography', 'mystery', 'romance']","['scifi', 'booktypes']",209
+210,"['shape', 'aroma', 'taste', 'firmness']","['fruits', 'vegetables']",210
+211,"['fur', 'feathers', 'scales']","['skin', 'animalcoverings']",211
+212,"['stripes', 'spots', 'solid', 'patches']","['felines', 'canines']",212
+213,"['comedy', 'drama', 'action']","['thriller', 'moviegenres']",213
+214,"['herbivore', 'carnivore', 'omnivore']","['producer', 'feeders']",214
+215,"['land', 'sea', 'air', 'amphibious']","['animals', 'habitats']",215
+216,"['size', 'comfort', 'style']","['durability', 'furnitureattributes']",216
+217,"['drums', 'guitar', 'piano', 'vocals']","['instruments', 'bands']",217
+218,"['hard', 'soft', 'rough', 'smooth']","['textures', 'materials']",218
+219,"['biography', 'mystery', 'romance']","['scifi', 'booktypes']",219
+220,"['shape', 'smell', 'taste', 'texture']","['fruits', 'vegetables']",220
+221,"['fur', 'feathers', 'scales']","['skin', 'animalcoverings']",221
+222,"['stripes', 'spots', 'solid', 'multicolor']","['cats', 'dogs']",222
+223,"['comedy', 'drama', 'thriller']","['horror', 'moviegenres']",223
+224,"['herbivore', 'carnivore', 'omnivore']","['producer', 'feeders']",224
+225,"['land', 'sea', 'air', 'amphibious']","['animals', 'habitats']",225
+226,"['size', 'comfort', 'style']","['durability', 'furniturequalities']",226
+227,"['drums', 'guitar', 'piano', 'vocals']","['instruments', 'bands']",227
+228,"['hard', 'soft', 'rough', 'smooth']","['textures', 'materials']",228
+229,"['biography', 'mystery', 'romance']","['scifi', 'booktypes']",229
+230,"['shape', 'aroma', 'taste', 'firmness']","['fruits', 'vegetables']",230
+231,"['fur', 'feathers', 'scales']","['skin', 'animalcoverings']",231
+232,"['stripes', 'spots', 'solid', 'patches']","['felines', 'canines']",232
+233,"['comedy', 'drama', 'action']","['thriller', 'moviegenres']",233
+234,"['herbivore', 'carnivore', 'omnivore']","['producer', 'feeders']",234
+235,"['land', 'sea', 'air', 'amphibious']","['animals', 'habitats']",235
+236,"['size', 'comfort', 'style']","['durability', 'furnitureattributes']",236
+237,"['drums', 'guitar', 'piano', 'vocals']","['instruments', 'bands']",237
+238,"['hard', 'soft', 'rough', 'smooth']","['textures', 'materials']",238
+239,"['biography', 'mystery', 'romance']","['scifi', 'booktypes']",239
+240,"['shape', 'smell', 'taste', 'texture']","['fruits', 'vegetables']",240
+241,"['fur', 'feathers', 'scales']","['skin', 'animalcoverings']",241
+242,"['stripes', 'spots', 'solid', 'multicolor']","['cats', 'dogs']",242
+243,"['comedy', 'drama', 'thriller']","['horror', 'moviegenres']",243
+244,"['herbivore', 'carnivore', 'omnivore']","['producer', 'feeders']",244
+245,"['land', 'sea', 'air', 'amphibious']","['animals', 'habitats']",245
+246,"['size', 'comfort', 'style']","['durability', 'furniturequalities']",246
+247,"['drums', 'guitar', 'piano', 'vocals']","['instruments', 'bands']",247
+248,"['hard', 'soft', 'rough', 'smooth']","['textures', 'materials']",248

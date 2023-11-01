@@ -1,0 +1,26 @@
+,feature_names,category_names,task_id
+0,"['brightness', 'saturation', 'hue', 'shape', 'size', 'texture']","['fruits', 'vegetables']",0
+1,"['pitch', 'timbre', 'tempo', 'genre', 'instrument', 'vocals']","['rock', 'classical']",1
+2,"['length', 'width', 'height', 'weight', 'color', 'material']","['furniture', 'electronics']",2
+3,"['wingspan', 'beakshape', 'feathercolor', 'habitat', 'diet', 'size']","['seabirds', 'songbirds']",3
+4,"['processor', 'RAM', 'storage', 'screensize', 'batterylife', 'weight']","['laptops', 'tablets']",4
+5,"['altitude', 'cloudcover', 'precipitation', 'temperature', 'windspeed', 'pressure']","['rainydays', 'sunnydays']",5
+6,"['sodium', 'calories', 'protein', 'sugar', 'fiber', 'vitamins']","['healthyfoods', 'junkfoods']",6
+7,"['legs', 'eyes', 'wings', 'antennae', 'size', 'color']","['insects', 'arachnids']",7
+8,"['length', 'sleeves', 'neckline', 'pattern', 'fabric', 'fit']","['dresses', 'tops']",8
+9,"['consonants', 'vowels', 'syllables', 'rhyme', 'meter', 'theme']","['poetry', 'prose']",9
+10,"['acids', 'bases', 'metals', 'nonmetals', 'meltingpoint', 'reactivity']","['inorganic', 'organic']",10
+11,"['language', 'runtime', 'frameworks', 'licensing', 'support', 'documentation']","['open-source', 'proprietary']",11
+12,"['pages', 'illustrations', 'genre', 'targetage', 'binding', 'publisher']","[""children'sbooks"", 'textbooks']",12
+13,"['cylinders', 'displacement', 'torque', 'mpg', 'seating', 'safetyrating']","['sedans', 'trucks']",13
+14,"['plot', 'characters', 'narrator', 'tone', 'setting', 'structure']","['mysteries', 'romances']",14
+15,"['nitrogen', 'phosphorus', 'potassium', 'pH', 'drainage', 'sunlight']","['flowers', 'vegetables']",15
+16,"['fur', 'ears', 'tail', 'paws', 'whiskers', 'size']","['felines', 'canines']",16
+17,"['evergreen', 'deciduous', 'flowers', 'fruit', 'leaves', 'bark']","['conifers', 'broadleaf']",17
+18,"['flash', 'zoom', 'stabilization', 'sensor', 'display', 'connectivity']","['DSLRs', 'mirrorless']",18
+19,"['strings', 'woodwinds', 'brass', 'percussion', 'ensemblesize', 'era']","['orchestral', 'chamber']",19
+20,"['crust', 'toppings', 'sauce', 'cheese', 'spices', 'bakingmethod']","['thincrust', 'deepdish']",20
+21,"['country', 'language', 'GDP', 'population', 'area', 'government']","['developednations', 'developingnations']",21
+22,"['lines', 'color', 'texture', 'composition', 'medium', 'message']","['abstractart', 'representationalart']",22
+23,"['bass', 'drums', 'guitar', 'keyboards', 'vocals', 'lyrics']","['rockbands', 'popbands']",23
+24,"['cpu', 'gpu', 'ram', 'storage', 'display', 'battery']","['gamingpcs', 'workstations']",24

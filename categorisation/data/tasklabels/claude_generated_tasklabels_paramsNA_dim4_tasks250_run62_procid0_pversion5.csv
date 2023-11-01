@@ -1,0 +1,249 @@
+,feature_names,category_names,task_id
+0,"['length', 'width', 'color', 'texture']","['furniture', 'clothing']",0
+1,"['size', 'shape', 'flavor', 'nutrition']","['fruit', 'vegetable']",1
+2,"['height', 'fur', 'habitat', 'diet']","['mammal', 'bird']",2
+3,"['engine', 'seating', 'doors', 'transmission']","['sedan', 'truck']",3
+4,"['melody', 'tempo', 'harmony', 'lyrics']","['pop', 'classical']",4
+5,"['calories', 'fat', 'protein', 'fiber']","['healthy', 'unhealthy']",5
+6,"['voltage', 'current', 'resistance', 'capacitance']","['electronic', 'electrical']",6
+7,"['altitude', 'cloudcover', 'precipitation', 'wind']","['flyable', 'no-fly']",7
+8,"['amplitude', 'frequency', 'phase', 'duration']","['wave', 'particle']",8
+9,"['mass', 'charge', 'spin', 'strangeness']","['baryon', 'meson']",9
+10,"['limbs', 'cover', 'habitat', 'diet']","['amphibian', 'reptile']",10
+11,"['segments', 'legs', 'wings', 'sting']","['ant', 'bee']",11
+12,"['leaves', 'bark', 'roots', 'flowers']","['deciduous', 'coniferous']",12
+13,"['planets', 'moons', 'rings', 'asteroids']","['inner', 'outer']",13
+14,"['magnitude', 'color', 'age', 'distance']","['star', 'galaxy']",14
+15,"['crust', 'mantle', 'core', 'atmosphere']","['terrestrial', 'gasgiant']",15
+16,"['gravity', 'orbit', 'mass', 'daylength']","['habitablezone', 'non-habitable']",16
+17,"['elements', 'compounds', 'mixtures', 'solutions']","['homogeneous', 'heterogeneous']",17
+18,"['atoms', 'protons', 'electrons', 'neutrons']","['metal', 'nonmetal']",18
+19,"['kineticenergy', 'potentialenergy', 'temperature', 'pressure']","['gas', 'liquid']",19
+20,"['timbre', 'tempo', 'rhythm', 'melody']","['jazz', 'classical']",20
+21,"['hue', 'saturation', 'brightness', 'transparency']","['primarycolor', 'secondarycolor']",21
+22,"['latitude', 'longitude', 'elevation', 'climate']","['tropical', 'temperate']",22
+23,"['length', 'width', 'symmetry', 'complexity']","['triangle', 'square']",23
+24,"['mass', 'volume', 'density', 'phase']","['solid', 'liquid']",24
+25,"['speed', 'maneuverability', 'firepower', 'armor']","['tank', 'plane']",25
+26,"['range', 'rateoffire', 'magazinesize', 'recoil']","['rifle', 'pistol']",26
+27,"['crew', 'armament', 'armor', 'speed']","['battleship', 'destroyer']",27
+28,"['lift', 'drag', 'thrust', 'weight']","['propeller', 'jet']",28
+29,"['frequency', 'modulation', 'bandwidth', 'power']","['analog', 'digital']",29
+30,"['memory', 'processor', 'graphics', 'storage']","['laptop', 'desktop']",30
+31,"['screensize', 'batterylife', 'camera', 'storage']","['iOS', 'Android']",31
+32,"['transmission', 'engine', 'seating', 'cargospace']","['car', 'truck']",32
+33,"['circumference', 'spokes', 'tirewidth', 'gearing']","['roadbike', 'mountainbike']",33
+34,"['megapixels', 'zoom', 'stabilization', 'low-light']","['DSLR', 'mirrorless']",34
+35,"['aperture', 'shutterspeed', 'ISO', 'flash']","['portrait', 'landscape']",35
+36,"['focallength', 'stabilization', 'zoom', 'macro']","['telephoto', 'wide-angle']",36
+37,"['sensorsize', 'resolution', 'shutterspeed', 'ISOrange']","['beginner', 'professional']",37
+38,"['dynamicrange', 'lowlightcapability', 'autofocus', 'framerate']","['cinema', 'broadcast']",38
+39,"['gain', 'pickups', 'tubes', 'speakers']","['solid-state', 'tube']",39
+40,"['neck', 'body', 'pickups', 'bridge']","['electric', 'acoustic']",40
+41,"['polyphony', 'effects', 'interface', 'speakers']","['synth', 'workstation']",41
+42,"['diaphragm', 'pads', 'bell', 'bore']","['brass', 'woodwind']",42
+43,"['range', 'tone', 'articulation', 'intonation']","['violin', 'cello']",43
+44,"['heads', 'shells', 'cymbals', 'hardware']","['acoustic', 'electronic']",44
+45,"['duration', 'rhythm', 'melody', 'harmony']","['aria', 'chorus']",45
+46,"['storyline', 'characters', 'setting', 'dialogue']","['drama', 'comedy']",46
+47,"['oil', 'pigment', 'canvas', 'subject']","['realism', 'abstraction']",47
+48,"['saturation', 'value', 'temperature', 'complement']","['warm', 'cool']",48
+49,"['hue', 'value', 'chroma', 'temperature']","['analogous', 'complementary']",49
+50,"['pages', 'binding', 'illustrations', 'edition']","['hardcover', 'paperback']",50
+51,"['ingredients', 'preparationtime', 'servings', 'nutrition']","['appetizer', 'entree']",51
+52,"['heating', 'cooling', 'batterylife', 'connectivity']","['basic', 'smart']",52
+53,"['processor', 'RAM', 'storage', 'graphics']","['budget', 'high-end']",53
+54,"['brands', 'flavors', 'strengths', 'packaging']","['cigar', 'cigarette']",54
+55,"['proof', 'ingredients', 'aging', 'flavor']","['whiskey', 'rum']",55
+56,"['grapes', 'aging', 'oak', 'region']","['red', 'white']",56
+57,"['hops', 'malt', 'yeast', 'adjuncts']","['ale', 'lager']",57
+58,"['roast', 'origin', 'acidity', 'body']","['light', 'dark']",58
+59,"['leaves', 'oxidation', 'roast', 'origin']","['black', 'green']",59
+60,"['shape', 'icing', 'filling', 'decoration']","['birthday', 'wedding']",60
+61,"['flour', 'leavening', 'fat', 'mixing']","['quickbread', 'yeastedbread']",61
+62,"['shapes', 'fillings', 'fryingmethod', 'dippingsauce']","['dumpling', 'springroll']",62
+63,"['wrapping', 'filling', 'cookingmethod', 'dippingsauce']","['eggroll', 'wonton']",63
+64,"['noodletype', 'broth', 'toppings', 'meat']","['ramen', 'pho']",64
+65,"['rice', 'vinegar', 'sugar', 'filling']","['nigiri', 'maki']",65
+66,"['tortilla', 'filling', 'foldingstyle', 'meat']","['taco', 'burrito']",66
+67,"['sauce', 'cheese', 'crust', 'toppings']","['NY-style', 'Chicago-style']",67
+68,"['dough', 'sauce', 'cheese', 'toppings']","['pan', 'deepdish']",68
+69,"['broth', 'meat', 'noodles', 'toppings']","['pho', 'ramen']",69
+70,"['bun', 'patty', 'cheese', 'toppings']","['fastfood', 'gourmet']",70
+71,"['cut', 'seasoning', 'cookingmethod', 'sides']","['steak', 'chicken']",71
+72,"['pasta', 'sauce', 'meat', 'cheese']","['baked', 'lasagne']",72
+73,"['rice', 'beans', 'meat', 'peppers']","['burrito', 'enchilada']",73
+74,"['flatbread', 'sauce', 'cheese', 'toppings']","['thincrust', 'deepdish']",74
+75,"['tempo', 'instruments', 'lyrics', 'vocals']","['ballad', 'uptempo']",75
+76,"['genre', 'releaseyear', 'length', 'singles']","['classic', 'modern']",76
+77,"['cast', 'director', 'runtime', 'rating']","['comedy', 'drama']",77
+78,"['platform', 'developer', 'rating', 'genre']","['multi', 'singleplayer']",78
+79,"['console', 'developer', 'rating', 'genre']","['family', 'mature']",79
+80,"['studio', 'director', 'cast', 'budget']","['blockbuster', 'indie']",80
+81,"['channel', 'host', 'runtime', 'subject']","['news', 'talkshow']",81
+82,"['network', 'genre', 'format', 'ratings']","['cable', 'streaming']",82
+83,"['author', 'releaseyear', 'length', 'genre']","['fiction', 'nonfiction']",83
+84,"['circulation', 'articles', 'ads', 'format']","['local', 'national']",84
+85,"['programming', 'integrity', 'partisanship']","['talk', 'music']",85
+86,"['publisher', 'author', 'length', 'genre']","['hardcover', 'paperback']",86
+87,"['school', 'mascot', 'enrollment', 'tuition']","['public', 'private']",87
+88,"['conferences', 'divisions', 'championships', 'bowlgames']","['power', 'mid-major']",88
+89,"['city', 'arena', 'championships', 'payroll']","['largemarket', 'smallmarket']",89
+90,"['player', 'team', 'position', 'salary']","['all-star', 'roleplayer']",90
+91,"['brand', 'mileage', 'seating', 'price']","['economy', 'luxury']",91
+92,"['brand', 'tech', 'price', 'batterylife']","['productivity', 'gaming']",92
+93,"['brand', 'screensize', 'camera', 'battery']","['flagship', 'budget']",93
+94,"['brand', 'wattage', 'price', 'reliability']","['high-end', 'budget']",94
+95,"['activeingredients', 'form', 'dosage', 'sideeffects']","['OTC', 'prescription']",95
+96,"['category', 'sideeffects', 'effectiveness', 'dosage']","['tablet', 'liquid']",96
+97,"['brand', 'absorbency', 'size', 'fragrance']","['regular', 'overnight']",97
+98,"['brand', 'shades', 'finish', 'price']","['drugstore', 'high-end']",98
+99,"['brand', 'fiber', 'fit', 'price']","['designer', 'budget']",99
+100,"['brightness', 'supportsHDR', 'refreshrate', 'size']","['gaming', 'hometheater']",100
+101,"['imagequality', 'zoomrange', 'size', 'price']","['beginner', 'advanced']",101
+102,"['lowlightcapability', 'megapixels', 'size', 'pricerange']","['pointandshoot', 'DSLR']",102
+103,"['activenoisecancellation', 'batterylife', 'comfort', 'pricerange']","['budget', 'premium']",103
+104,"['displaytype', 'resolution', 'refreshrate', 'curvedvsflat']","['productivity', 'gaming']",104
+105,"['actuationforce', 'backlighting', 'size', 'wired/wireless']","['typing', 'gaming']",105
+106,"['DPI', 'buttons', 'ambidextrous', 'weight']","['FPS', 'MMO']",106
+107,"['foamdensity', 'coverfabric', 'sizesavailable', 'pricerange']","['firm', 'plush']",107
+108,"['fillmaterial', 'coverfabric', 'hypoallergenic', 'price']","['economy', 'luxury']",108
+109,"['coilcount', 'motionisolation', 'edgesupport', 'price']","['budget', 'premium']",109
+110,"['vehicleclass', 'engine', 'cargocapacity', 'mpg']","['compact', 'full-size']",110
+111,"['#bedrooms', 'totalsqft', 'lotsize', 'age']","['fixer-upper', 'turnkey']",111
+112,"['loanterm', 'interestrate', 'PMI', 'fixedvsadjustable']","['starter', 'jumbo']",112
+113,"['exteriormaterial', 'rooftype', 'sqft', 'bedrooms/bathrooms']","['townhome', 'single-family']",113
+114,"['location', 'amenities', 'averagerent', 'pets']","['high-rise', 'garden']",114
+115,"['neighborhood', 'schooldistrict', 'lotsize', 'listprice']","['contemporary', 'traditional']",115
+116,"['heatingtype', 'cooling', 'appliancesincluded', 'HOAfee']","['condo', 'apartment']",116
+117,"['cleaningfrequency', 'check-in/out', 'amenities', 'nightlyrate']","['budget', 'luxury']",117
+118,"['roomtype', 'avgnightlyrate', 'location', 'amenities']","['limited-service', 'full-service']",118
+119,"['airline', 'aircrafttype', 'seatpitch', 'WiFi']","['domestic', 'international']",119
+120,"['scentstrength', 'scentcategories', 'bottledesign', 'price']","['masstige', 'prestige']",120
+121,"['formula', 'shaderange', 'finishes', 'price']","['drugstore', 'luxury']",121
+122,"['holdstrength', 'humidityresistance', 'buildable']","['drugstore', 'salon']",122
+123,"['coverage', 'finish', 'shaderange', 'price']","['drugstore', 'high-end']",123
+124,"['exfoliationlevel', 'skintypesuitability', 'scent']","['drugstore', 'clinical']",124
+125,"['activeingredient(s)', 'skinconcerns', 'form']","['drugstore', 'clinical']",125
+126,"['hairtypesuitability', 'holdstrength', 'scentprofile']","['salon', 'drugstore']",126
+127,"['conditioning', 'hold', 'scentprofile']","['gel', 'mousse']",127
+128,"['coverage', 'weartime', 'transferproof']","['liquid', 'longwear']",128
+129,"['plumping', 'hydrating', 'sheer/fullcoverage']","['gloss', 'balm']",129
+130,"['ethicalsourcing', 'quality', 'convenience']","['local', 'chain']",130
+131,"['driporespresso', 'roaststyle', 'single-origin']","['cafe', 'home-brew']",131
+132,"['grapevarietal', 'appellation', 'vintage', 'tastingnotes']","['OldWorld', 'NewWorld']",132
+133,"['spiritbase', 'flavorsadded', 'barrelaging']","['cocktail', 'sipping']",133
+134,"['hopsprofile', 'maltstyle', 'additives']","['ale', 'lager']",134
+135,"['beans', 'roastlevel', 'grindsize']","['black', 'pourover']",135
+136,"['origin', 'leafgrade', 'oxidationlevel']","['orthodox', 'CTC']",136
+137,"['cacaocontent', 'addedflavors', 'inclusioninspiration']","['darkchocolate', 'milkchocolate']",137
+138,"['fatcontent', 'agingtime', 'animaldiet']","['rawmilk', 'pasteurized']",138
+139,"['milktype', 'fatcontent', 'flavorings']","['lowfat', 'wholemilk']",139
+140,"['beantype', 'roaststyle', 'preparationmethod']","['drip', 'espresso']",140
+141,"['animal', 'cut', 'grade', 'cookingmethod']","['beef', 'pork']",141
+142,"['spiceblend', 'woodtype', 'mopsauce']","['regional', 'competition']",142
+143,"['salsastyle', 'fillings', 'protein']","['street-style', 'gourmet']",143
+144,"['broth', 'noodlestyle', 'toppings', 'regionalstyle']","['traditional', 'fusion']",144
+145,"['genre', 'artist', 'releaseyear', 'singles']","['hiphop', 'rock']",145
+146,"['genre', 'artist', 'choreography', 'costumes']","['jazz', 'ballet']",146
+147,"['composer', 'period', 'key', 'tempo']","['chamber', 'orchestral']",147
+148,"['scale', 'chordvoicings', 'techniques', 'standards']","['blues', 'jazz']",148
+149,"['venue', 'headliners', 'location', 'amenities']","['camping', 'cityfestival']",149
+150,"['streamingservice', 'content', 'price', 'originals']","['movies', 'tv']",150
+151,"['platform', 'community', 'contentquality']","['desktop', 'mobile']",151
+152,"['newsoutlet', 'bias', 'reach', 'analysis']","['investigative', 'breaking']",152
+153,"['seatingcapacity', 'amenities', 'location']","['prosports', 'college']",153
+154,"['circuittype', 'surface', 'layout', 'amenities']","['street', 'oval']",154
+155,"['courselength', 'terrain', 'amenities']","['public', 'private']",155
+156,"['holes', 'yardage', 'amenities']","['public', 'private']",156
+157,"['courtsurface', 'seating', 'amenities']","['hardcourt', 'clay']",157
+158,"['roster', 'league', 'championships']","['big-money', 'small-market']",158
+159,"['modelyear', 'engine', 'options', 'fueleconomy']","['classic', 'modern']",159
+160,"['brand', 'woodtype', 'quality']","['beginner', 'professional']",160
+161,"['material', 'flex', 'bladepattern', 'price']","['beginner', 'elite']",161
+162,"['playercount', 'length', 'skill']","['family', 'strategy']",162
+163,"['console', 'onlinesubscription', 'gamegenres']","['variety', 'exclusive']",163
+164,"['brand', 'durability', 'foamdensity', 'pricerange']","['basic', 'high-end']",164
+165,"['filling', 'covermaterial', 'sizes']","['premium', 'economy']",165
+166,"['bladesteel', 'handlematerial', 'features']","['EDC', 'tactical']",166
+167,"['preciousmetal', 'purity', 'formfactor']","['bullion', 'jewelry']",167
+168,"['brand', 'ANCquality', 'batterylife', 'pricerange']","['commuting', 'criticallistening']",168
+169,"['brand', 'resolutionandfeatures', 'ecosystem']","['mirrorless', 'DSLR']",169
+170,"['difficulty', 'setting', 'pacing']","['linear', 'openworld']",170
+171,"['perspective', 'genre', 'visuals']","['stealth', 'action']",171
+172,"['console', 'developer', 'protagonists']","['nonlinear', 'linear']",172
+173,"['graphics', 'gameplay', 'replayability']","['multiplayer', 'singleplayer']",173
+174,"['streamingservice', 'originalprogramming', 'price']","['niche', 'general']",174
+175,"['format', 'runtime', 'host', 'analysis']","['news', 'comedy']",175
+176,"['region', 'grapes', 'aging', 'tastingnotes']","['OldWorld', 'NewWorld']",176
+177,"['cacaocontent', 'flavornotes', 'inclusioninspiration']","['darkchocolate', 'milkchocolate']",177
+178,"['roastprofile', 'origin', 'processingmethod']","['singleorigin', 'blend']",178
+179,"['animal', 'cut', 'grade', 'aging', 'cookingmethod']","['beef', 'pork']",179
+180,"['recipe', 'techniques', 'ingredients', 'cuisines']","['traditional', 'fusion']",180
+181,"['format', 'runtime', 'hosts', 'improvisation']","['sketch', 'standup']",181
+182,"['engine', 'aspiration', 'drivetrain', 'horsepower']","['trackcar', 'streetcar']",182
+183,"['seats', 'amenities', 'routes', 'budget']","['luxury', 'ultra-low-cost']",183
+184,"['brand', 'cushioning', 'pronationcontrol', 'segment']","['stability', 'neutral']",184
+185,"['teams', 'talent', 'championships']","['bigmarket', 'smallmarket']",185
+186,"['brand', 'foam/coils', 'adjustablebase', 'price']","['budget', 'luxury']",186
+187,"['scentnotes', 'sillage', 'bottledesign']","['niche', 'designer']",187
+188,"['variety', 'vocals', 'composition', 'arrangements']","['acappella', 'barbershop']",188
+189,"['tuning', 'strings', 'neck', 'bodystyle']","['electric', 'acoustic']",189
+190,"['ingredients', 'technique', 'servings']","['appetizer', 'maincourse']",190
+191,"['fashionhouse', 'silhouettes', 'fabrics']","['ready-to-wear', 'hautecouture']",191
+192,"['brand', 'movement', 'complications', 'style']","['dress', 'sport']",192
+193,"['brand', 'aperture', 'mounts']","['prime', 'zoom']",193
+194,"['sensorsize', 'resolution', 'speed']","['mirrorless', 'DSLR']",194
+195,"['airline', 'routes', 'cabinclasses']","['fullservice', 'lowcost']",195
+196,"['ingredients', 'preparationtime', 'cuisine']","['30minutesorless', 'gourmet']",196
+197,"['streamingservice', 'originals', 'licensedcontent']","['niche', 'generalentertainment']",197
+198,"['network', 'format', 'demographic']","['educational', 'entertainment']",198
+199,"['circuittype', 'surface', 'layout', 'facilities']","['historic', 'modern']",199
+200,"['minerality', 'acidity', 'tannins']","['blend', 'varietal']",200
+201,"['livestock', 'saltcontent', 'agingduration', 'firm/soft']","['artisanal', 'mass-produced']",201
+202,"['milktype', 'animaldiet', 'agingduration']","['hard', 'soft']",202
+203,"['curingmethod', 'smoking', 'aging', 'spiceblend']","['Italian', 'Cajun']",203
+204,"['origin', 'texture', 'preparation']","['streetfood', 'gourmet']",204
+205,"['proof', 'grainbill', 'barreltype']","['blended', 'singlebarrel']",205
+206,"['malts', 'hops', 'adjuncts', 'drinkability']","['craft', 'macro']",206
+207,"['region', 'grapes', 'aging']","['NewWorld', 'OldWorld']",207
+208,"['treenuts', 'fillings', 'shapes']","['seasonal', 'perennial']",208
+209,"['cocoasolids', 'flavorings', 'inclusions']","['dark', 'milk']",209
+210,"['livestock', 'cut', 'cookingmethod']","['beef', 'poultry']",210
+211,"['format', 'tone', 'solutions']","['partisan', 'impartial']",211
+212,"['size', 'sectiontypes', 'scope']","['local', 'national']",212
+213,"['realism', 'style', 'subjectmatter']","['representational', 'abstract']",213
+214,"['publisher', 'genre', 'readers']","['academic', 'popular']",214
+215,"['learningstyle', 'gradelevels', 'subjects']","['classroom', 'homeschool']",215
+216,"['foundingdate', 'location', 'programs']","['liberalarts', 'technical']",216
+217,"['engine', 'aspiration', 'drivetrain']","['sporttuned', 'luxury']",217
+218,"['seatingcapacity', 'premiumamenities', 'routes']","['domestic', 'international']",218
+219,"['batterylife', 'networkcompatibility', 'displaysize']","['productivity', 'gaming']",219
+220,"['megapixels', 'zoom', 'formfactor']","['point-and-shoot', 'mirrorless']",220
+221,"['foam/spring', 'sizes', 'customizable']","['budget', 'luxury']",221
+222,"['scentcategories', 'longevity', 'pricetiers']","['niche', 'designer']",222
+223,"['coverage', 'finish', 'shaderange']","['massmarket', 'prestige']",223
+224,"['difficulty', 'environments', 'linearity']","['FPS', 'RPG']",224
+225,"['streamingservice', 'originals', 'price']","['generalentertainment', 'niche']",225
+226,"['host', 'guests', 'games']","['latenight', 'daytime']",226
+227,"['talkvs.music', 'adload']","['terrestrial', 'internet']",227
+228,"['anchors', 'weather', 'traffic']","['morningshow', 'eveningnews']",228
+229,"['courtmaterial', 'format', 'events']","['claycourt', 'hardcourt']",229
+230,"['teams', 'playoffformat', 'revenuesharing']","['international', 'domestic']",230
+231,"['manufacturer', 'technology', 'priceranges']","['beginner', 'prosumer']",231
+232,"['bladematerial', 'flexibility', 'grip']","['amateur', 'elite']",232
+233,"['worldbuilding', 'characters', 'pacing']","['sci-fi', 'fantasy']",233
+234,"['console', 'onlineaccess', 'gametypes']","['variety', 'exclusivetitles']",234
+235,"['proteinsources', 'restrictedingredients']","['mealdelivery', 'ready-to-eat']",235
+236,"['cuts', 'animalwelfare', 'price']","['conventional', 'ethical']",236
+237,"['teacherexperience', 'specialties', 'ages']","['STEM', 'arts']",237
+238,"['instrumentfamily', 'ensembles', 'repertoire']","['concertband', 'orchestra']",238
+239,"['movements', 'instrumentation', 'period']","['chambermusic', 'symphony']",239
+240,"['dormamenities', 'clubs', 'classsize']","['public', 'private']",240
+241,"['neighborhood', 'acreage', 'age', 'schools']","['fixer-upper', 'turnkey']",241
+242,"['term', 'ratetype', 'points', 'downpayment']","['conventional', 'jumbo']",242
+243,"['materials', 'appliances', 'HOA', 'apartments']","['condos', 'single-family']",243
+244,"['management', 'nearbyshopping/dining', 'leasingterms']","['high-rise', 'gardenstyle']",244
+245,"['cleaningservice', 'amenities', 'cancellationpolicy']","['extendedstay', 'shortterm']",245
+246,"['legroom', 'meals', 'airportlounges']","['domestic', 'international']",246
+247,"['deckcount', 'bettinglimits', 'tournaments']","['locals', 'tourist']",247

@@ -11,7 +11,7 @@ sys.path.insert(1, '/u/ajagadish/vanilla-llama/')
 sys.path.insert(1, '/raven/u/ajagadish/vanilla-llama/')
 from inference import LLaMAInference
 from prompts import retrieve_prompt
-from utils import retrieve_features_and_categories
+from utils import retrieve_features_and_categories, get_regex_patterns
 import ipdb
 import pickle
 import re
@@ -126,28 +126,7 @@ if __name__ == "__main__":
     prompt_version = args.prompt_version
     num_categories = 2
 
-    patterns = [r'([\d.]+),([\d.]+),([\d.]+),([\w]+)',
-                r'([\w\-]+),([\w\-]+),([\w\-]+),([\w]+)',
-                r'([-\w\d,.]+),([-\w\d,.]+),([-\w\d,.]+),([-\w\d,.]+)',
-                r'([^,]+),([^,]+),([^,]+),([^,]+)',
-                r'([^,\n]+),([^,\n]+),([^,\n]+),([^,\n]+)',
-                r'(?:.*?:)?([^,-]+),([^,-]+),([^,-]+),([^,-]+)',
-                r'([^,-]+),([^,-]+),([^,-]+),([^,-]+)',] if args.use_generated_tasklabels else \
-                        [r'x=\[(.*?)\][;,]?\s*y\s*=?\s*([AB])',
-                        r"x=\[(.*?)\][^\n]*?y=(\w)",
-                        r"x=\[([\d\.]+),\s*([\d\.]+),\s*([\d\.]+)\][^\n]*[y|&]=\s*(A|B)",
-                        r"x=\[?\s*([\d\.]+),\s*([\d\.]+),\s*([\d\.]+)\]?\s*(?:,|;|&|->| -> |---)?\s*[y|Y]\s*=\s*(A|B)",
-                        r"x=(\[.*?\])\s*---\s*y\s*=\s*([A-Z])",
-                        r"x=(\[.*?\])\s*->\s*([A-Z])",
-                        r"x=(\[.*?\]),\s*([A-Z])",
-                        r"^([0-9]\.[0-9]{2}),(0\.[0-9]{2}),(0\.[0-9]{2}),(A|B)$",
-                        r"\[([0-9]\.[0-9]{2}),(0\.[0-9]{2}),(0\.[0-9]{2})\],(A|B)",
-                        r"\[\[([0-9]\.[0-9]{2}),(0\.[0-9]{2}),(0\.[0-9]{2})\],(A|B)\]",
-                        r"n[0-9]+\.\[\[([0-9]\.[0-9]{2}),(0\.[0-9]{2}),(0\.[0-9]{2})\],(\'A\'|\'B\')\]",
-                        r"\[\[([0-9]\.[0-9]{2}),(0\.[0-9]{2}),(0\.[0-9]{2})\],(\'A\'|\'B\')\]",
-                        r"\[([0-9]\.[0-9]{2}),(0\.[0-9]{2}),(0\.[0-9]{2})\],(A|B)",
-                        r"(\d+\.\d+),(\d+\.\d+),(\d+\.\d+),([A-Z])"
-                        ]            
+    patterns = get_regex_patterns(num_dim=num_dim, use_generated_tasklabels=args.use_generated_tasklabels)
 
     # load LLaMA model and instructions
     if run_gpt == 'llama':
@@ -163,8 +142,8 @@ if __name__ == "__main__":
         instructions = retrieve_prompt('gpt4', version='v3', num_dim=num_dim, num_data=num_data)
     
     # load Claude specific instructions
-    elif run_gpt == 'claude':
-        instructions = retrieve_prompt('claude', version=f'v{prompt_version}', num_dim=num_dim, num_data=num_data)
+    # elif run_gpt == 'claude':
+    #     instructions = retrieve_prompt('claude', version=f'v{prompt_version}', num_dim=num_dim, num_data=num_data)
 
     # run gpt models
     for run in range(num_runs):

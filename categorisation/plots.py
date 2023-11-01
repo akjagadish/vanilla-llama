@@ -13,6 +13,7 @@ from utils import evaluate_data_against_baselines, bin_data_points
 from utils import probability_same_target_vs_distance
 from envs import NosofskysTask
 import json
+from collections import Counter
 
 # set plotting parameters
 COLORS = {'a':'#117733', 
@@ -839,35 +840,43 @@ def plot_burstiness_training_curriculum(data,  num_tasks=10000):
     plt.show()
     f.savefig('/raven/u/ajagadish/vanilla-llama/categorisation/figures/claude_burstiness.png', bbox_inches='tight')
 
-def plot_frequency_tasklabels(file_name, path='/u/ajagadish/vanilla-llama/categorisation/data/tasklabels'):
-    from collections import Counter
+def plot_frequency_tasklabels(file_name, path='/u/ajagadish/vanilla-llama/categorisation/data/tasklabels', feature_names=True, pairs=True, top_labels=50):
+
     df = pd.read_csv(f'{path}/{file_name}.csv')
     df.feature_names = df['feature_names'].apply(lambda x: eval(x))
+    df.category_names = df['category_names'].apply(lambda x: eval(x))
+    
     def to_lower(ff):
         return [x.lower() for x in ff]
+    
     df.feature_names = df['feature_names'].apply(lambda x: to_lower(x))
+    df.category_names = df['category_names'].apply(lambda x: to_lower(x))
 
+    # name of the column containing the feature names
+    column_name = 'feature_names' if feature_names else 'category_names'
     # count of number of times a type of features occurs
-    list_counts = Counter([tuple(features) for features in df['feature_names']])
+    list_counts = Counter([tuple(features) for features in df[column_name]] if pairs else np.stack(df[column_name].values).reshape(-1))
 
     # sort the Counter by counts in descending order
     sorted_list_counts = sorted(list_counts.items(), key=lambda x: x[1], reverse=True)
 
     # extract the counts and names for the top 50 labels
-    top_labels = 50
     task_labels = np.array([task_label[0] for task_label in sorted_list_counts[:top_labels]])
     label_counts= np.array([task_label[1] for task_label in sorted_list_counts[:top_labels]])
-    label_names = ['-'.join(task_labels[idx]) for idx in range(len(task_labels))]
+    label_names = ['-'.join(task_labels[idx]) for idx in range(len(task_labels))] if pairs else task_labels
 
     # plot the bars of labels and counts
     f, ax = plt.subplots(1, 1, figsize=(10,10))
     ax.bar(label_names, label_counts)
     plt.xticks(label_names, label_names, rotation=90, fontsize=FONTSIZE-6.5)
     plt.yticks(fontsize=FONTSIZE-6)
-    ax.set_xlabel('Feature Names', fontsize=FONTSIZE)
+    ax.set_xlabel('Feature Names' if feature_names else 'Category Names', fontsize=FONTSIZE)
     ax.set_ylabel('Counts', fontsize=FONTSIZE)
     ax.set_title(f'Top {top_labels} Tasks', fontsize=FONTSIZE)
     sns.despine()
     f.tight_layout()
     plt.show()
+    
+    f.savefig(f'/raven/u/ajagadish/vanilla-llama/categorisation/figures/frequency_plot_tasklabels_{column_name}_paired={pairs}_top{top_labels}.png', bbox_inches='tight', dpi=300)
+
 

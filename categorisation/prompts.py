@@ -131,13 +131,33 @@ def retrieve_prompt(model, version, num_dim=3, num_data=100, features=None, cate
                     f" Please generate a list of {str(num_data)} stimuli with their feature values and their corresponding"\
                     " category labels using the following template for each row: \n"\
                     "-  feature value 1, feature value 2, feature value 3, category label \n"
-                    # real-valued numbers,  
+    
+    num_to_text = {2: 'two', 3: 'three', 4: 'four', 5: 'five', 6: 'six', 7: 'seven', 8: 'eight'}
+    def featurenames_to_text(features, num_dim):
+        if num_dim==3:
+            return f'{features[0]}, {features[1]}, and {features[2]}'
+        elif num_dim==4:
+            return f'{features[0]}, {features[1]}, {features[2]}, {features[3]}'
+        elif num_dim==6:
+            return f'{features[0]}, {features[1]}, {features[2]}, {features[3]}, {features[4]}, and {features[5]}'
+    
+    claude_prompt_v5 = f" I am a psychologist who wants to run a category learning experiment."\
+                        " For a category learning experiment, I need a list of stimuli and their category labels."\
+                        f" Each stimulus is characterized by {num_to_text[num_dim]} distinct features: {featurenames_to_text(features, num_dim)}."\
+                        " These features can take only numerical values."\
+                        f" The category label can be {categories[0]} or {categories[1]} and should be predictable from the feature values of the stimulus."\
+                        " \n\n"\
+                        f" Please generate a list of {str(num_data)} stimuli with their feature values and their corresponding"\
+                        " category labels using the following template for each row: \n"\
+                        f"1: feature value 1, feature value 2,..., feature value {str(num_dim)}, category label \n"
+
     instructions['claude'] = {}
     instructions['claude']['v0'] = claude_prompt_v0
     instructions['claude']['v1'] = claude_prompt_v1
     instructions['claude']['v2'] = claude_prompt_v2
     instructions['claude']['v3'] = claude_prompt_v3
     instructions['claude']['v4'] = claude_prompt_v4
+    instructions['claude']['v5'] = claude_prompt_v5
     
     return instructions[model][version]
 

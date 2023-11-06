@@ -126,7 +126,8 @@ if __name__ == "__main__":
     prompt_version = args.prompt_version
     num_categories = 2
 
-    patterns = get_regex_patterns(num_dim=num_dim, use_generated_tasklabels=args.use_generated_tasklabels)
+    
+    patterns = get_regex_patterns(num_dim=num_dim, use_generated_tasklabels=args.use_generated_tasklabels, prompt_version=int(prompt_version))
 
     # load LLaMA model and instructions
     if run_gpt == 'llama':

@@ -17,7 +17,7 @@ from baseline_classifiers import benchmark_baseline_models_regex_parsed_random_p
 from baseline_classifiers import LogisticRegressionModel, SVMModel
 
 
-def parse_generated_tasks(path, file_name, gpt, num_datapoints=8, last_task_id=0, use_generated_tasklabels=False, prompt_version=None):
+def parse_generated_tasks(path, file_name, gpt, num_datapoints=8, num_dim=3, last_task_id=0, use_generated_tasklabels=False, prompt_version=None):
    
     # load llama generated tasks which were successfully regex parsed
     with open(f"{path}/{file_name}.txt", "rb") as fp:   
@@ -54,21 +54,43 @@ def parse_generated_tasks(path, file_name, gpt, num_datapoints=8, last_task_id=0
                 targets.append(item[3][1] if len(item[3])>1 else item[3])
 
             elif gpt == 'claude':
+                
+                if num_dim==3:
+                    if prompt_version == 3:
+                        inputs.append([item[0], item[1], item[2]])
+                    elif prompt_version == 4:
+                        try:
+                            inputs.append([float(item[0]), float(item[1]), float(item[2])])
+                        except:
+                            print(f'{task} not parsable as float')
+                            continue
+                    
+                elif num_dim==6:
+                    if prompt_version == 5:
+                        try:    
+                            inputs.append([float(item[1]), float(item[2]), float(item[3]), float(item[4]), float(item[5]), float(item[6])])
+                        except:
+                            print(f'{task} not parsable as float')
+                            continue
+                    else:
+                        raise NotImplementedError
+                
+                elif num_dim==4:
+                    
+                    if prompt_version == 5:
+                        try:    
+                            inputs.append([float(item[1]), float(item[2]), float(item[3]), float(item[4])])
+                        except:
+                            print(f'{task} not parsable as float')
+                            continue
+                    else:
+                        raise NotImplementedError
 
-                if prompt_version == 3:
-                    inputs.append([item[0], item[1], item[2]])
-                elif prompt_version == 4:
-                    try:
-                        inputs.append([float(item[0]), float(item[1]), float(item[2])])
-                    except:
-                        # print([item[0], item[1], item[2]])
-                        print(f'{task} not parsable as float')
-                        continue
                 else:
-                    inputs.append([float(item[0]), float(item[1]), float(item[2])])
+                    raise NotImplementedError
                     
                 if use_generated_tasklabels:
-                    targets.append(item[3])
+                    targets.append(item[num_dim+1])
                 else:
                     targets.append(item[3][1] if len(item[3])>1 else item[3])
                 
@@ -504,3 +526,60 @@ def pool_tasklabels(path_to_dir, run_gpt, model, num_dim, num_tasks, num_runs, p
     # df.feature_names = df['feature_names'].apply(lambda x: eval(x))
     # df.category_names = df['category_names'].apply(lambda x: eval(x))
     df.to_csv(f'{path_to_dir}/{run_gpt}_generated_tasklabels_params{model}_dim{num_dim}_tasks{num_tasks}_pversion{prompt_version}.csv')             
+
+def get_regex_patterns(num_dim, use_generated_tasklabels, prompt_version):
+    ''' 
+    Generate regex patterns to parse the generated tasks
+    Args:
+        num_dim: number of dimensions
+        use_generated_tasklabels: whether to use the generated tasklabels or not
+        prompt_version: version of the prompt used to generate the tasks
+    Returns:
+        patterns: list of regex patterns
+    '''
+    if use_generated_tasklabels is False:
+        og_regex_expressions = [r'x=\[(.*?)\][;,]?\s*y\s*=?\s*([AB])',
+                        r"x=\[(.*?)\][^\n]*?y=(\w)",
+                        r"x=\[([\d\.]+),\s*([\d\.]+),\s*([\d\.]+)\][^\n]*[y|&]=\s*(A|B)",
+                        r"x=\[?\s*([\d\.]+),\s*([\d\.]+),\s*([\d\.]+)\]?\s*(?:,|;|&|->| -> |---)?\s*[y|Y]\s*=\s*(A|B)",
+                        r"x=(\[.*?\])\s*---\s*y\s*=\s*([A-Z])",
+                        r"x=(\[.*?\])\s*->\s*([A-Z])",
+                        r"x=(\[.*?\]),\s*([A-Z])",
+                        r"^([0-9]\.[0-9]{2}),(0\.[0-9]{2}),(0\.[0-9]{2}),(A|B)$",
+                        r"\[([0-9]\.[0-9]{2}),(0\.[0-9]{2}),(0\.[0-9]{2})\],(A|B)",
+                        r"\[\[([0-9]\.[0-9]{2}),(0\.[0-9]{2}),(0\.[0-9]{2})\],(A|B)\]",
+                        r"n[0-9]+\.\[\[([0-9]\.[0-9]{2}),(0\.[0-9]{2}),(0\.[0-9]{2})\],(\'A\'|\'B\')\]",
+                        r"\[\[([0-9]\.[0-9]{2}),(0\.[0-9]{2}),(0\.[0-9]{2})\],(\'A\'|\'B\')\]",
+                        r"\[([0-9]\.[0-9]{2}),(0\.[0-9]{2}),(0\.[0-9]{2})\],(A|B)",
+                        r"(\d+\.\d+),(\d+\.\d+),(\d+\.\d+),([A-Z])"
+                        ] 
+    elif num_dim == 3 and prompt_version == 4: 
+        regex_expressions = [r'([\d.]+),([\d.]+),([\d.]+),([\w]+)',
+                r'([\w\-]+),([\w\-]+),([\w\-]+),([\w]+)',
+                r'([-\w\d,.]+),([-\w\d,.]+),([-\w\d,.]+),([-\w\d,.]+)',
+                r'([^,]+),([^,]+),([^,]+),([^,]+)',
+                r'([^,\n]+),([^,\n]+),([^,\n]+),([^,\n]+)',
+                r'(?:.*?:)?([^,-]+),([^,-]+),([^,-]+),([^,-]+)',
+                r'([^,-]+),([^,-]+),([^,-]+),([^,-]+)',]
+                        
+    elif num_dim == 6 and prompt_version == 5: 
+        regex_expressions = [r'^(\d+):([\d.]+),([\d.]+),([\d.]+),([\d.]+),([\d.]+),([\d.]+),([\w]+)',
+                r'^(\d+):([\w\-]+),([\w\-]+),([\w\-]+),([\w\-]+),([\w\-]+),([\w\-]+),([\w]+)',
+                r'^(\d+):([-\w\d,.]+),([-\w\d,.]+),([-\w\d,.]+),([-\w\d,.]+),([-\w\d,.]+),([-\w\d,.]+),([-\w\d,.]+)',
+                r'^(\d+):([^,]+),([^,]+),([^,]+),([^,]+),([^,]+),([^,]+),([^,]+)',
+                r'^(\d+):([^,\n]+),([^,\n]+),([^,\n]+),([^,\n]+),([^,\n]+),([^,\n]+),([^,\n]+)',
+                r'^(\d+):(?:.*?:)?([^,-]+),([^,-]+),([^,-]+),([^,-]+),([^,-]+),([^,-]+),([^,-]+)',
+                r'^(\d+):([^,-]+),([^,-]+),([^,-]+),([^,-]+),([^,-]+),([^,-]+),([^,-]+)',]
+
+    elif num_dim == 4 and prompt_version == 5:
+        regex_expressions = [r'^(\d+):([\d.]+),([\d.]+),([\d.]+),([\d.]+),([\w]+)',
+                r'^(\d+):([\w\-]+),([\w\-]+),([\w\-]+),([\w\-]+),([\w]+)',
+                r'^(\d+):([-\w\d,.]+),([-\w\d,.]+),([-\w\d,.]+),([-\w\d,.]+),([-\w\d,.]+)',
+                r'^(\d+):([^,]+),([^,]+),([^,]+),([^,]+),([^,]+)',
+                r'^(\d+):([^,\n]+),([^,\n]+),([^,\n]+),([^,\n]+),([^,\n]+)',
+                r'^(\d+):(?:.*?:)?([^,-]+),([^,-]+),([^,-]+),([^,-]+),([^,-]+)',
+                r'^(\d+):([^,-]+),([^,-]+),([^,-]+),([^,-]+),([^,-]+)']
+                         
+    patterns = regex_expressions if use_generated_tasklabels else og_regex_expressions
+
+    return patterns           

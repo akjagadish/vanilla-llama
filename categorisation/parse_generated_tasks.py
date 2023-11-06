@@ -38,8 +38,7 @@ def parse_and_pool_generated_tasks(path, gpt, models, dims, data, tasks, runs, p
                         for proc_id in proc_ids[num_tasks]:
                             
                             filename = f'{gpt}_generated_tasks_params{model}_dim{dim}_data{num_data}_tasks{num_tasks}_run{run}_procid{proc_id}_pversion{prompt_version}'
-                            #if os.path.exists(f"{path}/{filename}.csv"): 
-                            last_task_id = parse_generated_tasks(path+'/parsed', filename, gpt, num_data, last_task_id, use_generated_tasklabels, prompt_version)
+                            last_task_id = parse_generated_tasks(path+'/parsed', filename, gpt, num_data, dim, last_task_id, use_generated_tasklabels, prompt_version)
                             print(f'parsed: {filename}')
                            
                             # load llm generated tasks which were successfully regex parsed

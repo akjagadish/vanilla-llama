@@ -18,9 +18,10 @@ import re
 import os
 from dotenv import load_dotenv
 import anthropic
-
 load_dotenv() # load environment variables from .env
 TOKEN_COUNTER = 0
+
+# generate action using LLaMA or GPT-3
 def act(text=None, run_gpt='llama', temperature=1., max_length=300):
 
     global TOKEN_COUNTER
@@ -45,7 +46,7 @@ def act(text=None, run_gpt='llama', temperature=1., max_length=300):
                 temperature = temperature,
             )
             TOKEN_COUNTER += response['usage']['total_tokens'] 
-            return response.choices[0].message.content.replace(' ', '')
+            return response.choices[0].message.content#.replace(' ', '')
         except:
             print("Error, trying again...ratelimiterror")
             exc_type, exc_value, exc_traceback = sys.exc_info()
@@ -64,7 +65,7 @@ def act(text=None, run_gpt='llama', temperature=1., max_length=300):
                 temperature = temperature,
             )
             TOKEN_COUNTER += response['usage']['total_tokens'] 
-            return response.choices[0].text.strip().replace(' ', '')
+            return response.choices[0].text.strip()#.replace(' ', '')
         except:
             print("Error")
             exc_type, exc_value, exc_traceback = sys.exc_info()
@@ -80,7 +81,7 @@ def act(text=None, run_gpt='llama', temperature=1., max_length=300):
                 model="claude-2",
                 temperature=temperature,
                 max_tokens_to_sample=max_length,
-            ).completion.replace(' ', '')
+            ).completion#.replace(' ', '')
     
         return response
  
@@ -88,6 +89,13 @@ def act(text=None, run_gpt='llama', temperature=1., max_length=300):
 
         return NotImplementedError 
 
+# check if action is parsable and if yes, return the matches
+def check_if_parsable(action, patterns):
+    for pattern in patterns:
+        matches = re.findall(pattern, action.replace(' ', ''), re.MULTILINE)
+        if len(matches) >0:
+            return matches
+    return None
 
 if __name__ == "__main__":
     models = ["7B", "13B", "30B", "65B", "NA"]
@@ -107,10 +115,11 @@ if __name__ == "__main__":
     parser.add_argument("--path-tasklabels", type=str, required=False, default='/raven/u/ajagadish/vanilla-llama/categorisation/data/tasklabels')
     parser.add_argument("--file-name-tasklabels", type=str, required=False, default=None)
     parser.add_argument("--start-task-id", type=int, required=False, default=0)
+    parser.add_argument("--two-stage", action="store_true", required=False, default=False)
 
     args = parser.parse_args()
     start_loading = time.time()
-    run_gpt = args.run_gpt #True
+    run_gpt = args.run_gpt 
     assert args.model=='NA'if args.run_gpt=='gpt3' or args.run_gpt=='gpt4' or args.run_gpt=='claude' else False, "Only NA model is supported for GPT3"
     # model parameters
     temperature = args.temperature
@@ -126,7 +135,8 @@ if __name__ == "__main__":
     prompt_version = args.prompt_version
     num_categories = 2
 
-    
+
+    # get regex patterns
     patterns = get_regex_patterns(num_dim=num_dim, use_generated_tasklabels=args.use_generated_tasklabels, prompt_version=int(prompt_version))
 
     # load LLaMA model and instructions
@@ -149,8 +159,8 @@ if __name__ == "__main__":
     # run gpt models
     for run in range(num_runs):
         data, unparsable_data, raw_data, task_ids = [], [], [], []
-        for t in range(start_task_id, start_task_id+num_tasks):
-            #TODO: generate tasks in order or randomly?
+        for idx, t in enumerate(range(start_task_id, start_task_id+num_tasks)):
+
             ## LLM acts
             if run_gpt == 'claude' and args.use_generated_tasklabels:
                 assert args.file_name_tasklabels is not None, "Please provide a file name for the task labels"
@@ -161,35 +171,43 @@ if __name__ == "__main__":
                 assert len(features) == num_dim, "Number of features does not match the number of dimensions"
                 assert len(categories) == num_categories, "Number of categories does not match the number of categories"
                 instructions = retrieve_prompt('claude', version=f'v{prompt_version}', num_dim=num_dim, num_data=num_data, features=features, categories=categories)
-
-            action = act(instructions, run_gpt, temperature, max_length)
-            raw_data.append(action)
-
-            for pattern in patterns:
-                matches = re.findall(pattern, action, re.MULTILINE)
-                if len(matches) > 0:
-                    data.append(matches)
-                    task_ids.append(task_id)
-                    break
-
-            if len(matches) == 0:
-                unparsable_data.append(action)
-            print(f'task {t}: no matches found' if len(matches) == 0 else f'task {t}: match found')
+           
+           ## generate tasks in one or two stages
+            if args.two_stage:
+                with open(f"data/raw_data/{run_gpt}_generated_tasks_params{args.model}_dim{num_dim}_data{num_data}_tasks{num_tasks}_run{run}_procid{proc_id}_pversion{prompt_version}_stage1_starttaskid{start_task_id}_raw.txt", "rb") as fp:   
+                    stage1_action = pickle.load(fp)[idx]
+                matches = check_if_parsable(stage1_action, patterns)
+                if matches is not None: # the original few points are getting changed
+                    stage2_action = act(instructions + stage1_action[:int(len(stage1_action)/3)], run_gpt, temperature, max_length)
+                    action = stage2_action + '\n' + stage1_action[int(len(stage1_action)/3):] # action already contains the first part of the action
+            else:
+                action = act(instructions, run_gpt, temperature, max_length)
             
-            # save data
-            with open(f"data/parsed/{run_gpt}_generated_tasks_params{args.model}_dim{num_dim}_data{num_data}_tasks{num_tasks}_run{run}_procid{proc_id}_pversion{prompt_version}.txt", "wb") as fp:   
-                #pickling
+            raw_data.append(action)
+            matches = check_if_parsable(action, patterns)
+            if matches is not None:
+                data.append(matches)
+                task_ids.append(task_id)
+            elif matches is None:
+                unparsable_data.append(action)
+
+            
+            print(f'task {t}: no matches found' if matches is None else f'task {t}: match found')
+            
+            # save data using pickle
+            filename = f'{run_gpt}_generated_tasks_params{args.model}_dim{num_dim}_data{num_data}_tasks{num_tasks}_run{run}_procid{proc_id}_pversion{prompt_version}'
+            if args.two_stage:
+                filename += f'_stage{'2' if args.two_stage else '1'}'
+            with open(f"data/parsed/{filename}.txt", "wb") as fp:   
                 pickle.dump(data, fp)
 
-            with open(f"data/parsed/{run_gpt}_generated_tasks_params{args.model}_dim{num_dim}_data{num_data}_tasks{num_tasks}_run{run}_procid{proc_id}_pversion{prompt_version}_taskids.txt", "wb") as fp:
+            with open(f"data/parsed/{filename}_taskids.txt", "wb") as fp:
                 pickle.dump(task_ids, fp)
 
-            with open(f"data/unparsed/{run_gpt}_generated_tasks_params{args.model}_dim{num_dim}_data{num_data}_tasks{num_tasks}_run{run}_procid{proc_id}_pversion{prompt_version}_unparsed.txt", "wb") as fp:   
-                #pickling
+            with open(f"data/unparsed/{filename}_unparsed.txt", "wb") as fp:   
                 pickle.dump(unparsable_data, fp)
 
-            with open(f"data/raw_data/{run_gpt}_generated_tasks_params{args.model}_dim{num_dim}_data{num_data}_tasks{num_tasks}_run{run}_procid{proc_id}_pversion{prompt_version}_starttaskid{start_task_id}_lasttaskid{start_task_id+num_tasks}_raw.txt", "wb") as fp:
-                #pickling
+            with open(f"data/raw_data/{filename}_starttaskid{start_task_id}_raw.txt", "wb") as fp:
                 pickle.dump(raw_data, fp)
 
     if run_gpt == 'gpt4':

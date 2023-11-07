@@ -124,8 +124,11 @@ def parse_generated_tasks(path, file_name, gpt, num_datapoints=8, num_dim=3, las
 
     return task_id
 
-def return_generated_task(path, gpt, model, num_dim, num_data, num_tasks, run, proc_id, prompt_version):
-    return pd.read_csv(f"{path}/{gpt}_generated_tasks_params{model}_dim{num_dim}_data{num_data}_tasks{num_tasks}_run{run}_procid{proc_id}_pversion{prompt_version}.csv")
+def return_generated_task(path, gpt, model, num_dim, num_data, num_tasks, run, proc_id, prompt_version, stage):
+    filename = f'{gpt}_generated_tasks_params{model}_dim{num_dim}_data{num_data}_tasks{num_tasks}_run{run}_procid{proc_id}_pversion{prompt_version}'
+    if stage>=1:
+        filename = f'{filename}_stage{stage}'
+    return pd.read_csv(f"{path}/{filename}.csv")
 
 def pool_generated_tasks(path, models, dims, data, tasks, runs, proc_ids):
     ''' 

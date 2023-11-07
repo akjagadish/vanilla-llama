@@ -148,8 +148,8 @@ def retrieve_prompt(model, version, num_dim=3, num_data=100, features=None, cate
                         f" The category label can be {categories[0]} or {categories[1]} and should be predictable from the feature values of the stimulus."\
                         " \n\n"\
                         f" Please generate a list of {str(num_data)} stimuli with their feature values and their corresponding"\
-                        " category labels using the following template for each row: \n"\
-                        f"1: feature value 1, feature value 2,..., feature value {str(num_dim)}, category label \n"
+                        " category labels sequentially without skipping any row using the following template for each row: \n"\
+                        f" 1: feature value 1, feature value 2,..., feature value {str(num_dim)}, category label \n"   
 
     instructions['claude'] = {}
     instructions['claude']['v0'] = claude_prompt_v0

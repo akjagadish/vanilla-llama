@@ -33,6 +33,8 @@ COLORS = {'a':'#117733',
           }
 FONTSIZE=20
 
+SYS_PATH = '/u/ajagadish/vanilla-llama/' #f'/raven/u/ajagadish/vanilla-llama
+
 def compare_llm_uniform_data_samples(data, random=False):
 
     means, std_errors, performance = return_baseline_performance(data, random=random)
@@ -85,7 +87,7 @@ def label_imbalance(data, categories=['A','B']):
     plt.show()
 
     # save figure
-    f.savefig(f'/raven/u/ajagadish/vanilla-llama/categorisation/figures/label_balance.svg', bbox_inches='tight', dpi=300)
+    f.savefig(f'{SYS_PATH}/categorisation/figures/label_balance.svg', bbox_inches='tight', dpi=300)
 
 
 # plot mean number of tasks
@@ -104,7 +106,7 @@ def plot_mean_number_tasks(data):
     plt.show()
 
     # save figure
-    f.savefig(f'/raven/u/ajagadish/vanilla-llama/categorisation/figures/mean_number_tasks.svg', bbox_inches='tight', dpi=300)
+    f.savefig(f'{SYS_PATH}/categorisation/figures/mean_number_tasks.svg', bbox_inches='tight', dpi=300)
 
 # plotting the autocorrelations between features
 def plot_autocorr_features(data):
@@ -220,7 +222,7 @@ def plot_trial_by_trial_performance(data, fit_upto_trial, plot_last_trials, num_
     plt.show()
 
     # save figure
-    f.savefig(f'/raven/u/ajagadish/vanilla-llama/categorisation/figures/trial_by_trial_performance.svg', bbox_inches='tight', dpi=300)
+    f.savefig(f'{SYS_PATH}/categorisation/figures/trial_by_trial_performance.svg', bbox_inches='tight', dpi=300)
 
 # plot histogram of binned data
 def plot_histogram_binned_data(data, num_bins, min_value=0, max_value=1):
@@ -298,7 +300,7 @@ def plot_data_stats(data, poly_degree=2):
     plt.show()
 
     # save figure
-    fig.savefig(f'/raven/u/ajagadish/vanilla-llama/categorisation/figures/data_stats.svg', bbox_inches='tight', dpi=300)
+    fig.savefig(f'{SYS_PATH}/categorisation/figures/data_stats.svg', bbox_inches='tight', dpi=300)
 
     # plot the 3 pairwise correlation between features in separate subplots
     f, axs = plt.subplots(1, 3, figsize=(15,5))
@@ -323,7 +325,7 @@ def plot_data_stats(data, poly_degree=2):
     sns.despine()
     plt.tight_layout()
     plt.show()
-    f.savefig(f'/raven/u/ajagadish/vanilla-llama/categorisation/figures/correlation_features.svg', bbox_inches='tight', dpi=300)
+    f.savefig(f'{SYS_PATH}/categorisation/figures/correlation_features.svg', bbox_inches='tight', dpi=300)
 
     # plot the regression coefficients for the 3 features in separate subplots
     f, axs = plt.subplots(1, 3, figsize=(15,5))
@@ -348,7 +350,7 @@ def plot_data_stats(data, poly_degree=2):
     sns.despine()
     plt.tight_layout()
     plt.show()
-    f.savefig(f'/raven/u/ajagadish/vanilla-llama/categorisation/figures/coefficient_features.svg', bbox_inches='tight', dpi=300)
+    f.savefig(f'{SYS_PATH}/categorisation/figures/coefficient_features.svg', bbox_inches='tight', dpi=300)
 
 def plot_cue_validity(data):
 
@@ -453,7 +455,7 @@ def plot_per_task_features_for_selected_tasks(df, sample_task_per_feature=None):
     plt.show()
     
      # save figure
-    f.savefig(f'/raven/u/ajagadish/vanilla-llama/categorisation/figures/selected_task_features.svg', bbox_inches='tight', dpi=300)
+    f.savefig(f'{SYS_PATH}/categorisation/figures/selected_task_features.svg', bbox_inches='tight', dpi=300)
 
     
 def errors_metalearner(env_name, model_path, mode='test', shuffle_trials=False, num_trials=96, num_runs=5):
@@ -502,7 +504,7 @@ def compare_metalearners(env_name=None, model_env=None, experiment='categorisati
                 for se_idx, shuffle_eval in enumerate(shuffle_evals):
 
                     if experiment=='categorisation':
-                        env_path = f'/raven/u/ajagadish/vanilla-llama/categorisation/data/{env_name}.csv'
+                        env_path = f'{SYS_PATH}/categorisation/data/{env_name}.csv'
                     else:
                         raise NotImplementedError
 
@@ -594,7 +596,7 @@ def evaluate_nosofsky1994(env_name=None, experiment=None, tasks=[None], beta=1.,
     f.tight_layout()
     plt.show()
 
-    f.savefig(f'/raven/u/ajagadish/vanilla-llama/categorisation/figures/nosofsky1994_metalearner_{model_name}.svg', bbox_inches='tight', dpi=300)
+    f.savefig(f'{SYS_PATH}/categorisation/figures/nosofsky1994_metalearner_{model_name}.svg', bbox_inches='tight', dpi=300)
     
 def evaluate_nosofsky1988(env_name=None, experiment=1, beta=1., noises=[0.05, 0.1, 0.0], shuffles=[True, False], num_runs=5, num_trials=64, num_blocks=3, num_eval_tasks=64, synthetic=False):
     num_trials = num_blocks*num_trials
@@ -642,7 +644,7 @@ def evaluate_nosofsky1988(env_name=None, experiment=1, beta=1., noises=[0.05, 0.
     sns.despine()
     f.tight_layout()
     plt.show()
-    f.savefig(f'/raven/u/ajagadish/vanilla-llama/categorisation/figures/nosofsky1988_metalearner_{model_name}.svg', bbox_inches='tight', dpi=300)    
+    f.savefig(f'{SYS_PATH}/categorisation/figures/nosofsky1988_metalearner_{model_name}.svg', bbox_inches='tight', dpi=300)    
 
 def evaluate_levering2020(env_name=None, beta=1., noises=[0.05, 0.1, 0.0], shuffles=[True, False], num_runs=5, num_trials=158, num_eval_tasks=64, synthetic=False):
         
@@ -679,7 +681,7 @@ def evaluate_levering2020(env_name=None, beta=1., noises=[0.05, 0.1, 0.0], shuff
     sns.despine()
     f.tight_layout()
     plt.show()
-    f.savefig(f'/raven/u/ajagadish/vanilla-llama/categorisation/figures/levering2020_metalearner_{model_name}.svg', bbox_inches='tight', dpi=300)
+    f.savefig(f'{SYS_PATH}/categorisation/figures/levering2020_metalearner_{model_name}.svg', bbox_inches='tight', dpi=300)
 
 def replot_levering2020():
     # load json file containing the data
@@ -700,7 +702,7 @@ def replot_levering2020():
     sns.despine()
     f.tight_layout()
     plt.show()
-    f.savefig(f'/raven/u/ajagadish/vanilla-llama/categorisation/figures/levering2020_humans.svg', bbox_inches='tight', dpi=300)
+    f.savefig(f'{SYS_PATH}/categorisation/figures/levering2020_humans.svg', bbox_inches='tight', dpi=300)
 
 def replot_nosofsky1988():
     nosofs_task = NosofskysTask(task=[4, None, None], batch_size=1)
@@ -713,7 +715,7 @@ def replot_nosofsky1988():
     ax.set_xlabel('Saturation', fontsize=FONTSIZE-2)
     ax.set_ylabel('Brightness', fontsize=FONTSIZE-2)
     plt.show()
-    f.savefig(f'/raven/u/ajagadish/vanilla-llama/categorisation/figures/nosofsky1988_task.svg', bbox_inches='tight', dpi=300)
+    f.savefig(f'{SYS_PATH}/categorisation/figures/nosofsky1988_task.svg', bbox_inches='tight', dpi=300)
 
     # base-rate effect
     colors = ['#173b4f', '#8b9da7']
@@ -731,7 +733,7 @@ def replot_nosofsky1988():
     sns.despine()
     f.tight_layout()
     plt.show()
-    f.savefig(f'/raven/u/ajagadish/vanilla-llama/categorisation/figures/nosofsky1988_humans.svg', bbox_inches='tight', dpi=300)
+    f.savefig(f'{SYS_PATH}/categorisation/figures/nosofsky1988_humans.svg', bbox_inches='tight', dpi=300)
 
 def replot_nosofsky1994():
     # load json file containing the data
@@ -762,7 +764,7 @@ def replot_nosofsky1994():
     sns.despine()
     f.tight_layout()
     plt.show()
-    f.savefig(f'/raven/u/ajagadish/vanilla-llama/categorisation/figures/nosofsky1994_humans.svg', bbox_inches='tight', dpi=300)
+    f.savefig(f'{SYS_PATH}/categorisation/figures/nosofsky1994_humans.svg', bbox_inches='tight', dpi=300)
 
 def longest_consecutive_sequence(arr):
     return np.median(np.diff(np.insert(np.where(np.diff(arr) != 0)[0] + 1, [0, -1], [0, len(arr)])))/len(arr)
@@ -802,7 +804,7 @@ def plot_burstiness_training_curriculum(data,  num_tasks=10000):
     sns.despine()
     f.tight_layout()
     plt.show()
-    f.savefig('/raven/u/ajagadish/vanilla-llama/categorisation/figures/claude_median_block_length.png', bbox_inches='tight')
+    f.savefig(f'{SYS_PATH}/categorisation/figures/claude_median_block_length.png', bbox_inches='tight')
 
     # histogram of burstiness
     categories = ['original', 'shuffled']
@@ -818,7 +820,7 @@ def plot_burstiness_training_curriculum(data,  num_tasks=10000):
     sns.despine()
     f.tight_layout()
     plt.show()
-    f.savefig('/raven/u/ajagadish/vanilla-llama/categorisation/figures/claude_burstiness_histogram.png', bbox_inches='tight')
+    f.savefig(f'{SYS_PATH}/categorisation/figures/claude_burstiness_histogram.png', bbox_inches='tight')
 
     # compare variance of burstiness
     categories = ['original', 'shuffled']
@@ -838,7 +840,7 @@ def plot_burstiness_training_curriculum(data,  num_tasks=10000):
     sns.despine()
     f.tight_layout()
     plt.show()
-    f.savefig('/raven/u/ajagadish/vanilla-llama/categorisation/figures/claude_burstiness.png', bbox_inches='tight')
+    f.savefig(f'{SYS_PATH}/categorisation/figures/claude_burstiness.png', bbox_inches='tight')
 
 def plot_frequency_tasklabels(file_name, path='/u/ajagadish/vanilla-llama/categorisation/data/tasklabels', feature_names=True, pairs=True, top_labels=50):
 
@@ -877,6 +879,6 @@ def plot_frequency_tasklabels(file_name, path='/u/ajagadish/vanilla-llama/catego
     f.tight_layout()
     plt.show()
     
-    f.savefig(f'/raven/u/ajagadish/vanilla-llama/categorisation/figures/frequency_plot_tasklabels_{column_name}_paired={pairs}_top{top_labels}.png', bbox_inches='tight', dpi=300)
+    f.savefig(f'{SYS_PATH}/categorisation/figures/frequency_plot_tasklabels_{column_name}_paired={pairs}_top{top_labels}.png', bbox_inches='tight', dpi=300)
 
 

@@ -135,10 +135,9 @@ class GeneralizedContextModel():
 
             for trial_id in range(num_trials):
                 df_trial = df_task[(df_task['trial'] == trial_id)]
-                choice = categories[df_trial.choice.item()]
+                choice = categories[df_trial.choice.item()] if df_trial.choice.item() in categories else df_trial.choice.item()
             
-                #TODO: need use true category and not choice
-                true_choice = categories[df_trial.correct_choice.item()]
+                true_choice = categories[df_trial.correct_choice.item()] if df_trial.correct_choice.item() in categories else df_trial.correct_choice.item()
 
                 # load num features of the current stimuli
                 current_stimuli = df_trial[['feature{}'.format(i+1) for i in range(self.num_features)]].values

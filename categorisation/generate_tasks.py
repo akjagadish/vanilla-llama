@@ -115,7 +115,7 @@ if __name__ == "__main__":
     parser.add_argument("--path-tasklabels", type=str, required=False, default='/raven/u/ajagadish/vanilla-llama/categorisation/data/tasklabels')
     parser.add_argument("--file-name-tasklabels", type=str, required=False, default=None)
     parser.add_argument("--start-task-id", type=int, required=False, default=0)
-    parser.add_argument("--two-stage", action="store_true", required=False, default=False)
+    parser.add_argument('--stage', type=int, default=0, help='stage of prompt generation')
 
     args = parser.parse_args()
     start_loading = time.time()
@@ -173,7 +173,7 @@ if __name__ == "__main__":
                 instructions = retrieve_prompt('claude', version=f'v{prompt_version}', num_dim=num_dim, num_data=num_data, features=features, categories=categories)
            
            ## generate tasks in one or two stages
-            if args.two_stage:
+            if args.stage == 2:
                 with open(f"data/raw_data/{run_gpt}_generated_tasks_params{args.model}_dim{num_dim}_data{num_data}_tasks{num_tasks}_run{run}_procid{proc_id}_pversion{prompt_version}_stage1_starttaskid{start_task_id}_raw.txt", "rb") as fp:   
                     stage1_action = pickle.load(fp)[idx]
                 matches = check_if_parsable(stage1_action, patterns)
@@ -196,8 +196,7 @@ if __name__ == "__main__":
             
             # save data using pickle
             filename = f'{run_gpt}_generated_tasks_params{args.model}_dim{num_dim}_data{num_data}_tasks{num_tasks}_run{run}_procid{proc_id}_pversion{prompt_version}'
-            if args.two_stage:
-                filename += f'_stage{'2' if args.two_stage else '1'}'
+            filename += f"_stage{str(args.stage)}" if args.stage > 0 else ""
             with open(f"data/parsed/{filename}.txt", "wb") as fp:   
                 pickle.dump(data, fp)
 

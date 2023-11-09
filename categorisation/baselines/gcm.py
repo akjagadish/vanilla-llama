@@ -214,6 +214,9 @@ class GeneralizedContextModel():
         return:
         p: probability of each category
         """
-        p = np.exp(b * s) / np.sum(np.exp(b * s))
         
+        assert len(s) == 2, "number of categories must be 2"
+        weighted_similarities = np.array([b, 1-b]) * s
+        p = weighted_similarities / np.sum(weighted_similarities)
+
         return p

@@ -136,7 +136,6 @@ class PrototypeModel():
                 df_trial = df_task[(df_task['trial'] == trial_id)]
                 choice = categories[df_trial.choice.item()]
             
-                #TODO: need use true category and not choice
                 true_choice = categories[df_trial.correct_choice.item()]
 
                 # load num features of the current stimuli
@@ -196,6 +195,7 @@ class PrototypeModel():
         s: similarity between current stimuli and stimuli seen so far 
         """
         weights, sensitivity = params
+       
         # compute distance between stimuli vectors with features weighted by attention weights with broadcasting
         d = np.mean(weights.reshape((1,-1)) @ (np.abs(y-x) ** self.distance_measure).T, axis=1)
         # take root of the distance measure
@@ -215,6 +215,9 @@ class PrototypeModel():
         return:
         p: probability of each category
         """
-        p = np.exp(b * s) / np.sum(np.exp(b * s))
         
+        assert len(s) == 2, "number of categories must be 2"
+        weighted_similarities = np.array([b, 1-b]) * s
+        p = weighted_similarities / np.sum(weighted_similarities)
+
         return p

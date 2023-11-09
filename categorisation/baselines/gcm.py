@@ -17,7 +17,7 @@ class GeneralizedContextModel():
     
     def __init__(self, num_features=4, distance_measure=1, num_iterations=1):
         
-        self.bounds = [(0, 20), # sensitivity
+        self.bounds = [(0, 10.), # sensitivity
                        (0, 1), # bias
                        ]     
         self.weight_bound = [(0, 1)] # weights
@@ -149,6 +149,57 @@ class GeneralizedContextModel():
                 stimuli_seen[true_choice].append(current_stimuli)
     
         return -ll
+
+    def compute_nll_transfer(self, params, df_train, df_transfer):
+        """ compute negative log likelihood of the data given the parameters
+
+        args:
+        params: parameters of the model
+        df_train: dataframe containing the training data
+        df_transfer: dataframe containing the transfer data
+
+        returns:
+        negative log likelihood of the data given the parameters
+        """
+       
+        ll = 0.
+        num_categories = df_train['category'].nunique()
+        stimuli_seen = [df_train[df_train['category'] == i][['x{}'.format(i+1) for i in range(self.num_features)]].values for i in range(num_categories)]
+        stimuli_seen = [np.expand_dims(stimuli_seen[i], axis=1) for i in range(num_categories)]
+
+        for trial_id in df_transfer.trial_id.values:
+            df_trial = df_transfer[(df_transfer['trial_id'] == trial_id)]
+            choice = df_trial['category'].item()
+            current_stimuli = df_trial[['x{}'.format(i+1) for i in range(self.num_features)]].values
+            ll += self.gcm(params, current_stimuli, stimuli_seen, choice)
+
+        return -2*ll
+        
+    def benchmark_gcm(self, df_train, df_transfer):
+        """ fit gcm to training data and transfer to new data 
+        
+        args:
+        df_train: dataframe containing the training data
+        df_transfer: dataframe containing the transfer data
+        
+        returns:
+        nll: negative log likelihood for each participant"""
+
+        self.bounds.extend(self.weight_bound * self.num_features)
+        constraint_obj = {'type': 'eq', 'fun': self.constraint}
+        result = minimize(
+                fun=self.compute_nll_transfer,
+                x0=[np.random.uniform(x, y) for x, y in self.bounds],
+                args=(df_train, df_transfer),
+                bounds=self.bounds,
+                constraints=constraint_obj
+            )
+        if result.success:
+            print("The optimiser converged successfully.")
+        else:
+            Warning("The optimiser did not converge.")
+
+        return result.x
 
     def gcm(self, params, current_stimuli, stimuli_seen, choice):
         """ return log likelihood of the choice given the stimuli and stimuli seen so far

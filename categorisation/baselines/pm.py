@@ -198,6 +198,11 @@ class PrototypeModel():
         else:
             Warning("The optimiser did not converge.")
 
+        log_likelihood = -self.compute_nll_transfer(result.x, df_train, df_transfer)/2
+        r2 = 1 - (log_likelihood/(len(df_transfer)*np.log(1/2)))
+        print(f'fitted log-likelihood: {log_likelihood}')
+        print(f'fitted pseudo-r2: {r2} \n')
+
         return result.x
 
     def prototype_model(self, params, current_stimuli, stimuli_seen, choice):
@@ -231,7 +236,8 @@ class PrototypeModel():
         category_probabilities = self.compute_category_probabilities(category_similarity, bias)
         
         # compute log likelihood
-        log_likelihood = np.log(category_probabilities[choice])
+        epsilon = 1e-10
+        log_likelihood = np.log(category_probabilities[choice]+epsilon)
 
         return log_likelihood
     
@@ -269,6 +275,8 @@ class PrototypeModel():
         
         assert len(s) == 2, "number of categories must be 2"
         weighted_similarities = np.array([b, 1-b]) * s
-        p = weighted_similarities / np.sum(weighted_similarities)
+        epsilon = 1e-10
+        sum_weighted_similarities = np.sum(weighted_similarities)
+        p = weighted_similarities / (sum_weighted_similarities + epsilon)
 
         return p

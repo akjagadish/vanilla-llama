@@ -175,7 +175,7 @@ class GeneralizedContextModel():
 
         return -2*ll
         
-    def benchmark_gcm(self, df_train, df_transfer):
+    def benchmark(self, df_train, df_transfer):
         """ fit gcm to training data and transfer to new data 
         
         args:

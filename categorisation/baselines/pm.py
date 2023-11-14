@@ -22,7 +22,7 @@ class PrototypeModel():
         self.distance_measure = distance_measure  
         self.num_iterations = num_iterations
         self.num_features = num_features
-        self.prototypes = [[[0.5, 0.5, 0.5]], [[0.5, 0.5, 0.5]]] if prototypes is None else prototypes
+        self.prototypes = [np.ones(num_features) * 0.5, np.ones(num_features) * 0.5] if prototypes is None else prototypes
 
     def loo_nll(self, df):
         """ compute negative log likelihood for left out participants
@@ -148,6 +148,57 @@ class PrototypeModel():
                 stimuli_seen[true_choice].append(current_stimuli)
     
         return -ll
+    
+    def compute_nll_transfer(self, params, df_train, df_transfer):
+        """ compute negative log likelihood of the data given the parameters
+
+        args:
+        params: parameters of the model
+        df_train: dataframe containing the training data
+        df_transfer: dataframe containing the transfer data
+
+        returns:
+        negative log likelihood of the data given the parameters
+        """
+       
+        ll = 0.
+        num_categories = df_train['category'].nunique()
+        stimuli_seen = [df_train[df_train['category'] == i][['x{}'.format(i+1) for i in range(self.num_features)]].values for i in range(num_categories)]
+        stimuli_seen = [np.expand_dims(stimuli_seen[i], axis=1) for i in range(num_categories)]
+
+        for trial_id in df_transfer.trial_id.values:
+            df_trial = df_transfer[(df_transfer['trial_id'] == trial_id)]
+            choice = df_trial['category'].item()
+            current_stimuli = df_trial[['x{}'.format(i+1) for i in range(self.num_features)]].values
+            ll += self.prototype_model(params, current_stimuli, stimuli_seen, choice)
+
+        return -2*ll
+        
+    def benchmark(self, df_train, df_transfer):
+        """ fit pm to training data and transfer to new data 
+        
+        args:
+        df_train: dataframe containing the training data
+        df_transfer: dataframe containing the transfer data
+        
+        returns:
+        nll: negative log likelihood for each participant"""
+
+        self.bounds.extend(self.weight_bound * self.num_features)
+        constraint_obj = {'type': 'eq', 'fun': self.constraint}
+        result = minimize(
+                fun=self.compute_nll_transfer,
+                x0=[np.random.uniform(x, y) for x, y in self.bounds],
+                args=(df_train, df_transfer),
+                bounds=self.bounds,
+                constraints=constraint_obj
+            )
+        if result.success:
+            print("The optimiser converged successfully.")
+        else:
+            Warning("The optimiser did not converge.")
+
+        return result.x
 
     def prototype_model(self, params, current_stimuli, stimuli_seen, choice):
         """ return log likelihood of the choice given the stimuli and stimuli seen so far

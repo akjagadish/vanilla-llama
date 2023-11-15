@@ -49,7 +49,7 @@ class PrototypeModel():
         return nll
 
     def fit_participants(self, df):
-        """ fit gcm to individual participants and compute negative log likelihood 
+        """ fit pm to individual participants and compute negative log likelihood 
         
         args:
         df: dataframe containing the data
@@ -165,12 +165,11 @@ class PrototypeModel():
             stimuli_seen = [[] for i in range(num_categories)] # list of lists to store objects seen so far within each category
             self.prototypes = [np.array([params[2+i*self.num_features+j] for j in range(self.num_features)]) for i in range(num_categories)] if self.learn_prototypes else self.prototypes
             self.prototypes = [df_task[df_task.correct_choice==category].iloc[0][['prototype_feature{}'.format(i+1) for i in range(self.num_features)]].values for category in range(num_categories)] if self.prototypes == 'from_data' else self.prototypes
-
             for trial_id in range(num_trials):
                 df_trial = df_task[(df_task['trial'] == trial_id)]
                 choice = categories[df_trial.choice.item()] if df_trial.choice.item() in categories else df_trial.choice.item()
-                true_choice = categories[df_trial.correct_choice.item()] if df_trial.correct_choice.item() in categories else df_trial.correct_choice.item()   
-
+                true_choice = categories[df_trial.correct_choice.item()] if df_trial.correct_choice.item() in categories else df_trial.correct_choice.item()
+  
                 # load num features of the current stimuli
                 current_stimuli = df_trial[['feature{}'.format(i+1) for i in range(self.num_features)]].values
                 
@@ -181,7 +180,7 @@ class PrototypeModel():
                 stimuli_seen[true_choice].append(current_stimuli)
     
         return -ll
-    
+
     def compute_nll_transfer(self, params, df_train, df_transfer):
         """ compute negative log likelihood of the data given the parameters
 
@@ -251,12 +250,11 @@ class PrototypeModel():
         log likelihood of the choice given the stimuli and stimuli seen so far
         """
     
-        sensitivity, bias = params[:2] 
+        sensitivity, bias = params[:2]
         weights = params[2+self.num_features*self.num_categories:] if self.learn_prototypes else params[2:]
-        num_categories = len(self.prototypes)
-        category_similarity = np.zeros(num_categories)
+        category_similarity = np.zeros(self.num_categories)
        
-        for for_category in range(num_categories):
+        for for_category in range(self.num_categories):
             if len(stimuli_seen[for_category]) == 0:
                 # if no stimuli seen yet within category, similarity is set to unseen similarity
                 category_similarity[for_category] = bias
@@ -310,5 +308,5 @@ class PrototypeModel():
         epsilon = 1e-10
         sum_weighted_similarities = np.sum(weighted_similarities)
         p = weighted_similarities / (sum_weighted_similarities + epsilon)
-
+        
         return p

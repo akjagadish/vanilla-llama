@@ -15,7 +15,7 @@ import ipdb
 class GeneralizedContextModel():
     """ Generalized Context Model (GCM) """
     
-    def __init__(self, num_features=4, distance_measure=1, num_iterations=1, burn_in=False):
+    def __init__(self, num_features=4, num_categories=2, distance_measure=1, num_iterations=1, burn_in=False):
         
         self.bounds = [(0, 100.), # sensitivity
                        (0, 1), # bias
@@ -24,6 +24,7 @@ class GeneralizedContextModel():
         self.distance_measure = distance_measure  
         self.num_iterations = num_iterations
         self.num_features = num_features
+        self.num_categories = num_categories
         self.burn_in = burn_in
 
     def loo_nll(self, df):
@@ -160,10 +161,8 @@ class GeneralizedContextModel():
             for trial_id in range(num_trials):
                 df_trial = df_task[(df_task['trial'] == trial_id)]
                 choice = categories[df_trial.choice.item()] if df_trial.choice.item() in categories else df_trial.choice.item()
-            
                 true_choice = categories[df_trial.correct_choice.item()] if df_trial.correct_choice.item() in categories else df_trial.correct_choice.item()
   
-
                 # load num features of the current stimuli
                 current_stimuli = df_trial[['feature{}'.format(i+1) for i in range(self.num_features)]].values
                 
@@ -246,15 +245,15 @@ class GeneralizedContextModel():
     
         sensitivity, bias = params[:2]
         weights = params[2:]
-        category_similarity = np.zeros(len(stimuli_seen))
+        category_similarity = np.zeros(self.num_categories)
        
-        for idx in range(len(stimuli_seen)):
-            if len(stimuli_seen[idx]) == 0:
+        for for_category in range(self.num_categories):
+            if len(stimuli_seen[for_category]) == 0:
                 # if no stimuli seen yet within category, similarity is set to unseen similarity
-                category_similarity[idx] = bias
+                category_similarity[for_category] = bias
             else:
                 # compute attention weighted similarity measure
-                category_similarity[idx] = self.compute_attention_weighted_similarity(current_stimuli, np.stack(stimuli_seen[idx]), (weights, sensitivity))
+                category_similarity[for_category] = self.compute_attention_weighted_similarity(current_stimuli, np.stack(stimuli_seen[for_category]), (weights, sensitivity))
 
         # compute category probabilities
         category_probabilities = self.compute_category_probabilities(category_similarity, bias)

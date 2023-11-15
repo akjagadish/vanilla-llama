@@ -13,15 +13,20 @@ import ipdb
 class PrototypeModel():
     """ Prototype model for categorisation task """
     
-    def __init__(self, prototypes=None, num_features=3, distance_measure=1, num_iterations=1):
+    def __init__(self, prototypes=None, num_features=3, num_categories=2, distance_measure=1, num_iterations=1, burn_in=False, learn_prototypes=False):
         
-        self.bounds = [(0, 20), # sensitivity
+        self.bounds = [(0, 100.), # sensitivity
                        (0, 1), # bias
                        ]     
         self.weight_bound = [(0, 1)] # weights
         self.distance_measure = distance_measure  
         self.num_iterations = num_iterations
         self.num_features = num_features
+        self.num_categories = num_categories
+        self.burn_in = burn_in
+        self.learn_prototypes = learn_prototypes
+        if self.learn_prototypes:
+            self.bounds.extend(self.weight_bound * self.num_features * self.num_categories)
         self.prototypes = [np.ones(num_features) * 0.5, np.ones(num_features) * 0.5] if prototypes is None else prototypes
 
     def loo_nll(self, df):
@@ -64,6 +69,30 @@ class PrototypeModel():
             r2[idx] = 1 - (log_likelihood[idx]/(num_trials*np.log(1/2)))
         
         return log_likelihood, r2
+    
+    def fit_metalearner(self, df):
+        """ fit pm to individual meta-learning model runs and compute negative log likelihood 
+        
+        args:
+        df: dataframe containing the data
+        
+        returns:
+        nll: negative log likelihood for each participant"""
+
+        num_task_features = len(df['task_feature'].unique())
+        log_likelihood, r2 = np.zeros(num_task_features), np.zeros(num_task_features)
+        self.bounds.extend(self.weight_bound * self.num_features)
+
+        for idx, participant_id in enumerate(df['task_feature'].unique()):
+            df_participant = df[(df['task_feature'] == participant_id)]
+            best_params = self.fit_parameters(df_participant)
+            log_likelihood[idx] = -self.compute_nll(best_params, df_participant)
+            num_trials = (df_participant.trial.max()+1)*(df_participant.task.max()+1)*0.5 if self.burn_in else (df_participant.trial.max()+1)*(df_participant.task.max()+1)
+            r2[idx] = 1 - (log_likelihood[idx]/(num_trials*np.log(1/2)))
+            if self.learn_prototypes:
+                print('fitted parameters for task_level {}: c {}, bias {}, w11 {}, w12 {}, w13 {}, w21 {}, w22 {}, w23 {}, w1 {}, w2 {}, w3{}'.format(participant_id, *best_params))
+            else:
+                print('fitted parameters for task_level {}: c {}, bias {}, w1 {}, w2 {}, w3 {}'.format(participant_id, *best_params))
         
         return log_likelihood, r2
 
@@ -112,7 +141,7 @@ class PrototypeModel():
     def constraint(self, params):
         """ define the constraint that the weights must sum to 1 """
         
-        return np.sum(params[2:]) - 1
+        return np.sum(params[2+self.num_features*self.num_categories:]) - 1 if self.learn_prototypes else  np.sum(params[2:]) - 1
 
     def compute_nll(self, params, df):
         """ compute negative log likelihood of the data given the parameters 
@@ -134,18 +163,19 @@ class PrototypeModel():
             df_task = df[(df['task'] == task_id)]
             num_trials = df_task['trial'].max() + 1
             stimuli_seen = [[] for i in range(num_categories)] # list of lists to store objects seen so far within each category
+            self.prototypes = [np.array([params[2+i*self.num_features+j] for j in range(self.num_features)]) for i in range(num_categories)] if self.learn_prototypes else self.prototypes
+            self.prototypes = [df_task[df_task.correct_choice==category].iloc[0][['prototype_feature{}'.format(i+1) for i in range(self.num_features)]].values for category in range(num_categories)] if self.prototypes == 'from_data' else self.prototypes
 
             for trial_id in range(num_trials):
                 df_trial = df_task[(df_task['trial'] == trial_id)]
-                choice = categories[df_trial.choice.item()]
-            
-                true_choice = categories[df_trial.correct_choice.item()]
+                choice = categories[df_trial.choice.item()] if df_trial.choice.item() in categories else df_trial.choice.item()
+                true_choice = categories[df_trial.correct_choice.item()] if df_trial.correct_choice.item() in categories else df_trial.correct_choice.item()   
 
                 # load num features of the current stimuli
                 current_stimuli = df_trial[['feature{}'.format(i+1) for i in range(self.num_features)]].values
                 
                 # given stimuli and list of objects seen so far within cateogry return probablity the object belongs to each category 
-                ll += self.prototype_model(params, current_stimuli, stimuli_seen, choice)
+                ll += 0 if (self.burn_in and (trial_id<int(num_trials/2))) else self.prototype_model(params, current_stimuli, stimuli_seen, choice)
 
                 # update stimuli seen
                 stimuli_seen[true_choice].append(current_stimuli)
@@ -221,8 +251,8 @@ class PrototypeModel():
         log likelihood of the choice given the stimuli and stimuli seen so far
         """
     
-        sensitivity, bias = params[:2]
-        weights = params[2:]
+        sensitivity, bias = params[:2] 
+        weights = params[2+self.num_features*self.num_categories:] if self.learn_prototypes else params[2:]
         num_categories = len(self.prototypes)
         category_similarity = np.zeros(num_categories)
        
@@ -232,7 +262,6 @@ class PrototypeModel():
                 category_similarity[for_category] = bias
             else:
                 # compute attention weighted similarity measure
-                
                 category_similarity[for_category] = self.compute_attention_weighted_similarity(current_stimuli, np.stack(self.prototypes[for_category]), (weights, sensitivity))
 
         # compute category probabilities

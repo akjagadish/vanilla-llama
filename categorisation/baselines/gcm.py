@@ -15,15 +15,16 @@ import ipdb
 class GeneralizedContextModel():
     """ Generalized Context Model (GCM) """
     
-    def __init__(self, num_features=4, distance_measure=1, num_iterations=1):
+    def __init__(self, num_features=4, distance_measure=1, num_iterations=1, burn_in=False):
         
-        self.bounds = [(0, 10.), # sensitivity
+        self.bounds = [(0, 100.), # sensitivity
                        (0, 1), # bias
                        ]     
         self.weight_bound = [(0, 1)] # weights
         self.distance_measure = distance_measure  
         self.num_iterations = num_iterations
         self.num_features = num_features
+        self.burn_in = burn_in
 
     def loo_nll(self, df):
         """ compute negative log likelihood for left out participants
@@ -61,7 +62,31 @@ class GeneralizedContextModel():
             df_participant = df[(df['participant'] == participant_id)]
             best_params = self.fit_parameters(df_participant)
             log_likelihood[idx] = -self.compute_nll(best_params, df_participant)
-            r2[idx] = 1 - (log_likelihood[idx]/(df_participant.trial.max()*np.log(1/2)))
+            num_trials = df_participant.trial.max()*0.5 if self.burn_in else df_participant.trial.max()
+            r2[idx] = 1 - (log_likelihood[idx]/(num_trials*np.log(1/2)))
+        
+        return log_likelihood, r2
+    
+    def fit_metalearner(self, df):
+        """ fit gcm to individual meta-learning model runs and compute negative log likelihood 
+        
+        args:
+        df: dataframe containing the data
+        
+        returns:
+        nll: negative log likelihood for each participant"""
+
+        num_task_features = len(df['task_feature'].unique())
+        log_likelihood, r2 = np.zeros(num_task_features), np.zeros(num_task_features)
+        self.bounds.extend(self.weight_bound * self.num_features)
+
+        for idx, participant_id in enumerate(df['task_feature'].unique()):
+            df_participant = df[(df['task_feature'] == participant_id)]
+            best_params = self.fit_parameters(df_participant)
+            log_likelihood[idx] = -self.compute_nll(best_params, df_participant)
+            num_trials = (df_participant.trial.max()+1)*(df_participant.task.max()+1)*0.5 if self.burn_in else (df_participant.trial.max()+1)*(df_participant.task.max()+1)
+            r2[idx] = 1 - (log_likelihood[idx]/(num_trials*np.log(1/2)))
+            print('fitted parameters for task_level {}: c {}, bias {}, w1 {}, w2 {}, w3 {}'.format(participant_id, *best_params))
         
         return log_likelihood, r2
 
@@ -125,25 +150,25 @@ class GeneralizedContextModel():
    
         ll = 0.
         num_tasks = df['task'].max() + 1
-        num_trials = df['trial'].max() + 1
         num_categories = df['choice'].nunique()
-        stimuli_seen = [[] for i in range(num_categories)] # list of lists to store objects seen so far within each category
         categories = {'j': 0, 'f': 1}
 
         for task_id in range(num_tasks):
             df_task = df[(df['task'] == task_id)]
-
+            num_trials = df_task['trial'].max() + 1
+            stimuli_seen = [[] for i in range(num_categories)] # list of lists to store objects seen so far within each category
             for trial_id in range(num_trials):
                 df_trial = df_task[(df_task['trial'] == trial_id)]
                 choice = categories[df_trial.choice.item()] if df_trial.choice.item() in categories else df_trial.choice.item()
             
                 true_choice = categories[df_trial.correct_choice.item()] if df_trial.correct_choice.item() in categories else df_trial.correct_choice.item()
+  
 
                 # load num features of the current stimuli
                 current_stimuli = df_trial[['feature{}'.format(i+1) for i in range(self.num_features)]].values
                 
                 # given stimuli and list of objects seen so far within cateogry return probablity the object belongs to each category 
-                ll += self.gcm(params, current_stimuli, stimuli_seen, choice)
+                ll += 0 if (self.burn_in and (trial_id<int(num_trials/2))) else self.gcm(params, current_stimuli, stimuli_seen, choice)
 
                 # update stimuli seen
                 stimuli_seen[true_choice].append(current_stimuli)

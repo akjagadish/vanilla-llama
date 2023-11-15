@@ -124,13 +124,13 @@ class PrototypeModel():
    
         ll = 0.
         num_tasks = df['task'].max() + 1
-        num_trials = df['trial'].max() + 1
         num_categories = df['choice'].nunique()
-        stimuli_seen = [[] for i in range(num_categories)] # list of lists to store objects seen so far within each category
         categories = {'j': 0, 'f': 1}
 
         for task_id in range(num_tasks):
             df_task = df[(df['task'] == task_id)]
+            num_trials = df_task['trial'].max() + 1
+            stimuli_seen = [[] for i in range(num_categories)] # list of lists to store objects seen so far within each category
 
             for trial_id in range(num_trials):
                 df_trial = df_task[(df_task['trial'] == trial_id)]

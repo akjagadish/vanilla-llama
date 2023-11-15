@@ -60,7 +60,10 @@ class PrototypeModel():
             df_participant = df[(df['participant'] == participant_id)]
             best_params = self.fit_parameters(df_participant)
             log_likelihood[idx] = -self.compute_nll(best_params, df_participant)
-            r2[idx] = 1 - (log_likelihood[idx]/(df_participant.trial.max()*np.log(1/2)))
+            num_trials = df_participant.trial.max()*0.5 if self.burn_in else df_participant.trial.max()
+            r2[idx] = 1 - (log_likelihood[idx]/(num_trials*np.log(1/2)))
+        
+        return log_likelihood, r2
         
         return log_likelihood, r2
 

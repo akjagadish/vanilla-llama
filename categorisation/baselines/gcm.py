@@ -92,7 +92,7 @@ class GeneralizedContextModel():
         return log_likelihood, r2
 
 
-    def fit_parameters(self, df):
+    def fit_parameters(self, df, reduce='sum'):
         """ fit parameters using scipy optimiser 
         
         args:
@@ -110,7 +110,7 @@ class GeneralizedContextModel():
             result = minimize(
                 fun=self.compute_nll,
                 x0=[np.random.uniform(x, y) for x, y in self.bounds],
-                args=(df),
+                args=(df, reduce),
                 bounds=self.bounds,
                 constraints=constraint_obj
             )
@@ -137,8 +137,8 @@ class GeneralizedContextModel():
         """ define the constraint that the weights must sum to 1 """
         
         return np.sum(params[2:]) - 1
-
-    def compute_nll(self, params, df):
+    
+    def compute_nll(self, params, df, reduce):
         """ compute negative log likelihood of the data given the parameters 
         
         args:
@@ -151,7 +151,6 @@ class GeneralizedContextModel():
    
         ll = 0.
         num_tasks = df['task'].max() + 1
-        num_categories = df['choice'].nunique()
         categories = {'j': 0, 'f': 1}
 
         for task_id in range(num_tasks):
@@ -167,7 +166,7 @@ class GeneralizedContextModel():
                 current_stimuli = df_trial[['feature{}'.format(i+1) for i in range(self.num_features)]].values
                 
                 # given stimuli and list of objects seen so far within cateogry return probablity the object belongs to each category 
-                ll += 0 if (self.burn_in and (trial_id<int(num_trials/2))) else self.gcm(params, current_stimuli, stimuli_seen, choice)
+                ll += 0 if (self.burn_in and (trial_id<int(num_trials/2))) else self.gcm(params, current_stimuli, stimuli_seen, choice, reduce=reduce)
 
                 # update stimuli seen
                 stimuli_seen[true_choice].append(current_stimuli)
@@ -229,7 +228,7 @@ class GeneralizedContextModel():
 
         return result.x
 
-    def gcm(self, params, current_stimuli, stimuli_seen, choice):
+    def gcm(self, params, current_stimuli, stimuli_seen, choice, reduce='sum'):
         """ return log likelihood of the choice given the stimuli and stimuli seen so far
          
         args:
@@ -252,7 +251,7 @@ class GeneralizedContextModel():
                 category_similarity[for_category] = bias
             else:
                 # compute attention weighted similarity measure
-                category_similarity[for_category] = self.compute_attention_weighted_similarity(current_stimuli, np.stack(stimuli_seen[for_category]), (weights, sensitivity))
+                category_similarity[for_category] = self.compute_attention_weighted_similarity(current_stimuli, np.stack(stimuli_seen[for_category]), (weights, sensitivity), reduce=reduce)
 
         # compute category probabilities
         category_probabilities = self.compute_category_probabilities(category_similarity, bias)
@@ -263,7 +262,7 @@ class GeneralizedContextModel():
 
         return log_likelihood
     
-    def compute_attention_weighted_similarity(self, x, y, params):
+    def compute_attention_weighted_similarity(self, x, y, params, reduce='sum'):
         """ compute attention weighted similarity between current stimuli and stimuli seen so far 
         args:
         x: current stimuli
@@ -276,12 +275,13 @@ class GeneralizedContextModel():
         weights, sensitivity = params
        
         # compute distance between stimuli vectors with features weighted by attention weights with broadcasting
-        d = np.mean(weights.reshape((1,-1)) @ (np.abs(y.squeeze(1)-x) ** self.distance_measure).T, axis=1)
+        #d = np.mean(weights.reshape((1,-1)) @ (np.abs(y.squeeze(1)-x) ** self.distance_measure).T, axis=1)
+        d = weights.reshape((1,-1)) @ (np.abs(y.squeeze(1)-x) ** self.distance_measure).T
         # take root of the distance measure
         d = d ** (1 / self.distance_measure)
         # compute similarity
         s = np.exp(-sensitivity * d)
-
+        s = np.sum(s, axis=1) if reduce == 'sum' else np.mean(s, axis=1)
         return s
     
     def compute_category_probabilities(self, s, b):

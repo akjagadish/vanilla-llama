@@ -34,8 +34,8 @@ sys.path.append('../')
 ## fit gcm model to meta-learning model choices
 df = pd.read_csv('../data/meta_learner/shepard_categorisation_env=claude_generated_tasks_paramsNA_dim3_data100_tasks11518_pversion4_model=transformer_num_episodes500000_num_hidden=256_lr0.0003_num_layers=6_d_model=64_num_head=8_noise0.0_shuffleTrue_run=0_beta=0.3_num_trials=96_num_runs=1.csv') 
 gcm = GeneralizedContextModel(num_features=3, distance_measure=1, num_iterations=1)
-gcm.burn_in = True
-ll, r2 = gcm.fit_metalearner(df)
+# gcm.burn_in = True
+ll, r2 = gcm.fit_metalearner(df, num_blocks=6, reduce='sum')
 print(ll, r2)
 print(f'mean log-likelihood across participants: {ll.mean()} \n')
 print(f'mean pseudo-r2 across participants: {r2.mean()}')

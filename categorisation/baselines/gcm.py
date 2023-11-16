@@ -83,12 +83,12 @@ class GeneralizedContextModel():
 
         for idx, participant_id in enumerate(df['task_feature'].unique()):
             df_participant = df[(df['task_feature'] == participant_id)]
-            num_trials_per_block = df_participant.trial.max()/num_blocks
+            num_trials_per_block = int(df_participant.trial.max()/num_blocks)
             for b_idx, block in enumerate(range(num_blocks)):
-                df_participant_block = df_participant[(df_participant['trial'] < (block+1)*num_trials_per_block)]
+                df_participant_block = df_participant[(df_participant['trial'] < (block+1)*num_trials_per_block)]# & (df_participant['trial'] >= block*num_trials_per_block)]
                 best_params = self.fit_parameters(df_participant_block, reduce)
                 log_likelihood[idx, b_idx] = -self.compute_nll(best_params, df_participant_block, reduce)
-                num_trials = (df_participant_block.trial.max()+1)*(df_participant_block.task.max()+1)
+                num_trials = len(df_participant_block)*(df_participant_block.task.max()+1)
                 num_trials = num_trials*0.5 if self.burn_in else num_trials
                 r2[idx, b_idx] = 1 - (log_likelihood[idx, b_idx]/(num_trials*np.log(1/2)))
                 print('fitted parameters for task_level {}, block {}: c {}, bias {}, w1 {}, w2 {}, w3 {}'.format(participant_id, block, *best_params))
@@ -161,7 +161,7 @@ class GeneralizedContextModel():
             df_task = df[(df['task'] == task_id)]
             num_trials = df_task['trial'].max() + 1
             stimuli_seen = [[] for i in range(self.num_categories)] # list of lists to store objects seen so far within each category
-            for trial_id in range(num_trials):
+            for trial_id in df_task['trial'].values:
                 df_trial = df_task[(df_task['trial'] == trial_id)]
                 choice = categories[df_trial.choice.item()] if df_trial.choice.item() in categories else df_trial.choice.item()
                 true_choice = categories[df_trial.correct_choice.item()] if df_trial.correct_choice.item() in categories else df_trial.correct_choice.item()

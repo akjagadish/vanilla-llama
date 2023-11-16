@@ -17,7 +17,7 @@ class GeneralizedContextModel():
     
     def __init__(self, num_features=4, num_categories=2, distance_measure=1, num_iterations=1, burn_in=False):
         
-        self.bounds = [(0, 100.), # sensitivity
+        self.bounds = [(0, 10.), # sensitivity
                        (0, 1), # bias
                        ]     
         self.weight_bound = [(0, 1)] # weights
@@ -68,7 +68,7 @@ class GeneralizedContextModel():
         
         return log_likelihood, r2
     
-    def fit_metalearner(self, df):
+    def fit_metalearner(self, df, num_blocks=1, reduce='sum'):
         """ fit gcm to individual meta-learning model runs and compute negative log likelihood 
         
         args:
@@ -78,16 +78,20 @@ class GeneralizedContextModel():
         nll: negative log likelihood for each participant"""
 
         num_task_features = len(df['task_feature'].unique())
-        log_likelihood, r2 = np.zeros(num_task_features), np.zeros(num_task_features)
+        log_likelihood, r2 = np.zeros((num_task_features, num_blocks)), np.zeros((num_task_features, num_blocks))
         self.bounds.extend(self.weight_bound * self.num_features)
 
         for idx, participant_id in enumerate(df['task_feature'].unique()):
             df_participant = df[(df['task_feature'] == participant_id)]
-            best_params = self.fit_parameters(df_participant)
-            log_likelihood[idx] = -self.compute_nll(best_params, df_participant)
-            num_trials = (df_participant.trial.max()+1)*(df_participant.task.max()+1)*0.5 if self.burn_in else (df_participant.trial.max()+1)*(df_participant.task.max()+1)
-            r2[idx] = 1 - (log_likelihood[idx]/(num_trials*np.log(1/2)))
-            print('fitted parameters for task_level {}: c {}, bias {}, w1 {}, w2 {}, w3 {}'.format(participant_id, *best_params))
+            num_trials_per_block = df_participant.trial.max()/num_blocks
+            for b_idx, block in enumerate(range(num_blocks)):
+                df_participant_block = df_participant[(df_participant['trial'] < (block+1)*num_trials_per_block)]
+                best_params = self.fit_parameters(df_participant_block, reduce)
+                log_likelihood[idx, b_idx] = -self.compute_nll(best_params, df_participant_block, reduce)
+                num_trials = (df_participant_block.trial.max()+1)*(df_participant_block.task.max()+1)
+                num_trials = num_trials*0.5 if self.burn_in else num_trials
+                r2[idx, b_idx] = 1 - (log_likelihood[idx, b_idx]/(num_trials*np.log(1/2)))
+                print('fitted parameters for task_level {}, block {}: c {}, bias {}, w1 {}, w2 {}, w3 {}'.format(participant_id, block, *best_params))
         
         return log_likelihood, r2
 

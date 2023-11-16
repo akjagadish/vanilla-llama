@@ -220,8 +220,9 @@ class ShepardsTask(nn.Module):
     Categorisation task inspired by Shepard et al. (1961) for evaluating models on human performance
     """
     
-    def __init__(self, task=None, max_steps=96, num_dims=3, batch_size=64, device='cpu', noise=0., shuffle_trials=False):
+    def __init__(self, task=None, max_steps=96, num_dims=3, batch_size=64, device='cpu', noise=0., shuffle_trials=False, return_prototype=False):
         super(ShepardsTask, self).__init__()
+        
         self.device = torch.device(device)
         self.num_choices = 1 
         self.max_steps = max_steps
@@ -230,18 +231,22 @@ class ShepardsTask(nn.Module):
         self.noise = noise
         self.shuffle_trials = shuffle_trials
         self.task_type = task
+        self.return_prototype = return_prototype
 
     def sample_batch(self, task_type=1):
         task_type = self.task_type if self.task_type is not None else task_type
-        stacked_task_features, stacked_targets = self.generate_task(task_type)
+        stacked_task_features, stacked_targets, stacked_prototypes = self.generate_task(task_type)
         sequence_lengths = [len(data)for data in stacked_task_features]
         packed_inputs = rnn_utils.pad_sequence(stacked_task_features, batch_first=True)
 
-        return packed_inputs, sequence_lengths, stacked_targets
+        if self.return_prototype:
+            return packed_inputs, sequence_lengths, stacked_targets, stacked_prototypes
+        else:
+            return packed_inputs, sequence_lengths, stacked_targets
 
     def generate_task(self, task_type):
         
-        inputs_list, targets_list = [], []
+        inputs_list, targets_list, prototype_list = [], [], []
         # generate all possible combinations of features
         all_feature_combinations = np.array([[0, 0, 0], [0, 0, 1], [0, 1, 0],\
                                                 [0, 1, 1], [1, 0, 0], [1, 0, 1],\
@@ -305,8 +310,13 @@ class ShepardsTask(nn.Module):
             # stacking all the sampled data across all tasks
             inputs_list.append(torch.from_numpy(sampled_data[:, :(self.num_dims+1)]))
             targets_list.append(torch.from_numpy(sampled_data[:, [self.num_dims+1]]))
-    
-        return inputs_list, targets_list
+
+            # compute mean of each features for a category
+            prototype_list.append([np.mean(all_feature_combinations[targets==0], axis=0), np.mean(all_feature_combinations[targets==1], axis=0)])
+
+     
+        return inputs_list, targets_list, prototype_list  
+       
         
 
 class NosofskysTask(nn.Module):

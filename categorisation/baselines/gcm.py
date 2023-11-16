@@ -157,7 +157,7 @@ class GeneralizedContextModel():
         for task_id in range(num_tasks):
             df_task = df[(df['task'] == task_id)]
             num_trials = df_task['trial'].max() + 1
-            stimuli_seen = [[] for i in range(num_categories)] # list of lists to store objects seen so far within each category
+            stimuli_seen = [[] for i in range(self.num_categories)] # list of lists to store objects seen so far within each category
             for trial_id in range(num_trials):
                 df_trial = df_task[(df_task['trial'] == trial_id)]
                 choice = categories[df_trial.choice.item()] if df_trial.choice.item() in categories else df_trial.choice.item()
@@ -187,9 +187,8 @@ class GeneralizedContextModel():
         """
        
         ll = 0.
-        num_categories = df_train['category'].nunique()
-        stimuli_seen = [df_train[df_train['category'] == i][['x{}'.format(i+1) for i in range(self.num_features)]].values for i in range(num_categories)]
-        stimuli_seen = [np.expand_dims(stimuli_seen[i], axis=1) for i in range(num_categories)]
+        stimuli_seen = [df_train[df_train['category'] == i][['x{}'.format(i+1) for i in range(self.num_features)]].values for i in range(self.num_categories)]
+        stimuli_seen = [np.expand_dims(stimuli_seen[i], axis=1) for i in range(self.num_categories)]
 
         for trial_id in df_transfer.trial_id.values:
             df_trial = df_transfer[(df_transfer['trial_id'] == trial_id)]

@@ -16,7 +16,7 @@ def run(env_name, num_episodes, synthetic, num_dims, max_steps, noise, shuffle, 
     if synthetic:
         env = SyntheticCategorisationTask(num_dims=num_dims, max_steps=max_steps, batch_size=batch_size, noise=noise, shuffle_trials=shuffle, device=device).to(device)
     else:
-        env = CategorisationTask(data=env_name, max_steps=max_steps, batch_size=batch_size, noise=noise, shuffle_trials=shuffle, device=device).to(device)
+        env = CategorisationTask(data=env_name, num_dims=num_dims, max_steps=max_steps, batch_size=batch_size, noise=noise, shuffle_trials=shuffle, device=device).to(device)
     
     # setup model
     model = TransformerDecoder(num_input=env.num_dims, num_output=env.num_choices, num_hidden=num_hidden, num_layers=num_layers, d_model=d_model, num_head=num_head, max_steps=max_steps, device=device).to(device) # 1, 256, 4

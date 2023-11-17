@@ -115,6 +115,7 @@ if __name__ == "__main__":
     parser.add_argument("--path-tasklabels", type=str, required=False, default='/raven/u/ajagadish/vanilla-llama/categorisation/data/tasklabels')
     parser.add_argument("--file-name-tasklabels", type=str, required=False, default=None)
     parser.add_argument("--start-task-id", type=int, required=False, default=0)
+    parser.add_argument("--end-task-id", type=int, required=False, default=None)
     parser.add_argument('--stage', type=int, default=0, help='stage of prompt generation')
 
     args = parser.parse_args()
@@ -159,7 +160,8 @@ if __name__ == "__main__":
     # run gpt models
     for run in range(num_runs):
         data, unparsable_data, raw_data, task_ids = [], [], [], []
-        for idx, t in enumerate(range(start_task_id, start_task_id+num_tasks)):
+        end_task_id = start_task_id+num_tasks if args.end_task_id is None else args.end_task_id
+        for idx, t in enumerate(range(start_task_id, end_task_id)):
 
             ## LLM acts
             if run_gpt == 'claude' and args.use_generated_tasklabels:

@@ -217,7 +217,7 @@ class SyntheticCategorisationTask(nn.Module):
 
 class ShepardsTask(nn.Module):
     """
-    Categorisation task inspired by Shepard et al. (1961) for evaluating models on human performance
+    Categorisation task inspired by Shepard et al. (1961) for evaluating meta-learned model on six different difficulty levels of categorisation
     """
     
     def __init__(self, task=None, max_steps=96, num_dims=3, batch_size=64, device='cpu', noise=0., shuffle_trials=False, return_prototype=False):
@@ -464,3 +464,118 @@ class LeveringsTask(nn.Module):
             targets_list.append(torch.from_numpy(data[:, [self.num_dims+1]]))
     
         return inputs_list, targets_list            
+    
+
+class SmithsTask(nn.Module):
+    """
+    Categorisation task in from Smith and Minda et al. 1998 for evaluating meta-learned models on four and six-dimensional stimuli
+    based category learning tasks and studying if their behavior on the task will be more prototype or exemplar based
+    """
+    
+    def __init__(self, rule=None, num_categories=2, max_steps=392, num_dims=6, batch_size=64, device='cpu', noise=0., shuffle_trials=False, return_prototype=False):
+        super(SmithsTask, self).__init__()
+        
+        self.device = torch.device(device)
+        self.num_choices = 1 
+        self.num_categories = num_categories
+        self.max_steps = max_steps
+        self.batch_size = batch_size
+        self.num_dims = num_dims
+        self.noise = noise
+        self.shuffle_trials = shuffle_trials
+        self.rule = rule
+        self.return_prototype = return_prototype
+
+    def sample_batch(self, rule='linear'):
+        rule = self.rule if self.rule is not None else rule
+        stacked_task_features, stacked_targets, stacked_prototypes = self.generate_task(rule)
+        sequence_lengths = [len(data)for data in stacked_task_features]
+        packed_inputs = rnn_utils.pad_sequence(stacked_task_features, batch_first=True)
+
+        if self.return_prototype:
+            return packed_inputs, sequence_lengths, stacked_targets, stacked_prototypes
+        else:
+            return packed_inputs, sequence_lengths, stacked_targets
+        
+    def generate_stimuli(self, rule):
+        # empty list of stimuli for each of the self.num_categories
+        stimuli = [[] for _ in range(self.num_categories)]
+        # generate category prototypes: self.num_dims dimensional binary-valued stimuli, one with zeros and other with only ones
+        self.prototypes = np.array([np.zeros(self.num_dims), np.ones(self.num_dims)])
+        stimuli[0].append(self.prototypes[0])
+        stimuli[1].append(self.prototypes[1])
+        if rule=='linear':
+            # add two more stimuli per category which shares five features -- randomly choosen -- with prototype 
+            for cat in range(self.num_categories):
+                indices = np.random.choice(np.arange(self.num_dims), 2, replace=False)
+                for idx in range(2):
+                    stimulus = self.prototypes[cat].copy()
+                    stimulus[indices[idx]] = 1 - cat
+                    stimuli[cat].append(stimulus)
+            
+            # add four more stimuli per category which shares four features -- randomly choosen -- with prototype
+            for cat in range(self.num_categories):
+                for _ in range(4):
+                    stimulus = self.prototypes[cat].copy()
+                    stimulus[np.random.choice(np.arange(self.num_dims), 2, replace=False)] = 1 - cat
+                    stimuli[cat].append(stimulus)
+        
+        elif self.rule=='non_linear':
+            # add five more stimuli per category which shares five features -- randomly choosen -- with prototype
+            for cat in range(self.num_categories):
+                indices = np.random.choice(np.arange(self.num_dims), 5, replace=False)
+                for idx in range(5):
+                    stimulus = self.prototypes[cat].copy()
+                    stimulus[indices[idx]] = 1 - cat
+                    stimuli[cat].append(stimulus)
+            # add one stimulus with five features in common with the opposing prototype
+            for cat in range(self.num_categories):
+                stimulus = self.prototypes[1-cat].copy()
+                stimulus[np.random.choice(np.arange(self.num_dims))] = cat
+                stimuli[cat].append(stimulus)
+        
+        else:
+            raise ValueError('Rule not supported')
+        
+        assert self.num_categories==2, 'Only two categories are supported for linear rule'
+        return np.array(stimuli)
+
+
+    def generate_task(self, rule):
+        
+        inputs_list, targets_list, prototype_list = [], [], []
+        for _ in range(self.batch_size):
+            
+            # generate all possible combinations of features
+            stimuli = self.generate_stimuli(rule)
+            
+            # concatenate all stimuli into one array
+            all_feature_combinations = np.concatenate(stimuli)
+
+            # assign targets to two halves of the stimuli
+            targets = np.concatenate((np.zeros(len(stimuli[0])), np.ones(len(stimuli[1])))) 
+            targets = 1-targets if np.random.rand(1) > 0.5 else targets # flip targets to 0 or 1 based on a random number
+        
+            # add noise to selective elements of the targets
+            if self.noise > 0.:
+                targets = np.array([target if np.random.rand(1) > self.noise else 1-target for target in targets])
+            
+            # concatenate all features and targets into one array with placed holder for shifted target
+            concat_data = np.concatenate((all_feature_combinations, targets.reshape(-1, 1), targets.reshape(-1, 1)), axis=1)
+            
+            # create a new sampled data array sampling from the concatenated data array wih replacement
+            sampled_data = concat_data[np.random.choice(np.arange(concat_data.shape[0]), self.max_steps, replace=True)]
+            
+            # replace placeholder with shifted targets to the sampled data array
+            sampled_data[:, self.num_dims] = np.concatenate((np.array([0. if np.random.rand(1) > 0.5 else 1.]), sampled_data[:-1, self.num_dims]))
+            
+            # stacking all the sampled data across all tasks
+            inputs_list.append(torch.from_numpy(sampled_data[:, :(self.num_dims+1)]))
+            targets_list.append(torch.from_numpy(sampled_data[:, [self.num_dims+1]]))
+
+            # compute mean of each features for a category
+            prototype_list.append(self.prototypes) 
+
+        return inputs_list, targets_list, prototype_list  
+       
+        

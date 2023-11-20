@@ -93,6 +93,7 @@ if __name__ == "__main__":
         if args.test:
             save_dir = save_dir.replace('.pt', '_test.pt')
         if args.synthetic:
-            save_dir = save_dir.replace('.pt', '_synthetic.pt')
+            save_dir = save_dir.replace('.pt', f'_synthetic{"nonlinear" if args.nonlinear else ""}.pt')
+            print(save_dir)
         
         run(env_name, args.num_episodes, args.synthetic, args.nonlinear, args.num_dims, args.max_steps, args.noise, args.shuffle, args.print_every, args.save_every, args.num_hidden, args.num_layers, args.d_model, args.num_head, save_dir, device, args.lr, args.batch_size)

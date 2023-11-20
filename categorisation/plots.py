@@ -33,7 +33,7 @@ COLORS = {'a':'#117733',
           }
 FONTSIZE=20
 
-SYS_PATH = '/u/ajagadish/vanilla-llama/' #f'/raven/u/ajagadish/vanilla-llama
+SYS_PATH = '/u/ajagadish/vanilla-llama' #f'/raven/u/ajagadish/vanilla-llama
 
 def compare_llm_uniform_data_samples(data, random=False):
 
@@ -881,4 +881,33 @@ def plot_frequency_tasklabels(file_name, path='/u/ajagadish/vanilla-llama/catego
     
     f.savefig(f'{SYS_PATH}/categorisation/figures/frequency_plot_tasklabels_{column_name}_paired={pairs}_top{top_labels}.png', bbox_inches='tight', dpi=300)
 
-
+def evaluate_smith1998(env_name=None, experiment=None, tasks=[None], beta=1., noises=[0.05, 0.1, 0.0], shuffles=[True, False], shuffle_evals=[True, False], num_runs=5, num_trials=96, num_eval_tasks=1113, synthetic=False, run=0):
+    tasks = ['linear', 'nonlinear'] if tasks[0] is None else tasks
+    corrects = np.ones((len(tasks), len(noises), len(shuffles), len(shuffle_evals), num_eval_tasks, num_trials))
+    for t_idx, task in enumerate(tasks):
+        for n_idx, noise in enumerate(noises):
+            for s_idx, shuffle in enumerate(shuffles):
+                for se_idx, shuffle_eval in enumerate(shuffle_evals):
+                    if synthetic:
+                        model_name = f"env={env_name}_noise{noise}_shuffle{shuffle}_run=0_synthetic.pt"
+                    else:
+                        model_name = f"env={env_name}_noise{noise}_shuffle{shuffle}_run={run}.pt"
+                    model_path = f"{SYS_PATH}/categorisation/trained_models/{model_name}"
+                    corrects[t_idx, n_idx, s_idx, se_idx] = evaluate_metalearner(task, model_path, 'smith_categorisation', \
+                                                                                 beta=beta, shuffle_trials=shuffle_eval, num_runs=num_runs, num_trials=num_trials)
+                    
+    f, ax = plt.subplots(1, 1, figsize=(5,5))
+    colors = ['#173b4f', '#8b9da7']
+    task_names = ['Linear', 'Non-linear']
+    for t_idx, task in enumerate(tasks):
+        ax.plot(np.arange(num_trials), np.mean(corrects[t_idx], axis=(0,1,2,3)), label=f'{task_names[t_idx]}', lw=3, color=colors[t_idx])
+    ax.set_xlabel('Trial', fontsize=FONTSIZE)
+    ax.set_ylabel('Accuracy', fontsize=FONTSIZE)
+    plt.xticks(fontsize=FONTSIZE-2)
+    plt.yticks(fontsize=FONTSIZE-2)
+    plt.legend(fontsize=FONTSIZE-4, frameon=False,  loc="upper center", bbox_to_anchor=(.45, 1.2), ncol=3)  # place legend outside the plot
+    sns.despine()
+    f.tight_layout()
+    plt.show()      
+    f.savefig(f'{SYS_PATH}/categorisation/figures/smiths_metalearner_{model_name}.svg', bbox_inches='tight', dpi=300)
+    

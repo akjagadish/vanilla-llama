@@ -1,6 +1,6 @@
 import numpy as np
 import torch
-from envs import CategorisationTask, ShepardsTask, NosofskysTask, LeveringsTask, SyntheticCategorisationTask
+from envs import CategorisationTask, ShepardsTask, NosofskysTask, LeveringsTask, SyntheticCategorisationTask, SmithsTask
 import argparse
 from baseline_classifiers import LogisticRegressionModel, SVMModel
 
@@ -19,15 +19,16 @@ def evaluate_1d(env_name=None, model_path=None, experiment='categorisation', env
             env = NosofskysTask(task=env_name)
         elif experiment == 'levering_categorisation':
             env = LeveringsTask(task=env_name)
+        elif experiment == 'smith_categorisation':
+            env = SmithsTask(rule=env_name, max_steps=max_steps)
 
     if model is None:
         # load model
-        model = torch.load(model_path)[1].to(device)
+        model = torch.load(model_path, map_location=torch.device('cpu'))[1].to(device)
         
     with torch.no_grad():
         model.eval()
         packed_inputs, sequence_lengths, targets = env.sample_batch()
-
         model.beta = beta  # model beta is adjustable at test time
         model.device = device
         model_choices = model(packed_inputs.float().to(device), sequence_lengths)
@@ -155,7 +156,7 @@ def evaluate_metalearner(env_name, model_path, experiment='categorisation', mode
 
         _, model_choices, true_choices, sequences, category_labels = evaluate_1d(env_name=env_name,\
                     model_path=model_path, experiment=experiment, mode=mode, shuffle_trials=shuffle_trials, \
-                    beta=beta, return_all=True)
+                    beta=beta, return_all=True, max_steps=num_trials)
         
         cum_sum = np.array(sequences).cumsum()
         correct = np.ones((num_runs, len(cum_sum), np.diff(cum_sum).max())) if run_idx==0 else correct

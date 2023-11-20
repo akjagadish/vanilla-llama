@@ -520,7 +520,7 @@ class SmithsTask(nn.Module):
                     stimulus[np.random.choice(np.arange(self.num_dims), 2, replace=False)] = 1 - cat
                     stimuli[cat].append(stimulus)
         
-        elif self.rule=='non_linear':
+        elif self.rule=='nonlinear':
             # add five more stimuli per category which shares five features -- randomly choosen -- with prototype
             for cat in range(self.num_categories):
                 indices = np.random.choice(np.arange(self.num_dims), 5, replace=False)

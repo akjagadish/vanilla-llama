@@ -3,6 +3,7 @@ import pandas as pd
 import torch.nn as nn
 import torch
 import torch.nn.utils.rnn as rnn_utils
+from model_utils import MLP
 
 class CategorisationTask(nn.Module):
     """
@@ -52,6 +53,7 @@ class CategorisationTask(nn.Module):
             tasks = self.data.task_id.unique()[self.split[1]:]
         
         return tasks
+    
     def reset(self):
         """
         Reset the environment
@@ -147,7 +149,7 @@ class SyntheticCategorisationTask(nn.Module):
     """
     Generate synthetic data for the Categorisation task inspired by Shepard et al. (1961)
     """
-    def __init__(self, max_steps=8, num_dims=3, batch_size=64, mode='train', split=[0.8, 0.1, 0.1], device='cpu', num_tasks=10000, noise=0., shuffle_trials=False): 
+    def __init__(self, max_steps=8, num_dims=3, nonlinear=False, batch_size=64, mode='train', split=[0.8, 0.1, 0.1], device='cpu', num_tasks=10000, noise=0., shuffle_trials=False): 
         """ 
         Initialise the environment
         Args: 
@@ -168,13 +170,17 @@ class SyntheticCategorisationTask(nn.Module):
         self.split = (torch.tensor([split[0], split[0]+split[1], split[0]+split[1]+split[2]]) * self.num_tasks).int()
         self.noise = noise
         self.shuffle_trials = shuffle_trials
-        self.generate_synthetic_data()
+        self.nonlinear = nonlinear
+        self.generate_synthetic_data(nonlinear)
 
-    def generate_synthetic_data(self):
-    
+    def generate_synthetic_data(self, nonlinear=False):
+        
         self.x = torch.randn(self.max_steps, self.num_tasks, self.num_dims)
-        self.w = torch.randn(self.num_tasks, self.num_dims)
-        self.c = torch.sigmoid((self.x * self.w).sum(-1)).round()
+        if nonlinear:    
+            self.model = MLP(self.num_dims).to(self.device)
+        else:
+            w = torch.randn(self.num_tasks, self.num_dims)
+            self.c = torch.sigmoid((self.x * w).sum(-1)).round()
 
     def get_synthetic_data(self, mode=None):
         
@@ -189,8 +195,13 @@ class SyntheticCategorisationTask(nn.Module):
             self.batch_size = self.split[1] - self.split[0]
         elif mode == 'test':
             self.batch_size = self.split[2] - self.split[1]
-        inputs = self.x.permute(1, 0, 2)[tasks]
-        targets = self.c.permute(1, 0)[tasks]
+
+        inputs = self.x.permute(1, 0, 2)[tasks].to(self.device)
+        if self.nonlinear:
+            self.model.reset_parameters()
+            targets = self.model(inputs).squeeze(2).round()
+        else:
+            targets = self.c.permute(1, 0)[tasks]
 
         return inputs, targets
 

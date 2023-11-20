@@ -10,11 +10,11 @@ from tqdm import tqdm
 from evaluate import evaluate, evaluate_1d
 
 
-def run(env_name, num_episodes, synthetic, num_dims, max_steps, noise, shuffle, print_every, save_every, num_hidden, num_layers, d_model, num_head, save_dir, device, lr, batch_size=64):
+def run(env_name, num_episodes, synthetic, nonlinear, num_dims, max_steps, noise, shuffle, print_every, save_every, num_hidden, num_layers, d_model, num_head, save_dir, device, lr, batch_size=64):
 
     writer = SummaryWriter('runs/' + save_dir)
     if synthetic:
-        env = SyntheticCategorisationTask(num_dims=num_dims, max_steps=max_steps, batch_size=batch_size, noise=noise, shuffle_trials=shuffle, device=device).to(device)
+        env = SyntheticCategorisationTask(nonlinear=nonlinear, num_dims=num_dims, max_steps=max_steps, batch_size=batch_size, noise=noise, shuffle_trials=shuffle, device=device).to(device)
     else:
         env = CategorisationTask(data=env_name, num_dims=num_dims, max_steps=max_steps, batch_size=batch_size, noise=noise, shuffle_trials=shuffle, device=device).to(device)
     
@@ -75,6 +75,7 @@ if __name__ == "__main__":
     parser.add_argument('--save-dir', default='trained_models/', help='directory to save models')
     parser.add_argument('--test', action='store_true', default=False, help='test runs')
     parser.add_argument('--synthetic', action='store_true', default=False, help='train models on synthetic data')
+    parser.add_argument('--nonlinear', action='store_true', default=False, help='train models on nonlinear synthetic data')
     parser.add_argument('--noise', type=float, default=0., help='noise level')
     parser.add_argument('--shuffle', action='store_true', default=False, help='shuffle trials')
     parser.add_argument('--model-name', default='transformer', help='name of the model')
@@ -94,4 +95,4 @@ if __name__ == "__main__":
         if args.synthetic:
             save_dir = save_dir.replace('.pt', '_synthetic.pt')
         
-        run(env_name, args.num_episodes, args.synthetic, args.num_dims, args.max_steps, args.noise, args.shuffle, args.print_every, args.save_every, args.num_hidden, args.num_layers, args.d_model, args.num_head, save_dir, device, args.lr, args.batch_size)
+        run(env_name, args.num_episodes, args.synthetic, args.nonlinear, args.num_dims, args.max_steps, args.noise, args.shuffle, args.print_every, args.save_every, args.num_hidden, args.num_layers, args.d_model, args.num_head, save_dir, device, args.lr, args.batch_size)

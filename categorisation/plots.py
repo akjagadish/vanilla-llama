@@ -560,7 +560,7 @@ def compare_metalearners(env_name=None, model_env=None, experiment='categorisati
     f.tight_layout()
     plt.show()
 
-def evaluate_nosofsky1994(env_name=None, experiment=None, tasks=[None], beta=1., noises=[0.05, 0.1, 0.0], shuffles=[True, False], shuffle_evals=[True, False], num_runs=5, num_trials=96, num_eval_tasks=1113, synthetic=False):
+def evaluate_nosofsky1994(env_name=None, experiment=None, tasks=[None], beta=1., noises=[0.05, 0.1, 0.0], shuffles=[True, False], shuffle_evals=[True, False], num_runs=5, num_trials=96, num_eval_tasks=1113, synthetic=False, nonlinear=False, run=0):
 
     corrects = np.ones((len(tasks), len(noises), len(shuffles), len(shuffle_evals), num_eval_tasks, num_trials))
     for t_idx, task in enumerate(tasks):
@@ -568,9 +568,9 @@ def evaluate_nosofsky1994(env_name=None, experiment=None, tasks=[None], beta=1.,
             for s_idx, shuffle in enumerate(shuffles):
                 for se_idx, shuffle_eval in enumerate(shuffle_evals):
                     if synthetic:
-                        model_name = f"env={env_name}_noise{noise}_shuffle{shuffle}_run=0_synthetic.pt"
+                        model_name = f"env={env_name}_noise{noise}_shuffle{shuffle}_run={run}_synthetic{'nonlinear' if nonlinear else ''}.pt"
                     else:
-                        model_name = f"env={env_name}_noise{noise}_shuffle{shuffle}_run=0.pt"
+                        model_name = f"env={env_name}_noise{noise}_shuffle{shuffle}_run={run}.pt"
                     model_path = f"/raven/u/ajagadish/vanilla-llama/categorisation/trained_models/{model_name}"
                     corrects[t_idx, n_idx, s_idx, se_idx] = evaluate_metalearner(task, model_path, 'shepard_categorisation', \
                                                                                  beta=beta, shuffle_trials=shuffle_eval, num_runs=num_runs)
@@ -585,7 +585,7 @@ def evaluate_nosofsky1994(env_name=None, experiment=None, tasks=[None], beta=1.,
     # markers for the six types of rules in the plot: circle, cross, plus, inverted triangle, asterisk, triangle
     markers = ['o', 'x', '+', '*', 'v', '^']
     for t_idx, task in enumerate(tasks):
-        ax.plot(np.arange(num_trials), errors[t_idx].mean(0).mean(0).mean(0), label=f'Type {task}', lw=3, color=colors[t_idx])#, marker=markers[t_idx], markersize=8)
+        ax.plot(np.arange(num_trials), errors[t_idx].mean(0).mean(0).mean(0), label=f'Type {task}', lw=3, color=colors_mpi_blues[t_idx])#, marker=markers[t_idx], markersize=8)
     ax.set_xlabel('Trial', fontsize=FONTSIZE)
     ax.set_ylabel('Error rate', fontsize=FONTSIZE)
     plt.xticks(fontsize=FONTSIZE-2)
@@ -598,7 +598,7 @@ def evaluate_nosofsky1994(env_name=None, experiment=None, tasks=[None], beta=1.,
 
     f.savefig(f'{SYS_PATH}/categorisation/figures/nosofsky1994_metalearner_{model_name}.svg', bbox_inches='tight', dpi=300)
     
-def evaluate_nosofsky1988(env_name=None, experiment=1, beta=1., noises=[0.05, 0.1, 0.0], shuffles=[True, False], num_runs=5, num_trials=64, num_blocks=3, num_eval_tasks=64, synthetic=False):
+def evaluate_nosofsky1988(env_name=None, experiment=1, beta=1., noises=[0.05, 0.1, 0.0], shuffles=[True, False], num_runs=5, num_trials=64, num_blocks=3, num_eval_tasks=64, synthetic=False, nonlinear=False, run=0):
     num_trials = num_blocks*num_trials
     tasks = [[4*num_blocks, None, None], [4*num_blocks, 1, 5], [4*num_blocks, 6, 5]] if experiment==1 else [[4*num_blocks, None, None], [4*num_blocks, 5, 3], [4*num_blocks, 5, 5]]
     correct = np.zeros((len(tasks), len(noises), len(shuffles), num_eval_tasks, num_trials))
@@ -611,9 +611,9 @@ def evaluate_nosofsky1988(env_name=None, experiment=1, beta=1., noises=[0.05, 0.
         for n_idx, noise in enumerate(noises):
             for s_idx, shuffle in enumerate(shuffles):    
                     if synthetic:
-                        model_name = f"env={env_name}_noise{noise}_shuffle{shuffle}_run=0_synthetic.pt"
+                        model_name = f"env={env_name}_noise{noise}_shuffle{shuffle}_run={run}_synthetic{'nonlinear' if nonlinear else ''}.pt"
                     else:
-                        model_name = f"env={env_name}_noise{noise}_shuffle{shuffle}_run=0.pt"
+                        model_name = f"env={env_name}_noise{noise}_shuffle{shuffle}_run={run}.pt"
                     model_path = f"/raven/u/ajagadish/vanilla-llama/categorisation/trained_models/{model_name}"
                     correct[t_idx, n_idx, s_idx,...,start_trial:], model_choices[t_idx, :, n_idx, s_idx,...,start_trial:],\
                         true_choices[t_idx, :, n_idx, s_idx,...,start_trial:], labels[t_idx, :, n_idx, s_idx,...,start_trial:] \
@@ -646,7 +646,7 @@ def evaluate_nosofsky1988(env_name=None, experiment=1, beta=1., noises=[0.05, 0.
     plt.show()
     f.savefig(f'{SYS_PATH}/categorisation/figures/nosofsky1988_metalearner_{model_name}.svg', bbox_inches='tight', dpi=300)    
 
-def evaluate_levering2020(env_name=None, beta=1., noises=[0.05, 0.1, 0.0], shuffles=[True, False], num_runs=5, num_trials=158, num_eval_tasks=64, synthetic=False):
+def evaluate_levering2020(env_name=None, beta=1., noises=[0.05, 0.1, 0.0], shuffles=[True, False], num_runs=5, num_trials=158, num_eval_tasks=64, synthetic=False, nonlinear=False, run=0):
         
     tasks = ['linear', 'nonlinear']
     correct = np.zeros((len(tasks), len(noises), len(shuffles), num_eval_tasks, num_trials))
@@ -658,9 +658,9 @@ def evaluate_levering2020(env_name=None, beta=1., noises=[0.05, 0.1, 0.0], shuff
         for n_idx, noise in enumerate(noises):
             for s_idx, shuffle in enumerate(shuffles):                    
                     if synthetic:
-                        model_name = f"env={env_name}_noise{noise}_shuffle{shuffle}_run=0_synthetic.pt"
+                        model_name = f"env={env_name}_noise{noise}_shuffle{shuffle}_run={run}_synthetic{'nonlinear' if nonlinear else ''}.pt"
                     else:
-                        model_name = f"env={env_name}_noise{noise}_shuffle{shuffle}_run=0.pt"
+                        model_name = f"env={env_name}_noise{noise}_shuffle{shuffle}_run={run}.pt"
                     model_path = f"/raven/u/ajagadish/vanilla-llama/categorisation/trained_models/{model_name}"
                     correct[t_idx, n_idx, s_idx], model_choices[t_idx, :, n_idx, s_idx],\
                         true_choices[t_idx, :, n_idx, s_idx], labels[t_idx, :, n_idx, s_idx] \
@@ -881,15 +881,16 @@ def plot_frequency_tasklabels(file_name, path='/u/ajagadish/vanilla-llama/catego
     
     f.savefig(f'{SYS_PATH}/categorisation/figures/frequency_plot_tasklabels_{column_name}_paired={pairs}_top{top_labels}.png', bbox_inches='tight', dpi=300)
 
-def evaluate_smith1998(env_name=None, experiment=None, tasks=[None], beta=1., noises=[0.05, 0.1, 0.0], shuffles=[True, False], shuffle_evals=[True, False], num_runs=5, num_trials=96, num_eval_tasks=1113, synthetic=False, run=0):
+def evaluate_smith1998(env_name=None, experiment=None, tasks=[None], beta=1., noises=[0.05, 0.1, 0.0], shuffles=[True, False], shuffle_evals=[True, False], num_runs=5, num_trials=96, num_eval_tasks=1113, synthetic=False, run=0, nonlinear=False):
     tasks = ['linear', 'nonlinear'] if tasks[0] is None else tasks
     corrects = np.ones((len(tasks), len(noises), len(shuffles), len(shuffle_evals), num_eval_tasks, num_trials))
+    
     for t_idx, task in enumerate(tasks):
         for n_idx, noise in enumerate(noises):
             for s_idx, shuffle in enumerate(shuffles):
                 for se_idx, shuffle_eval in enumerate(shuffle_evals):
                     if synthetic:
-                        model_name = f"env={env_name}_noise{noise}_shuffle{shuffle}_run=0_synthetic.pt"
+                        model_name = f"env={env_name}_noise{noise}_shuffle{shuffle}_run={run}_synthetic{'nonlinear' if nonlinear else ''}.pt"
                     else:
                         model_name = f"env={env_name}_noise{noise}_shuffle{shuffle}_run={run}.pt"
                     model_path = f"{SYS_PATH}/categorisation/trained_models/{model_name}"

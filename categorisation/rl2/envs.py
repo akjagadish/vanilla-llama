@@ -531,7 +531,7 @@ class SmithsTask(nn.Module):
                     stimulus[np.random.choice(np.arange(self.num_dims), 2, replace=False)] = 1 - cat
                     stimuli[cat].append(stimulus)
         
-        elif self.rule=='nonlinear':
+        elif rule=='nonlinear':
             # add five more stimuli per category which shares five features -- randomly choosen -- with prototype
             for cat in range(self.num_categories):
                 indices = np.random.choice(np.arange(self.num_dims), 5, replace=False)
@@ -562,10 +562,12 @@ class SmithsTask(nn.Module):
             
             # concatenate all stimuli into one array
             all_feature_combinations = np.concatenate(stimuli)
-
+            
             # assign targets to two halves of the stimuli
-            targets = np.concatenate((np.zeros(len(stimuli[0])), np.ones(len(stimuli[1])))) 
-            targets = 1-targets if np.random.rand(1) > 0.5 else targets # flip targets to 0 or 1 based on a random number
+            targets = np.concatenate((np.zeros(len(stimuli[0])), np.ones(len(stimuli[1]))))
+            if np.random.rand(1) > 0.5:
+                targets = 1-targets # flip targets to 0 or 1 based on a random number
+                self.prototypes = np.flip(self.prototypes, axis=0) # flip prototypes order
         
             # add noise to selective elements of the targets
             if self.noise > 0.:

@@ -560,7 +560,7 @@ def compare_metalearners(env_name=None, model_env=None, experiment='categorisati
     f.tight_layout()
     plt.show()
 
-def evaluate_nosofsky1994(env_name=None, experiment=None, tasks=[None], beta=1., noises=[0.05, 0.1, 0.0], shuffles=[True, False], shuffle_evals=[True, False], num_runs=5, num_trials=96, num_eval_tasks=1113, synthetic=False):
+def evaluate_nosofsky1994(env_name=None, experiment=None, tasks=[None], beta=1., noises=[0.05, 0.1, 0.0], shuffles=[True, False], shuffle_evals=[True, False], num_runs=5, num_trials=96, num_blocks=1, num_eval_tasks=1113, synthetic=False, nonlinear=False, run=0):
 
     corrects = np.ones((len(tasks), len(noises), len(shuffles), len(shuffle_evals), num_eval_tasks, num_trials))
     for t_idx, task in enumerate(tasks):
@@ -568,26 +568,35 @@ def evaluate_nosofsky1994(env_name=None, experiment=None, tasks=[None], beta=1.,
             for s_idx, shuffle in enumerate(shuffles):
                 for se_idx, shuffle_eval in enumerate(shuffle_evals):
                     if synthetic:
-                        model_name = f"env={env_name}_noise{noise}_shuffle{shuffle}_run=0_synthetic.pt"
+                        model_name = f"env={env_name}_noise{noise}_shuffle{shuffle}_run={run}_synthetic{'nonlinear' if nonlinear else ''}.pt"
                     else:
-                        model_name = f"env={env_name}_noise{noise}_shuffle{shuffle}_run=0.pt"
+                        model_name = f"env={env_name}_noise{noise}_shuffle{shuffle}_run={run}.pt"
                     model_path = f"/raven/u/ajagadish/vanilla-llama/categorisation/trained_models/{model_name}"
                     corrects[t_idx, n_idx, s_idx, se_idx] = evaluate_metalearner(task, model_path, 'shepard_categorisation', \
-                                                                                 beta=beta, shuffle_trials=shuffle_eval, num_runs=num_runs)
+                                                                                 beta=beta, shuffle_trials=shuffle_eval, num_trials=num_trials, num_runs=num_runs)
         
     # compuate error rates across trials using corrects
     errors = 1. - corrects.mean(3)
+    errors = np.mean(errors, axis=(1,2,3))
 
     # compare the error rate over trials between different tasks meaned over noise levels, shuffles and shuffle_evals
     f, ax = plt.subplots(1, 1, figsize=(6,5))
     colors_mpi_blues = ['#8b9da7', '#748995', '#5d7684', '#456272', '#2e4f61', '#173b4f']
-    colors = ['#819BAF', '#A2C0A9', '#E3E2C3', '#E3C495', '#D499AB', '#7C7098']
+    colors_poster = ['#819BAF', '#A2C0A9', '#E3E2C3', '#E3C495', '#D499AB', '#7C7098']
+    colors_grays = ['#E0E1DD', '#B6B9B9', '#8C9295', '#616A72','#37434E','#0D1B2A']
+    colors = colors_grays
     # markers for the six types of rules in the plot: circle, cross, plus, inverted triangle, asterisk, triangle
     markers = ['o', 'x', '+', '*', 'v', '^']
     for t_idx, task in enumerate(tasks):
-        ax.plot(np.arange(num_trials), errors[t_idx].mean(0).mean(0).mean(0), label=f'Type {task}', lw=3, color=colors[t_idx])#, marker=markers[t_idx], markersize=8)
-    ax.set_xlabel('Trial', fontsize=FONTSIZE)
+        if num_blocks>1:
+            block_errors = np.stack(np.split(errors[t_idx], num_blocks)).mean(1)
+            ax.plot(np.arange(1, num_blocks+1), block_errors, label=f'Type {task}', lw=3, color=colors[t_idx], marker=markers[t_idx], markersize=8)
+        else:
+            ax.plot(np.arange(num_trials), errors[t_idx], label=f'Type {task}', lw=3, color=colors[t_idx])#, marker=markers[t_idx], markersize=8)
+    ax.set_xticks(np.arange(1, num_blocks+1) if num_blocks>1 else np.arange(1, num_trials+1)) 
+    ax.set_xlabel('Trial' if num_blocks==1 else 'Block', fontsize=FONTSIZE)
     ax.set_ylabel('Error rate', fontsize=FONTSIZE)
+    ax.set_ylim([0., .5])
     plt.xticks(fontsize=FONTSIZE-2)
     plt.yticks(fontsize=FONTSIZE-2)
     # place legend outside the plot
@@ -598,7 +607,7 @@ def evaluate_nosofsky1994(env_name=None, experiment=None, tasks=[None], beta=1.,
 
     f.savefig(f'{SYS_PATH}/categorisation/figures/nosofsky1994_metalearner_{model_name}.svg', bbox_inches='tight', dpi=300)
     
-def evaluate_nosofsky1988(env_name=None, experiment=1, beta=1., noises=[0.05, 0.1, 0.0], shuffles=[True, False], num_runs=5, num_trials=64, num_blocks=3, num_eval_tasks=64, synthetic=False):
+def evaluate_nosofsky1988(env_name=None, experiment=1, beta=1., noises=[0.05, 0.1, 0.0], shuffles=[True, False], num_runs=5, num_trials=64, num_blocks=3, num_eval_tasks=64, synthetic=False, nonlinear=False, run=0):
     num_trials = num_blocks*num_trials
     tasks = [[4*num_blocks, None, None], [4*num_blocks, 1, 5], [4*num_blocks, 6, 5]] if experiment==1 else [[4*num_blocks, None, None], [4*num_blocks, 5, 3], [4*num_blocks, 5, 5]]
     correct = np.zeros((len(tasks), len(noises), len(shuffles), num_eval_tasks, num_trials))
@@ -611,9 +620,9 @@ def evaluate_nosofsky1988(env_name=None, experiment=1, beta=1., noises=[0.05, 0.
         for n_idx, noise in enumerate(noises):
             for s_idx, shuffle in enumerate(shuffles):    
                     if synthetic:
-                        model_name = f"env={env_name}_noise{noise}_shuffle{shuffle}_run=0_synthetic.pt"
+                        model_name = f"env={env_name}_noise{noise}_shuffle{shuffle}_run={run}_synthetic{'nonlinear' if nonlinear else ''}.pt"
                     else:
-                        model_name = f"env={env_name}_noise{noise}_shuffle{shuffle}_run=0.pt"
+                        model_name = f"env={env_name}_noise{noise}_shuffle{shuffle}_run={run}.pt"
                     model_path = f"/raven/u/ajagadish/vanilla-llama/categorisation/trained_models/{model_name}"
                     correct[t_idx, n_idx, s_idx,...,start_trial:], model_choices[t_idx, :, n_idx, s_idx,...,start_trial:],\
                         true_choices[t_idx, :, n_idx, s_idx,...,start_trial:], labels[t_idx, :, n_idx, s_idx,...,start_trial:] \
@@ -646,7 +655,7 @@ def evaluate_nosofsky1988(env_name=None, experiment=1, beta=1., noises=[0.05, 0.
     plt.show()
     f.savefig(f'{SYS_PATH}/categorisation/figures/nosofsky1988_metalearner_{model_name}.svg', bbox_inches='tight', dpi=300)    
 
-def evaluate_levering2020(env_name=None, beta=1., noises=[0.05, 0.1, 0.0], shuffles=[True, False], num_runs=5, num_trials=158, num_eval_tasks=64, synthetic=False):
+def evaluate_levering2020(env_name=None, beta=1., noises=[0.05, 0.1, 0.0], shuffles=[True, False], num_runs=5, num_trials=158, num_eval_tasks=64, synthetic=False, nonlinear=False, run=0):
         
     tasks = ['linear', 'nonlinear']
     correct = np.zeros((len(tasks), len(noises), len(shuffles), num_eval_tasks, num_trials))
@@ -658,9 +667,9 @@ def evaluate_levering2020(env_name=None, beta=1., noises=[0.05, 0.1, 0.0], shuff
         for n_idx, noise in enumerate(noises):
             for s_idx, shuffle in enumerate(shuffles):                    
                     if synthetic:
-                        model_name = f"env={env_name}_noise{noise}_shuffle{shuffle}_run=0_synthetic.pt"
+                        model_name = f"env={env_name}_noise{noise}_shuffle{shuffle}_run={run}_synthetic{'nonlinear' if nonlinear else ''}.pt"
                     else:
-                        model_name = f"env={env_name}_noise{noise}_shuffle{shuffle}_run=0.pt"
+                        model_name = f"env={env_name}_noise{noise}_shuffle{shuffle}_run={run}.pt"
                     model_path = f"/raven/u/ajagadish/vanilla-llama/categorisation/trained_models/{model_name}"
                     correct[t_idx, n_idx, s_idx], model_choices[t_idx, :, n_idx, s_idx],\
                         true_choices[t_idx, :, n_idx, s_idx], labels[t_idx, :, n_idx, s_idx] \
@@ -743,7 +752,12 @@ def replot_nosofsky1994():
     # plot the error rates for the six types of rules in data
     f, ax = plt.subplots(1, 1, figsize=(6,5))
     colors_mpi_blues = ['#8b9da7', '#748995', '#5d7684', '#456272', '#2e4f61', '#173b4f']
-    colors = ['#819BAF', '#A2C0A9', '#E3E2C3', '#E3C495', '#D499AB', '#7C7098']
+    colors_poster = ['#819BAF', '#A2C0A9', '#E3E2C3', '#E3C495', '#D499AB', '#7C7098']
+    colors_cpi = ['#2E3E5F', '#2E4C67', '#2F5A6F', '#2F6877','#2F757E','#30918E']
+    colors_purples = ['#432371', '#683F73', '#8C5B75', '#8C5B75','#D59279','#FAAE7B']
+    colors_grays = ['#E0E1DD', '#B6B9B9', '#8C9295', '#616A72','#37434E','#0D1B2A']
+    colors = colors_grays
+
     # markers for the six types of rules in the plot: circle, cross, plus, inverted triangle, asterisk, triangle
     markers = ['o', 'x', '+', '*', 'v', '^']
     
@@ -758,6 +772,7 @@ def replot_nosofsky1994():
     # Set new x-tick locations and labels
     ax.set_xticks(locs[::2])
     ax.set_xticklabels(np.arange(len(data[rule]['y']))[::2]+1)
+    ax.set_ylim([0., .5])
     plt.xticks(fontsize=FONTSIZE-2)
     plt.yticks(fontsize=FONTSIZE-2)
     plt.legend(fontsize=FONTSIZE-4, frameon=False,  loc="upper center", bbox_to_anchor=(.45, 1.25), ncol=3)  # place legend outside the plot
@@ -881,15 +896,16 @@ def plot_frequency_tasklabels(file_name, path='/u/ajagadish/vanilla-llama/catego
     
     f.savefig(f'{SYS_PATH}/categorisation/figures/frequency_plot_tasklabels_{column_name}_paired={pairs}_top{top_labels}.png', bbox_inches='tight', dpi=300)
 
-def evaluate_smith1998(env_name=None, experiment=None, tasks=[None], beta=1., noises=[0.05, 0.1, 0.0], shuffles=[True, False], shuffle_evals=[True, False], num_runs=5, num_trials=96, num_eval_tasks=1113, synthetic=False, run=0):
+def evaluate_smith1998(env_name=None, experiment=None, tasks=[None], beta=1., noises=[0.05, 0.1, 0.0], shuffles=[True, False], shuffle_evals=[True, False], num_runs=5, num_trials=96, num_eval_tasks=1113, synthetic=False, run=0, nonlinear=False):
     tasks = ['linear', 'nonlinear'] if tasks[0] is None else tasks
     corrects = np.ones((len(tasks), len(noises), len(shuffles), len(shuffle_evals), num_eval_tasks, num_trials))
+    
     for t_idx, task in enumerate(tasks):
         for n_idx, noise in enumerate(noises):
             for s_idx, shuffle in enumerate(shuffles):
                 for se_idx, shuffle_eval in enumerate(shuffle_evals):
                     if synthetic:
-                        model_name = f"env={env_name}_noise{noise}_shuffle{shuffle}_run=0_synthetic.pt"
+                        model_name = f"env={env_name}_noise{noise}_shuffle{shuffle}_run={run}_synthetic{'nonlinear' if nonlinear else ''}.pt"
                     else:
                         model_name = f"env={env_name}_noise{noise}_shuffle{shuffle}_run={run}.pt"
                     model_path = f"{SYS_PATH}/categorisation/trained_models/{model_name}"

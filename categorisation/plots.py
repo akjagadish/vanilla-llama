@@ -599,8 +599,7 @@ def evaluate_nosofsky1994(env_name=None, experiment=None, tasks=[None], beta=1.,
     ax.set_ylim([0., .5])
     plt.xticks(fontsize=FONTSIZE-2)
     plt.yticks(fontsize=FONTSIZE-2)
-    # place legend outside the plot
-    # plt.legend(fontsize=FONTSIZE-4, frameon=False,  loc="upper center", bbox_to_anchor=(.45, 1.2), ncol=3)
+    # plt.legend(fontsize=FONTSIZE-4, frameon=False,  loc="upper center", bbox_to_anchor=(.45, 1.25), ncol=3)  # place legend outside the plot
     sns.despine()
     f.tight_layout()
     plt.show()
@@ -926,4 +925,23 @@ def evaluate_smith1998(env_name=None, experiment=None, tasks=[None], beta=1., no
     f.tight_layout()
     plt.show()      
     f.savefig(f'{SYS_PATH}/categorisation/figures/smiths_metalearner_{model_name}.svg', bbox_inches='tight', dpi=300)
+
+def compare_categorisation_model_fits_learning(task_name = 'smithstask'):
     
+    r2_gcm = np.load(f'../data/meta_learner/r2_gcm_{task_name}.npy')
+    r2_pm = np.load(f'../data/meta_learner/r2_pm_{task_name}.npy')
+    num_blocks = r2_gcm.shape[-1]
+    f, ax = plt.subplots(1, 1, figsize=(5,5))
+    ax.plot(range(num_blocks), r2_gcm[:, 0].mean(0), label='gcm')
+    # added shaded region for standard deviation
+    plt.fill_between(range(num_blocks), r2_gcm[:, 0].mean(0) - r2_gcm[:, 0].std(0), r2_gcm[:, 0].mean(0) + r2_gcm[:, 0].std(0), alpha=0.3)
+    ax.plot(range(num_blocks), r2_pm[:, 0].mean(0), label='prototype')
+    ax.set_xlabel('Block', fontsize=FONTSIZE)
+    ax.set_ylabel('pseudo-R$^2$', fontsize=FONTSIZE)
+    plt.xticks(fontsize=FONTSIZE-2)
+    plt.yticks(fontsize=FONTSIZE-2)
+    plt.legend(fontsize=FONTSIZE-4, frameon=False,  loc="upper center", bbox_to_anchor=(.45, 1.2), ncol=2)  # place legend outside the plot
+    sns.despine()
+    f.tight_layout()
+    plt.show()      
+    f.savefig(f'{SYS_PATH}/categorisation/figures/fit_gcm_pm_learningtrials_{task_name}.svg', bbox_inches='tight', dpi=300)

@@ -77,20 +77,20 @@ class PrototypeModel():
         df: dataframe containing the data
         
         returns:
-        nll: negative log likelihood for each participant"""
+        nll: negative log likelihood for each block of a given task_feature"""
 
         num_task_features = len(df['task_feature'].unique())
         log_likelihood, r2 = np.zeros((num_task_features, num_blocks)), np.zeros((num_task_features, num_blocks))
         self.bounds.extend(self.weight_bound * self.num_features)
 
-        for idx, participant_id in enumerate(df['task_feature'].unique()):
-            df_participant = df[(df['task_feature'] == participant_id)]
-            num_trials_per_block = int(df_participant.trial.max()/num_blocks)
+        for idx, task_feature_id in enumerate(df['task_feature'].unique()):
+            df_task_feature = df[(df['task_feature'] == task_feature_id)]
+            num_trials_per_block = int((df_task_feature.trial.max()+1)/num_blocks)
             for b_idx, block in enumerate(range(num_blocks)):
-                df_participant_block = df_participant[(df_participant['trial'] < (block+1)*num_trials_per_block)]# & (df_participant['trial'] >= block*num_trials_per_block)]
-                best_params = self.fit_parameters(df_participant_block)
-                log_likelihood[idx, b_idx] = -self.compute_nll(best_params, df_participant_block)
-                num_trials = len(df_participant_block)*(df_participant_block.task.max()+1)
+                df_task_feature_block = df_task_feature[(df_task_feature['trial'] < (block+1)*num_trials_per_block)]# & (df_task_feature['trial'] >= block*num_trials_per_block)]
+                best_params = self.fit_parameters(df_task_feature_block)
+                log_likelihood[idx, b_idx] = -self.compute_nll(best_params, df_task_feature_block)
+                num_trials = len(df_task_feature_block)*(df_task_feature_block.task.max()+1)
                 num_trials = num_trials*0.5 if self.burn_in else num_trials
                 r2[idx, b_idx] = 1 - (log_likelihood[idx, b_idx]/(num_trials*np.log(1/2)))
                 if self.learn_prototypes:
@@ -167,7 +167,7 @@ class PrototypeModel():
             num_trials = df_task['trial'].max() + 1
             stimuli_seen = [[] for i in range(self.num_categories)] # list of lists to store objects seen so far within each category
             self.prototypes = [np.array([params[2+i*self.num_features+j] for j in range(self.num_features)]) for i in range(self.num_categories)] if self.learn_prototypes else self.prototypes
-            self.prototypes = [df_task[df_task.correct_choice==category].iloc[0][['prototype_feature{}'.format(i+1) for i in range(self.num_features)]].values for category in range(num_categories)] if self.prototypes == 'from_data' else self.prototypes
+            self.prototypes = [df_task[df_task.correct_choice==category].iloc[0][['prototype_feature{}'.format(i+1) for i in range(self.num_features)]].values for category in range(self.num_categories)] if self.prototypes == 'from_data' else self.prototypes
             for trial_id in df_task['trial'].values:
                 df_trial = df_task[(df_task['trial'] == trial_id)]
                 choice = categories[df_trial.choice.item()] if df_trial.choice.item() in categories else df_trial.choice.item()

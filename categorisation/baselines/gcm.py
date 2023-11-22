@@ -81,14 +81,14 @@ class GeneralizedContextModel():
         log_likelihood, r2 = np.zeros((num_task_features, num_blocks)), np.zeros((num_task_features, num_blocks))
         self.bounds.extend(self.weight_bound * self.num_features)
 
-        for idx, participant_id in enumerate(df['task_feature'].unique()):
-            df_participant = df[(df['task_feature'] == participant_id)]
-            num_trials_per_block = int(df_participant.trial.max()/num_blocks)
+        for idx, task_feature_id in enumerate(df['task_feature'].unique()):
+            df_task_feature = df[(df['task_feature'] == task_feature_id)]
+            num_trials_per_block = int((df_task_feature.trial.max()+1)/num_blocks)
             for b_idx, block in enumerate(range(num_blocks)):
-                df_participant_block = df_participant[(df_participant['trial'] < (block+1)*num_trials_per_block)]# & (df_participant['trial'] >= block*num_trials_per_block)]
-                best_params = self.fit_parameters(df_participant_block, reduce)
-                log_likelihood[idx, b_idx] = -self.compute_nll(best_params, df_participant_block, reduce)
-                num_trials = len(df_participant_block)*(df_participant_block.task.max()+1)
+                df_task_feature_block = df_task_feature[(df_task_feature['trial'] < (block+1)*num_trials_per_block)]# & (df_task_feature['trial'] >= block*num_trials_per_block)]
+                best_params = self.fit_parameters(df_task_feature_block, reduce)
+                log_likelihood[idx, b_idx] = -self.compute_nll(best_params, df_task_feature_block, reduce)
+                num_trials = len(df_task_feature_block)*(df_task_feature_block.task.max()+1)
                 num_trials = num_trials*0.5 if self.burn_in else num_trials
                 r2[idx, b_idx] = 1 - (log_likelihood[idx, b_idx]/(num_trials*np.log(1/2)))
                 print('fitted parameters for task_level {}, block {}: c {}, bias {}, w1 {}, w2 {}, w3 {}'.format(participant_id, block, *best_params))

@@ -199,7 +199,7 @@ class SyntheticCategorisationTask(nn.Module):
         inputs = self.x.permute(1, 0, 2)[tasks].to(self.device)
         if self.nonlinear:
             self.model.reset_parameters()
-            targets = self.model(inputs).squeeze(2).round()
+            targets = self.model(inputs).squeeze(2).round().to(self.device)
         else:
             targets = self.c.permute(1, 0)[tasks]
 
@@ -217,7 +217,7 @@ class SyntheticCategorisationTask(nn.Module):
         if self.noise > 0.:
             targets = torch.stack([target if torch.rand(1) > self.noise else 1-target for target in targets])
         # off set targets by 1 trial and randomly add zeros or ones in the beggining
-        shifted_targets = torch.stack([torch.cat((torch.tensor([1. if torch.rand(1) > 0.5 else 0.]), target[:-1])) for target in targets])
+        shifted_targets = torch.stack([torch.cat((torch.tensor([1. if torch.rand(1) > 0.5 else 0.]).to(self.device), target[:-1])) for target in targets])
         # stacking input and targets
         stacked_task_features = torch.cat((inputs, shifted_targets.unsqueeze(2)), dim=2)
         stacked_targets = targets

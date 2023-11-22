@@ -14,7 +14,7 @@ def evaluate_1d(env_name=None, model_path=None, experiment='categorisation', env
         if experiment == 'categorisation':
             env = CategorisationTask(data=env_name, mode=mode, max_steps=max_steps, shuffle_trials=shuffle_trials)
         elif experiment == 'shepard_categorisation':
-            env = ShepardsTask(task=env_name)
+            env = ShepardsTask(task=env_name, max_steps=max_steps, shuffle_trials=shuffle_trials)
         elif experiment == 'nosofsky_categorisation':
             env = NosofskysTask(task=env_name)
         elif experiment == 'levering_categorisation':
@@ -54,7 +54,7 @@ def evaluate_1d(env_name=None, model_path=None, experiment='categorisation', env
         true_choices = targets.reshape(-1).float().to(device) if experiment == 'synthetic' else torch.concat(targets, axis=0).float().to(device)
         category_labels = torch.concat(env.stacked_labels, axis=0).float() if experiment=='nosofsky_categorisation' else None
         accuracy = (model_choices==true_choices).sum()/(model_choices.shape[0])
-        
+   
     if return_all:
         return accuracy, model_choices, true_choices, sequence_lengths, category_labels
     else:    

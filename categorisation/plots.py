@@ -933,9 +933,9 @@ def compare_categorisation_model_fits_learning(task_name = 'smithstask'):
     num_blocks = r2_gcm.shape[-1]
     f, ax = plt.subplots(1, 1, figsize=(5,5))
     ax.plot(range(num_blocks), r2_gcm[:, 0].mean(0), label='gcm')
-    # added shaded region for standard deviation
-    plt.fill_between(range(num_blocks), r2_gcm[:, 0].mean(0) - r2_gcm[:, 0].std(0), r2_gcm[:, 0].mean(0) + r2_gcm[:, 0].std(0), alpha=0.3)
+    ax.fill_between(range(num_blocks), r2_gcm[:, 0].mean(0) - r2_gcm[:, 0].std(0), r2_gcm[:, 0].mean(0) + r2_gcm[:, 0].std(0), alpha=0.3)
     ax.plot(range(num_blocks), r2_pm[:, 0].mean(0), label='prototype')
+    ax.fill_between(range(num_blocks), r2_pm[:, 0].mean(0) - r2_pm[:, 0].std(0), r2_pm[:, 0].mean(0) + r2_pm[:, 0].std(0), alpha=0.3)
     ax.set_xlabel('Block', fontsize=FONTSIZE)
     ax.set_ylabel('pseudo-R$^2$', fontsize=FONTSIZE)
     plt.xticks(fontsize=FONTSIZE-2)

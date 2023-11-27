@@ -201,7 +201,7 @@ class SyntheticCategorisationTask(nn.Module):
             self.model.reset_parameters()
             targets = self.model(inputs).squeeze(2).round().to(self.device)
         else:
-            targets = self.c.permute(1, 0)[tasks]
+            targets = self.c.permute(1, 0)[tasks].to(self.device)
 
         return inputs, targets
 

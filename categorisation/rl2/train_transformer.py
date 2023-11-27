@@ -19,8 +19,7 @@ def run(env_name, num_episodes, synthetic, nonlinear, num_dims, max_steps, noise
         env = CategorisationTask(data=env_name, num_dims=num_dims, max_steps=max_steps, batch_size=batch_size, noise=noise, shuffle_trials=shuffle, device=device).to(device)
     
     # setup model
-    model = TransformerDecoder(num_input=env.num_dims, num_output=env.num_choices, num_hidden=num_hidden, num_layers=num_layers, d_model=d_model, num_head=num_head, max_steps=max_steps, device=device).to(device) # 1, 256, 4
-
+    model = TransformerDecoder(num_input=env.num_dims, num_output=env.num_choices, num_hidden=num_hidden, num_layers=num_layers, d_model=d_model, num_head=num_head, max_steps=max_steps, device=device).to(device)
     optimizer = optim.Adam(model.parameters(), lr=lr)
     losses = [] # keep track of losses
     accuracy = [] # keep track of accuracies
@@ -48,7 +47,7 @@ def run(env_name, num_episodes, synthetic, nonlinear, num_dims, max_steps, noise
         if (not t % save_every):
             torch.save([t, model], save_dir)
             experiment = 'synthetic' if synthetic else 'categorisation'
-            acc = evaluate_1d(env_name=env_name, model_path=save_dir, experiment=experiment, mode='val', max_steps=max_steps, device=device)
+            acc = evaluate_1d(env_name=env_name, model_path=save_dir, experiment=experiment, mode='val', max_steps=max_steps, nonlinear=nonlinear, num_dims=num_dims, device=device)
             accuracy.append(acc)
             writer.add_scalar('Val. Acc.', acc, t)
         

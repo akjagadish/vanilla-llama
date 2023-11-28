@@ -47,22 +47,23 @@ from plots import evaluate_nosofsky1988, evaluate_levering2020, evaluate_nosofsk
 # evaluate_nosofsky1994(env_name=env_name, tasks=np.arange(1,7),  beta=beta, noises=[0.0], shuffles=[False], shuffle_evals=[False], experiment='shepard_categorisation', num_runs=50, num_eval_tasks=64)
 
 ## meta-leaner trained on shuffled llm data
-env_model_name = 'claude_generated_tasks_paramsNA_dim3_data100_tasks11518_pversion4_model=transformer_num_episodes500000_num_hidden=256_lr0.0003_num_layers=6_d_model=64_num_head=8'
-run, beta, num_blocks, num_trials_per_block, num_runs = 1, 0.3, 10, 16, 10
+# env_model_name = 'claude_generated_tasks_paramsNA_dim3_data100_tasks11518_pversion4_model=transformer_num_episodes500000_num_hidden=256_lr0.0003_num_layers=6_d_model=64_num_head=8'
+# run, beta, num_blocks, num_trials_per_block, num_runs = 1, 0.3, 10, 16, 10
 # evaluate_nosofsky1988(env_name=env_model_name, experiment=2, beta=beta, noises=[0.0], shuffles=[True], num_runs=50, num_blocks=1, num_eval_tasks=64)
 # evaluate_levering2020(env_name=env_model_name, noises=[0.0], beta=beta,  shuffles=[True], num_runs=50, num_eval_tasks=64, num_trials=150)
-evaluate_nosofsky1994(env_name=env_model_name, tasks=np.arange(1,7), beta=beta, noises=[0.0], shuffles=[True], shuffle_evals=[False], experiment='shepard_categorisation', num_runs=num_runs, num_blocks=num_blocks, num_trials=num_trials_per_block*num_blocks, num_eval_tasks=64)
+# evaluate_nosofsky1994(env_name=env_model_name, tasks=np.arange(1,7), beta=beta, noises=[0.0], shuffles=[True], shuffle_evals=[False], experiment='shepard_categorisation', num_runs=num_runs, num_blocks=num_blocks, num_trials=num_trials_per_block*num_blocks, num_eval_tasks=64)
 # env_model_name = 'claude_generated_tasks_paramsNA_dim6_data500_tasks12911_pversion5_stage1_model=transformer_num_episodes500000_num_hidden=256_lr0.0003_num_layers=6_d_model=64_num_head=8'
 # dim = int(env_model_name.split('dim')[1].split('_')[0])
 # if dim==6:
 #  evaluate_smith1998(env_name=env_model_name, noises=[0.0], beta=beta, shuffles=[True], num_runs=50, num_eval_tasks=64, num_trials=300, run=run)
 
 #---------------------------
-## meta-leaner trained on synthetic data
-env_model_name = 'claude_generated_tasks_paramsNA_dim3_data100_tasks11518_pversion4_model=transformer_num_episodes500000_num_hidden=256_lr0.0003_num_layers=6_d_model=64_num_head=8'
-nonlinear, run, beta, num_blocks, num_trials_per_block, num_runs = True, 0, 0.3, 10, 16, 10
-# 'transformer_metalearning_synthetic_model=transformer_num_episodes500000_num_hidden=128_lr0.0003_num_layers=6_d_model=64_num_head=4'
-evaluate_nosofsky1994(env_name=env_model_name, tasks=np.arange(1,7), beta=beta, noises=[0.0], shuffles=[True], shuffle_evals=[False], experiment='shepard_categorisation', num_runs=num_runs, num_blocks=num_blocks, num_trials=num_trials_per_block*num_blocks, num_eval_tasks=64, synthetic=True, nonlinear=nonlinear, run=run)
+## meta-leaner trained on synthetic data (note that for synthetic nonlinear shuffles is set to True)
+env_model_name = 'transformer_metalearning_synthetic_model=transformer_num_episodes500000_num_hidden=256_lr0.0003_num_layers=6_d_model=128_num_head=8'
+#'claude_generated_tasks_paramsNA_dim3_data100_tasks11518_pversion4_model=transformer_num_episodes500000_num_hidden=256_lr0.0003_num_layers=6_d_model=64_num_head=8'
+#'transformer_metalearning_synthetic_model=transformer_num_episodes500000_num_hidden=128_lr0.0003_num_layers=6_d_model=64_num_head=4
+nonlinear, run, beta, num_blocks, num_trials_per_block, num_runs = False, 0, 0.3, 10, 16, 10
+evaluate_nosofsky1994(env_name=env_model_name, tasks=np.arange(1,7), beta=beta, noises=[0.0], shuffles=[False], shuffle_evals=[False], experiment='shepard_categorisation', num_runs=num_runs, num_blocks=num_blocks, num_trials=num_trials_per_block*num_blocks, num_eval_tasks=64, synthetic=True, nonlinear=nonlinear, run=run)
 # evaluate_nosofsky1988(env_name=env_model_name, experiment=2, beta=beta, noises=[0.0], shuffles=[True], num_runs=50, num_blocks=1, num_eval_tasks=64, synthetic=True, nonlinear=nonlinear,run=run)
 # evaluate_levering2020(env_name=env_model_name, noises=[0.0], beta=beta, shuffles=[True], num_runs=50, num_eval_tasks=64, num_trials=150, synthetic=True, nonlinear=nonlinear, run=run)
 # dim = int(env_model_name.split('dim')[1].split('_')[0])

@@ -599,7 +599,7 @@ def evaluate_nosofsky1994(env_name=None, experiment=None, tasks=[None], beta=1.,
     ax.set_ylim([0., .5])
     plt.xticks(fontsize=FONTSIZE-2)
     plt.yticks(fontsize=FONTSIZE-2)
-    # plt.legend(fontsize=FONTSIZE-4, frameon=False,  loc="upper center", bbox_to_anchor=(.45, 1.25), ncol=3)  # place legend outside the plot
+    plt.legend(fontsize=FONTSIZE-4, frameon=False,  loc="upper center", bbox_to_anchor=(.45, 1.25), ncol=3)  # place legend outside the plot
     sns.despine()
     f.tight_layout()
     plt.show()

@@ -945,3 +945,45 @@ def compare_categorisation_model_fits_learning(task_name = 'smithstask'):
     f.tight_layout()
     plt.show()      
     f.savefig(f'{SYS_PATH}/categorisation/figures/fit_gcm_pm_learningtrials_{task_name}.svg', bbox_inches='tight', dpi=300)
+
+def model_comparison(list_models=None, task_name = 'smithstask'):
+
+    task_titles = {'smithstask': 'Smith and Minda (1998)', 'levering2020': 'Levering et al. (2020)', \
+                  'nosofsky1994': 'Nosofsky et al. (1994)', 'nosofsky1988': 'Nosofsky et al. (1988)',\
+                  'badham2017': 'Badham et al. (2017)'}
+    
+    models = ['badham2017_env=claude_generated_tasks_paramsNA_dim3_data100_tasks11518_pversion4_model=transformer_num_episodes500000_num_hidden=256_lr0.0003_num_layers=6_d_model=64_num_head=8_noise0.0_shuffleTrue_run=0_beta_sweep.npy',\
+              'badham2017_env=dim3synthetic_model=transformer_num_episodes500000_num_hidden=256_lr0.0003_num_layers=6_d_model=64_num_head=8_noise0.0_shuffleTrue_run=0_syntheticnonlinear_beta_sweep', \
+            'badham2017_env=dim3synthetic_model=transformer_num_episodes500000_num_hidden=256_lr0.0003_num_layers=6_d_model=64_num_head=8_noise0.0_shuffleTrue_run=0_synthetic_beta_sweep.npy']
+    models = list_models if list_models is not None else models
+    
+    nlls = []
+    for model_name in models:
+        fits =  np.load(f'../model_comparison/{model_name}.npz')
+        betas, pnlls, pr2s = fits['betas'], fits['nlls'], fits['pr2s']
+        pr2s = np.array(pr2s)
+        min_nll_index = np.argmin(np.stack(pnlls), 0)
+        pr2s_min_nll = np.stack([pr2s[min_nll_index[idx], idx] for idx in range(pr2s.shape[1])])
+        nlls_min_nlls = np.stack([pnlls[min_nll_index[idx], idx] for idx in range(pnlls.shape[1])])
+        nlls.append(nlls_min_nlls)
+
+    nlls = np.array(nlls)
+    num_participants = len(nlls[0])
+
+    # compare mean nlls across models in a bar plot
+    f, ax = plt.subplots(1, 1, figsize=(5,5))
+    bar_positions = np.arange(len(nlls))*0.5
+    colors = ['#173b4f', '#8b9da7', '#5d7684']
+    ax.bar(bar_positions, nlls.mean(1), color=colors, width=0.4)
+    ax.errorbar(bar_positions, nlls.mean(1), yerr=nlls.std(1)/np.sqrt(num_participants-1), c='k', lw=3, fmt="o")
+    ax.axhline(y=-np.log(0.5)*384, color='k', linestyle='--', lw=3)
+    ax.set_xlabel('Meta-learner trained on', fontsize=FONTSIZE)
+    ax.set_ylabel('NLL', fontsize=FONTSIZE)
+    ax.set_xticks(bar_positions)  # set x-tick positions to bar_positions
+    ax.set_xticklabels(['LLM', 'Linear', 'Non-linear'], fontsize=FONTSIZE-2)  # assign category names to x-tick labels
+    ax.set_title(f'Model comparison for {task_titles[task_name]}', fontsize=FONTSIZE)
+    plt.xticks(fontsize=FONTSIZE-2)
+    plt.yticks(fontsize=FONTSIZE-2)
+    sns.despine()
+    f.tight_layout()
+    plt.show()

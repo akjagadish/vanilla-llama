@@ -25,11 +25,13 @@ class Badham2017(nn.Module):
         stacked_task_features, stacked_targets, stacked_human_targets, stacked_prototypes = self.get_participant_data(participant)
         sequence_lengths = [len(data)for data in stacked_task_features]
         packed_inputs = rnn_utils.pad_sequence(stacked_task_features, batch_first=True)
+        padded_targets = rnn_utils.pad_sequence(stacked_targets, batch_first=True)
+        padded_human_targets = rnn_utils.pad_sequence(stacked_human_targets, batch_first=True)
 
         if self.return_prototype:
-            return packed_inputs, sequence_lengths, stacked_targets, stacked_human_targets, stacked_prototypes
+            return packed_inputs, sequence_lengths, padded_targets, padded_human_targets, stacked_prototypes
         else:
-            return packed_inputs, sequence_lengths, stacked_targets, stacked_human_targets
+            return packed_inputs, sequence_lengths, padded_targets, padded_human_targets
 
     def get_participant_data(self, participant):
         

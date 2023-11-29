@@ -39,11 +39,11 @@ def compute_loglikelihood_human_choices_under_model(env=None, model_path=None, p
     return summed_loglikehoods, chance_loglikelihood 
 
               
-def evaluate_badham2017(env_name=None, experiment=None, tasks=[None], beta=1., noises=[0.05, 0.1, 0.0], shuffles=[True, False], shuffle_evals=[True, False], num_runs=5, num_trials=96, batch_size=10, num_eval_tasks=1113, synthetic=False):
+def evaluate_badham2017(model_name=None, experiment=None, tasks=[None], beta=1., noises=[0.05, 0.1, 0.0], shuffles=[True, False], shuffle_evals=[True, False], num_runs=5, num_trials=96, batch_size=10, num_eval_tasks=1113, synthetic=False):
 
     # setup model params
-    model_name = f"env={env_name}_noise{0.}_shuffle{True}_run=0.pt"
-    model_path = f"/u/ajagadish/vanilla-llama/categorisation/trained_models/{model_name}"
+    #model_name = f"env={env_name}_noise{0.}_shuffle{True}_run=0.pt"
+    model_path = f"/u/ajagadish/vanilla-llama/categorisation/trained_models/{model_name}.pt"
     
     # load environment
     env = Badham2017() #load human data
@@ -72,13 +72,12 @@ if __name__  == '__main__':
     use_cuda = not args.no_cuda and torch.cuda.is_available()
     device = torch.device("cuda" if use_cuda else "cpu") 
     
-    env_model_name = args.model_name
     betas = np.arange(0., 1., 0.05)
     nlls, pr2s = [], []
     
     for idx, beta in enumerate(betas):
         if args.task_name == 'badham2017':
-            nll_per_beta, pr2_per_beta = evaluate_badham2017(env_name=env_model_name, tasks=np.arange(1,7), beta=0.3, noises=[0.0], shuffles=[True], shuffle_evals=[False], num_runs=1, batch_size=1, num_trials=1000)
+            nll_per_beta, pr2_per_beta = evaluate_badham2017(model_name=args.model_name, tasks=np.arange(1,7), beta=0.3, noises=[0.0], shuffles=[True], shuffle_evals=[False], num_runs=1, batch_size=1, num_trials=1000)
         else:
             raise NotImplementedError
         nlls.append(nll_per_beta)
@@ -89,8 +88,10 @@ if __name__  == '__main__':
     pr2s_min_nll = np.stack([pr2s[min_nll_index[idx], idx] for idx in range(pr2s.shape[1])])
     print(f"beta with min nll: {betas[min_nll_index]}")
 
-    # save nlls
-    np.save(f"/u/ajagadish/vanilla-llama/categorisation/model_comparison/nll_{args.task_name}_{env_model_name}.npy", nlls)
+    # save list of results
+   
+    save_path = f"/u/ajagadish/vanilla-llama/categorisation/model_comparison/{args.task_name}_{args.model_name}_beta_sweep"
+    np.savez(save_path, betas=betas, nlls=nlls, pr2s=pr2s)
 
 #python model_comparison/fit.py --model-name claude_generated_tasks_paramsNA_dim3_data100_tasks11518_pversion4_model=transformer_num_episodes500000_num_hidden=256_lr0.0003_num_layers=6_d_model=64_num_head=8 --task-name badham2017
 

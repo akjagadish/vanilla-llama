@@ -6,10 +6,7 @@ from tqdm import tqdm
 import sys
 sys.path.insert(0, '/u/ajagadish/vanilla-llama/categorisation/rl2')
 
-def compute_loglikelihood_human_choices_under_model(env_name=None, model_path=None, participant=0, experiment='shepard_categorisation', shuffle_trials=False, policy='binomial', beta=1., device='cpu', batch_size=10, **kwargs):
-    
-    # load environment
-    env = Badham2017() #load human data
+def compute_loglikelihood_human_choices_under_model(env=None, model_path=None, participant=0, experiment='shepard_categorisation', shuffle_trials=False, policy='binomial', beta=1., device='cpu', batch_size=10, **kwargs):
     
     # load model
     model = torch.load(model_path)[1].to(device) if device=='cuda' else torch.load(model_path, map_location=torch.device('cpu'))[1].to(device)
@@ -31,26 +28,40 @@ def compute_loglikelihood_human_choices_under_model(env_name=None, model_path=No
 
         # get model choices
         model_choice_probs = model(packed_inputs.float().to(device), sequence_lengths) 
-        
+       
         # compute log likelihoods of human choices under model choice probs (binomial distribution)
-        loglikehoods = torch.distributions.Binomial(probs=model_choice_probs).log_prob(torch.stack(human_targets).float().to(device))
-        loglikehoods = loglikehoods.sum().numpy()
+        loglikehoods = torch.distributions.Binomial(probs=model_choice_probs).log_prob(human_targets)
         
-    return loglikehoods 
+        # sum log likelihoods only for unpadded trials per condition
+        summed_loglikehoods = torch.stack([loglikehoods[idx][:sequence_lengths[idx]].sum() for idx in range(len(loglikehoods))]).sum()
+        chance_loglikelihood = sum(sequence_lengths) * np.log(0.5)
+
+    return summed_loglikehoods, chance_loglikelihood 
 
               
 def evaluate_badham2017(env_name=None, experiment=None, tasks=[None], beta=1., noises=[0.05, 0.1, 0.0], shuffles=[True, False], shuffle_evals=[True, False], num_runs=5, num_trials=96, batch_size=10, num_eval_tasks=1113, synthetic=False):
 
+    # setup model params
     model_name = f"env={env_name}_noise{0.}_shuffle{True}_run=0.pt"
     model_path = f"/u/ajagadish/vanilla-llama/categorisation/trained_models/{model_name}"
     
+    # load environment
+    env = Badham2017() #load human data
+
     #TODO: for task in tasks: (all tasks or just one task)
     task_features = {'task':0, 'all_tasks': True}
-    for participant in range(10):
+    participants = env.data.participant.unique()
+    loglikelihoods, p_r2 = [], []
+    for participant in participants:
         # compute log likelihoods of human choices under model choice probs (binomial distribution)
-        loglikelihoods = compute_loglikelihood_human_choices_under_model(env_name=env_name, model_path=model_path, participant=participant, experiment='badham2017deficits', shuffle_trials=True,\
+        ll, chance_ll = compute_loglikelihood_human_choices_under_model(env=env, model_path=model_path, participant=participant, experiment='badham2017deficits', shuffle_trials=True,\
                                                                             beta=beta, batch_size=batch_size, max_steps=num_trials, **task_features)
-    return -loglikelihoods
+        loglikelihoods.append(ll)
+        p_r2.append(1 - (ll/chance_ll))
+    
+    loglikelihoods = np.array(loglikelihoods)
+    
+    return -loglikelihoods, p_r2
 
 if __name__  == '__main__':
     parser = argparse.ArgumentParser(description='save meta-learner choices on different categorisation tasks')
@@ -62,17 +73,24 @@ if __name__  == '__main__':
     device = torch.device("cuda" if use_cuda else "cpu") 
     
     env_model_name = args.model_name
-    betas = np.arange(0.,1.,0.1)
-    nlls = np.zeros_like(betas)
+    betas = np.arange(0., 1., 0.05)
+    nlls, pr2s = [], []
+    
     for idx, beta in enumerate(betas):
         if args.task_name == 'badham2017':
-            nlls[idx] = evaluate_badham2017(env_name=env_model_name, tasks=np.arange(1,7), beta=0.3, noises=[0.0], shuffles=[True], shuffle_evals=[False], num_runs=1, batch_size=1, num_trials=1000)
+            nll_per_beta, pr2_per_beta = evaluate_badham2017(env_name=env_model_name, tasks=np.arange(1,7), beta=0.3, noises=[0.0], shuffles=[True], shuffle_evals=[False], num_runs=1, batch_size=1, num_trials=1000)
         else:
             raise NotImplementedError
-        
+        nlls.append(nll_per_beta)
+        pr2s.append(pr2_per_beta)
+
+    pr2s = np.array(pr2s)
+    min_nll_index = np.argmin(np.stack(nlls), 0)
+    pr2s_min_nll = np.stack([pr2s[min_nll_index[idx], idx] for idx in range(pr2s.shape[1])])
+    print(f"beta with min nll: {betas[min_nll_index]}")
+
     # save nlls
     np.save(f"/u/ajagadish/vanilla-llama/categorisation/model_comparison/nll_{args.task_name}_{env_model_name}.npy", nlls)
-    print(f"beta with min nll: {betas[np.argmin(nlls)]}")
 
 #python model_comparison/fit.py --model-name claude_generated_tasks_paramsNA_dim3_data100_tasks11518_pversion4_model=transformer_num_episodes500000_num_hidden=256_lr0.0003_num_layers=6_d_model=64_num_head=8 --task-name badham2017
 

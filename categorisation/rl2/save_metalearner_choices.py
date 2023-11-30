@@ -23,7 +23,7 @@ def evaluate_single_run(env_name=None, model_path=None, experiment='categorisati
             env = SmithsTask(rule=env_name, return_prototype=True, batch_size=batch_size, max_steps=max_steps, shuffle_trials=shuffle_trials)
 
     if model is None: # load model
-        model = torch.load(model_path, map_location=torch.device('cpu'))[1].to(device)
+        model = torch.load(model_path)[1].to(device) if device=='cuda' else torch.load(model_path, map_location=torch.device('cpu'))[1].to(device)
         
     with torch.no_grad():
         model.eval()

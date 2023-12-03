@@ -10,7 +10,7 @@ class CategorisationTask(nn.Module):
     Categorisation task inspired by Shepard et al. (1961)
     Note: generates one task at a time, each containing max_steps datapoints, with no repitition of datapoints over blocks
     """
-    def __init__(self, data, max_steps=8, num_dims=3, num_categories=2, batch_size=64, mode='train', split=[0.8, 0.1, 0.1], device='cpu', synthetic_data=False, num_tasks=10000, noise=0., shuffle_trials=False, normalize_inputs=True): 
+    def __init__(self, data, max_steps=8, sample_to_match_max_steps=False, num_dims=3, num_categories=2, batch_size=64, mode='train', split=[0.8, 0.1, 0.1], device='cpu', synthetic_data=False, num_tasks=10000, noise=0., shuffle_trials=False, normalize_inputs=True): 
         """ 
         Initialise the environment
         Args: 
@@ -30,6 +30,7 @@ class CategorisationTask(nn.Module):
         self.num_choices = 1 #self.data.target.nunique()
         #TODO: max steps is equal to max_steps in the dataset
         self.max_steps = max_steps
+        self.sample_to_match_max_steps = sample_to_match_max_steps
         self.batch_size = batch_size
         self.num_dims = num_dims
         self.mode = mode
@@ -125,9 +126,14 @@ class CategorisationTask(nn.Module):
         # flip targets to 0 or 1 based on a random number
         data['target'] = data['target'].apply(lambda x: 0. if x=='A' else 1.) if torch.rand(1) > 0.5 else data['target'].apply(lambda x: 1. if x=='A' else 0.)
         data['input'] = data['input'].apply(lambda x: list(map(float, x.strip('[]').split(','))))
+        # assert that sample_to_match only when shuffle_trials is True
+        assert self.shuffle_trials == True if self.sample_to_match_max_steps == True else self.sample_to_match_max_steps == False, "sample_to_match_max_steps should be True only when shuffle_trials is True"
         # shuffle the order of trials within a task but keep all the trials 
         if self.shuffle_trials:
             data = data.groupby('task_id').apply(lambda x: x.sample(frac=1)).reset_index(drop=True)
+            # sample with replacement to match self.max_steps for each task_id
+            if self.sample_to_match_max_steps:
+                data = data.groupby('task_id').apply(lambda x: x.sample(n=self.max_steps, replace=True)).reset_index(drop=True)
         # group all inputs for a task into a list
         data = data.groupby('task_id').agg({'input':list, 'target':list}).reset_index()
         # flip the target for %noise of total number of trials within each task

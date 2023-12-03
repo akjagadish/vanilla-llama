@@ -73,16 +73,35 @@ def act(text=None, run_gpt='llama', temperature=1., max_length=300):
             #time.sleep(3**iter)
             
     elif run_gpt=='claude':
+        
+        try:
+            client = anthropic.Anthropic()
+            response = client.completions.create(
+                    prompt = anthropic.HUMAN_PROMPT + text + anthropic.AI_PROMPT,
+                    #stop_sequences=[anthropic.HUMAN_PROMPT],
+                    model="claude-2",
+                    temperature=temperature,
+                    max_tokens_to_sample=max_length,
+                ).completion#.replace(' ', '')
+            print(response)
+        except:
+            print("Error")
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            print(exc_value)
+            # time.sleep(3**iter)
+        return response
+
+    elif run_gpt=='claude_2.1':
 
         client = anthropic.Anthropic()
         response = client.completions.create(
                 prompt = anthropic.HUMAN_PROMPT + text + anthropic.AI_PROMPT,
                 #stop_sequences=[anthropic.HUMAN_PROMPT],
-                model="claude-2",
+                model="claude-2.1",
                 temperature=temperature,
                 max_tokens_to_sample=max_length,
             ).completion#.replace(' ', '')
-    
+
         return response
  
     else:
@@ -102,7 +121,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--llama-path", type=str, required=False, default=None)
     parser.add_argument("--model", type=str, required=False, choices=models)
-    parser.add_argument("--run-gpt", type=str, required=True, choices=['llama', 'gpt3', 'gpt4', 'claude'])
+    parser.add_argument("--run-gpt", type=str, required=True, choices=['llama', 'gpt3', 'gpt4', 'claude', 'claude_2.1'])
     parser.add_argument("--num-tasks", type=int, required=True, default=1000)
     parser.add_argument("--num-dim", type=int, required=True, default=3)
     parser.add_argument("--num-data", type=int, required=True, default=8)
@@ -121,7 +140,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     start_loading = time.time()
     run_gpt = args.run_gpt 
-    assert args.model=='NA'if args.run_gpt=='gpt3' or args.run_gpt=='gpt4' or args.run_gpt=='claude' else False, "Only NA model is supported for GPT3"
+    assert args.model=='NA'if args.run_gpt=='gpt3' or args.run_gpt=='gpt4' or args.run_gpt=='claude' or args.run_gpt=='claude_2.1' else False, "Only NA model is supported for GPT3"
     # model parameters
     temperature = args.temperature
     max_length = args.max_length
@@ -164,7 +183,7 @@ if __name__ == "__main__":
         for idx, t in enumerate(range(start_task_id, end_task_id)):
 
             ## LLM acts
-            if run_gpt == 'claude' and args.use_generated_tasklabels:
+            if (run_gpt == 'claude'or run_gpt == 'claude_2.1') and args.use_generated_tasklabels:
                 assert args.file_name_tasklabels is not None, "Please provide a file name for the task labels"
                 
                 features, categories, task_id = retrieve_features_and_categories(path=args.path_tasklabels,\

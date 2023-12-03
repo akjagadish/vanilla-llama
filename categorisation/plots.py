@@ -957,7 +957,7 @@ def model_comparison(list_models=None, task_name = 'smithstask'):
             'badham2017_env=dim3synthetic_model=transformer_num_episodes500000_num_hidden=256_lr0.0003_num_layers=6_d_model=64_num_head=8_noise0.0_shuffleTrue_run=0_synthetic_beta_sweep.npy']
     models = list_models if list_models is not None else models
     
-    nlls = []
+    nlls,fitted_betas = [], []
     for model_name in models:
         fits =  np.load(f'../model_comparison/{model_name}.npz')
         betas, pnlls, pr2s = fits['betas'], fits['nlls'], fits['pr2s']
@@ -966,6 +966,7 @@ def model_comparison(list_models=None, task_name = 'smithstask'):
         pr2s_min_nll = np.stack([pr2s[min_nll_index[idx], idx] for idx in range(pr2s.shape[1])])
         nlls_min_nlls = np.stack([pnlls[min_nll_index[idx], idx] for idx in range(pnlls.shape[1])])
         nlls.append(nlls_min_nlls)
+        fitted_betas.append(betas[min_nll_index])
 
     nlls = np.array(nlls)
     num_participants = len(nlls[0])
@@ -987,3 +988,15 @@ def model_comparison(list_models=None, task_name = 'smithstask'):
     sns.despine()
     f.tight_layout()
     plt.show()
+
+    # plot histogram of fitted betas for each models in a different subplot
+    f, ax = plt.subplots(1, len(models), figsize=(5,15))
+    colors = ['#173b4f', '#8b9da7', '#5d7684']
+    for m_idx, model in enumerate(models):
+        ax[m_idx].hist(fitted_betas[m_idx], color=colors[m_idx])
+        ax[m_idx].set_xlabel('Beta', fontsize=FONTSIZE)
+        ax[m_idx].set_ylabel('Counts', fontsize=FONTSIZE)
+        ax[m_idx].set_title(f'{task_titles[task_name]}', fontsize=FONTSIZE)
+        sns.despine()
+
+    

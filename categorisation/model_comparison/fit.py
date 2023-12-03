@@ -36,7 +36,14 @@ def compute_loglikelihood_human_choices_under_model(env=None, model_path=None, p
         summed_loglikehoods = torch.stack([loglikehoods[idx][:sequence_lengths[idx]].sum() for idx in range(len(loglikehoods))]).sum()
         chance_loglikelihood = sum(sequence_lengths) * np.log(0.5)
 
-    return summed_loglikehoods, chance_loglikelihood 
+        # task performance
+        model_choices = torch.distributions.Binomial(probs=model_choice_probs).sample()
+        model_choices = torch.concat([model_choices[i, :seq_len] for i, seq_len in enumerate(sequence_lengths)], axis=0).squeeze().float()
+        correct_choices = torch.concat([correct_choices[i, :seq_len] for i, seq_len in enumerate(sequence_lengths)], axis=0).squeeze().float()
+        correct_choices = correct_choices.reshape(-1).float().to(device)
+        model_accuracy = (model_choices==correct_choices).sum()/(model_choices.shape[0])
+
+    return summed_loglikehoods, chance_loglikelihood, model_accuracy 
 
               
 def evaluate_badham2017(model_name=None, experiment=None, tasks=[None], beta=1., noises=[0.05, 0.1, 0.0], shuffles=[True, False], shuffle_evals=[True, False], num_runs=5, num_trials=96, batch_size=10, num_eval_tasks=1113, synthetic=False):
@@ -58,35 +65,12 @@ def evaluate_badham2017(model_name=None, experiment=None, tasks=[None], beta=1.,
                                                                             beta=beta, batch_size=batch_size, max_steps=num_trials, **task_features)
         loglikelihoods.append(ll)
         p_r2.append(1 - (ll/chance_ll))
+        model_acc.append(acc)
     
     loglikelihoods = np.array(loglikelihoods)
+    model_acc = np.array(model_acc)
     
-    return -loglikelihoods, p_r2
-
-def evaluate_devraj2022(model_name=None, experiment=None, tasks=[None], beta=1., noises=[0.05, 0.1, 0.0], shuffles=[True, False], shuffle_evals=[True, False], num_runs=5, num_trials=96, batch_size=10, num_eval_tasks=1113, synthetic=False):
-
-    # setup model params
-    #model_name = f"env={env_name}_noise{0.}_shuffle{True}_run=0.pt"
-    model_path = f"/u/ajagadish/vanilla-llama/categorisation/trained_models/{model_name}.pt"
-    
-    # load environment
-    env = Devraj2022() #load human data
-
-    #TODO: for task in tasks: (all tasks or just one task)
-    task_features = {'task':0, 'all_tasks': True}
-    participants = env.data.participant.unique()
-    loglikelihoods, p_r2 = [], []
-    for participant in participants:
-
-        # compute log likelihoods of human choices under model choice probs (binomial distribution)
-        ll, chance_ll = compute_loglikelihood_human_choices_under_model(env=env, model_path=model_path, participant=participant, experiment='badham2017deficits', shuffle_trials=True,\
-                                                                            beta=beta, batch_size=batch_size, max_steps=num_trials, **task_features)
-        loglikelihoods.append(ll)
-        p_r2.append(1 - (ll/chance_ll))
-    
-    loglikelihoods = np.array(loglikelihoods)
-    
-    return -loglikelihoods, p_r2
+    return -loglikelihoods, p_r2, model_acc
 
 if __name__  == '__main__':
     parser = argparse.ArgumentParser(description='save meta-learner choices on different categorisation tasks')

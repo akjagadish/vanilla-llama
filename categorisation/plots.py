@@ -895,7 +895,7 @@ def plot_frequency_tasklabels(file_name, path='/u/ajagadish/vanilla-llama/catego
     
     f.savefig(f'{SYS_PATH}/categorisation/figures/frequency_plot_tasklabels_{column_name}_paired={pairs}_top{top_labels}.png', bbox_inches='tight', dpi=300)
 
-def evaluate_smith1998(env_name=None, experiment=None, tasks=[None], beta=1., noises=[0.05, 0.1, 0.0], shuffles=[True, False], shuffle_evals=[True, False], num_runs=5, num_trials=96, num_eval_tasks=1113, synthetic=False, run=0, nonlinear=False):
+def evaluate_smith1998(env_name=None, experiment=None, tasks=[None], beta=1., noises=[0.05, 0.1, 0.0], shuffles=[True, False], shuffle_evals=[True, False], num_runs=5, num_trials=96, num_blocks=1, num_eval_tasks=1113, synthetic=False, run=0, nonlinear=False):
     tasks = ['linear', 'nonlinear'] if tasks[0] is None else tasks
     corrects = np.ones((len(tasks), len(noises), len(shuffles), len(shuffle_evals), num_eval_tasks, num_trials))
     
@@ -915,9 +915,13 @@ def evaluate_smith1998(env_name=None, experiment=None, tasks=[None], beta=1., no
     colors = ['#173b4f', '#8b9da7']
     task_names = ['Linear', 'Non-linear']
     for t_idx, task in enumerate(tasks):
-        ax.plot(np.arange(num_trials), np.mean(corrects[t_idx], axis=(0,1,2,3)), label=f'{task_names[t_idx]}', lw=3, color=colors[t_idx])
+        if num_blocks==1:
+            ax.plot(np.arange(num_trials), np.mean(corrects[t_idx], axis=(0,1,2,3)), label=f'{task_names[t_idx]}', lw=3, color=colors[t_idx])
+        else:
+            ax.plot(np.arange(num_blocks), np.stack(np.split(np.mean(corrects[t_idx], axis=(0,1,2,3)), num_blocks)).mean(1), label=f'{task_names[t_idx]}', lw=3, color=colors[t_idx])
     ax.set_xlabel('Trial', fontsize=FONTSIZE)
     ax.set_ylabel('Accuracy', fontsize=FONTSIZE)
+    ax.set_ylim([0.6, 1.])
     plt.xticks(fontsize=FONTSIZE-2)
     plt.yticks(fontsize=FONTSIZE-2)
     plt.legend(fontsize=FONTSIZE-4, frameon=False,  loc="upper center", bbox_to_anchor=(.45, 1.2), ncol=3)  # place legend outside the plot

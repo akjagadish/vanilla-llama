@@ -74,7 +74,7 @@ if __name__  == '__main__':
     use_cuda = not args.no_cuda and torch.cuda.is_available()
     device = torch.device("cuda" if use_cuda else "cpu") 
     
-    betas = np.arange(0., 1., 0.05)
+    betas = np.arange(0., 10., 0.05)
     nlls, pr2s, accs = [], [], []
     
     for idx, beta in enumerate(betas):

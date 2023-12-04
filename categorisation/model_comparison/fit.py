@@ -6,25 +6,24 @@ from tqdm import tqdm
 import sys
 sys.path.insert(0, '/u/ajagadish/vanilla-llama/categorisation/rl2')
 
-def compute_loglikelihood_human_choices_under_model(env=None, model_path=None, participant=0, experiment='shepard_categorisation', shuffle_trials=False, policy='binomial', beta=1., device='cpu', batch_size=10, **kwargs):
+def compute_loglikelihood_human_choices_under_model(env=None, model_path=None, participant=0, beta=1., device='cpu', **kwargs):
     
     # load model
     model = torch.load(model_path)[1].to(device) if device=='cuda' else torch.load(model_path, map_location=torch.device('cpu'))[1].to(device)
            
     with torch.no_grad():
- 
-        model.eval() # set model to eval mode
-        # sample batch from environment
-        outputs = env.sample_batch(participant)
         
+        # model setup: eval mode and set beta
+        model.eval()
+        model.beta = beta 
+        model.device = device
+
+        # env setup: sample batch from environment and unpack
+        outputs = env.sample_batch(participant)
         if (env.return_prototype is True) and hasattr(env, 'return_prototype'):
             packed_inputs, sequence_lengths, correct_choices, human_choices, stacked_prototypes = outputs
         else:
             packed_inputs, sequence_lengths, correct_choices, human_choices = outputs
-        
-        # set beta
-        model.beta = beta 
-        model.device = device
 
         # get model choices
         model_choice_probs = model(packed_inputs.float().to(device), sequence_lengths) 
@@ -32,8 +31,8 @@ def compute_loglikelihood_human_choices_under_model(env=None, model_path=None, p
         # compute log likelihoods of human choices under model choice probs (binomial distribution)
         loglikehoods = torch.distributions.Binomial(probs=model_choice_probs).log_prob(human_choices)
         
-        # sum log likelihoods only for unpadded trials per condition
-        summed_loglikehoods = torch.stack([loglikehoods[idx][:sequence_lengths[idx]].sum() for idx in range(len(loglikehoods))]).sum()
+        # sum log likelihoods only for unpadded trials per condition and compute chance log likelihood
+        summed_loglikehoods = torch.stack([loglikehoods[idx, :sequence_lengths[idx]].sum() for idx in range(len(loglikehoods))]).sum()
         chance_loglikelihood = sum(sequence_lengths) * np.log(0.5)
 
         # task performance
@@ -46,20 +45,16 @@ def compute_loglikelihood_human_choices_under_model(env=None, model_path=None, p
     return summed_loglikehoods, chance_loglikelihood, model_accuracy 
 
               
-def evaluate_model(env=None, model_name=None, experiment=None, tasks=[None], beta=1., noises=[0.05, 0.1, 0.0], shuffles=[True, False], shuffle_evals=[True, False], num_runs=5, num_trials=96, batch_size=10, num_eval_tasks=1113, synthetic=False):
+def evaluate_model(env=None, model_name=None, beta=1., num_runs=5, **task_features):
+    '''  compute log likelihoods of human choices under model choice probs based on binomial distribution
+    '''
 
-    # setup model params
-    #model_name = f"env={env_name}_noise{0.}_shuffle{True}_run=0.pt"
     model_path = f"/u/ajagadish/vanilla-llama/categorisation/trained_models/{model_name}.pt"
-
-    #TODO: for task in tasks: (all tasks or just one task)
-    task_features = {'task':0, 'all_tasks': True}
     participants = env.data.participant.unique()
     loglikelihoods, p_r2, model_acc = [], [], []
     for participant in participants:
-        # compute log likelihoods of human choices under model choice probs (binomial distribution)
         ll, chance_ll, acc  = compute_loglikelihood_human_choices_under_model(env=env, model_path=model_path, participant=participant, experiment='badham2017deficits', shuffle_trials=True,\
-                                                                            beta=beta, batch_size=batch_size, max_steps=num_trials, **task_features)
+                                                                            beta=beta, **task_features)
         loglikelihoods.append(ll)
         p_r2.append(1 - (ll/chance_ll))
         model_acc.append(acc)
@@ -85,10 +80,12 @@ if __name__  == '__main__':
     for idx, beta in enumerate(betas):
         if args.task_name == 'badham2017':
             env = Badham2017() 
-            nll_per_beta, pr2_per_beta, model_acc_per_beta = evaluate_model(env=env, model_name=args.model_name, tasks=np.arange(1,7), beta=0.3, noises=[0.0], shuffles=[True], shuffle_evals=[False], num_runs=1, batch_size=1, num_trials=1000)
+            #TODO: for task in tasks:
+            task_features = {}
+            nll_per_beta, pr2_per_beta, model_acc_per_beta = evaluate_model(env=env, model_name=args.model_name, beta=beta, num_runs=1, **task_features)
         elif args.task_name == 'devraj2022':
             env = Devraj2022()
-            nll_per_beta, pr2_per_beta, model_acc_per_beta = evaluate_model(env=env, model_name=args.model_name, tasks=np.arange(1,7), beta=0.3, noises=[0.0], shuffles=[True], shuffle_evals=[False], num_runs=1, batch_size=1, num_trials=1000)
+            nll_per_beta, pr2_per_beta, model_acc_per_beta = evaluate_model(env=env, model_name=args.model_name, beta=beta, num_runs=1)
         else:
             raise NotImplementedError
         nlls.append(nll_per_beta)

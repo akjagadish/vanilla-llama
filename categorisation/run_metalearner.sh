@@ -30,6 +30,8 @@ export OMP_NUM_THREADS=${SLURM_CPUS_PER_TASK}
 ## dim 6 synthetic data
 # (done) python rl2/train_transformer.py  --synthetic --nonlinear --num-episodes 500000 --save-every 100 --print-every 100 --max-steps 400 --num-dims 6 --env-name dim6synthetic --first-run-id 0 --noise 0.0 --model-name transformer --num_hidden 256 --num_layers 6 --d_model 64 --num_head 8 --batch_size 64 --shuffle
 # (done) python rl2/train_transformer.py  --synthetic --num-episodes 500000 --save-every 100 --print-every 100 --max-steps 400 --num-dims 6 --env-name dim6synthetic --first-run-id 0 --noise 0.0 --model-name transformer --num_hidden 256 --num_layers 6 --d_model 64 --num_head 8 --batch_size 64 --shuffle
+# (ongoing) python rl2/train_transformer.py  --synthetic --nonlinear --num-episodes 500000 --save-every 100 --print-every 100 --max-steps 650 --num-dims 6 --env-name dim6synthetic --first-run-id 1 --noise 0.0 --model-name transformer --num_hidden 256 --num_layers 6 --d_model 64 --num_head 8 --batch_size 64 --shuffle
+python rl2/train_transformer.py  --synthetic --num-episodes 500000 --save-every 100 --print-every 100 --max-steps 650 --num-dims 6 --env-name dim6synthetic --first-run-id 1 --noise 0.0 --model-name transformer --num_hidden 256 --num_layers 6 --d_model 64 --num_head 8 --batch_size 64 --shuffle
 
 ## llm generated data: prompt version 1
 # python rl2/train_transformer.py --num-episodes 500000 --save-every 100 --print-every 100 --max-steps 250 --env-name claude_generated_tasks_paramsNA_dim3_data100_tasks14000_pversion1  --first-run-id 0 --noise 0.0 --model-name transformer --num_hidden 256 --num_layers 6 --d_model 64 --num_head 8 --batch_size 64 --shuffle

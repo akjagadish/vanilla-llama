@@ -599,7 +599,7 @@ def evaluate_nosofsky1994(env_name=None, experiment=None, tasks=[None], beta=1.,
     ax.set_ylim([0., .5])
     plt.xticks(fontsize=FONTSIZE-2)
     plt.yticks(fontsize=FONTSIZE-2)
-    # plt.legend(fontsize=FONTSIZE-4, frameon=False,  loc="upper center", bbox_to_anchor=(.45, 1.25), ncol=3)  # place legend outside the plot
+    plt.legend(fontsize=FONTSIZE-4, frameon=False,  loc="upper center", bbox_to_anchor=(.45, 1.25), ncol=3)  # place legend outside the plot
     sns.despine()
     f.tight_layout()
     plt.show()
@@ -895,7 +895,7 @@ def plot_frequency_tasklabels(file_name, path='/u/ajagadish/vanilla-llama/catego
     
     f.savefig(f'{SYS_PATH}/categorisation/figures/frequency_plot_tasklabels_{column_name}_paired={pairs}_top{top_labels}.png', bbox_inches='tight', dpi=300)
 
-def evaluate_smith1998(env_name=None, experiment=None, tasks=[None], beta=1., noises=[0.05, 0.1, 0.0], shuffles=[True, False], shuffle_evals=[True, False], num_runs=5, num_trials=96, num_eval_tasks=1113, synthetic=False, run=0, nonlinear=False):
+def evaluate_smith1998(env_name=None, experiment=None, tasks=[None], beta=1., noises=[0.05, 0.1, 0.0], shuffles=[True, False], shuffle_evals=[True, False], num_runs=5, num_trials=96, num_blocks=1, num_eval_tasks=1113, synthetic=False, run=0, nonlinear=False):
     tasks = ['linear', 'nonlinear'] if tasks[0] is None else tasks
     corrects = np.ones((len(tasks), len(noises), len(shuffles), len(shuffle_evals), num_eval_tasks, num_trials))
     
@@ -915,9 +915,13 @@ def evaluate_smith1998(env_name=None, experiment=None, tasks=[None], beta=1., no
     colors = ['#173b4f', '#8b9da7']
     task_names = ['Linear', 'Non-linear']
     for t_idx, task in enumerate(tasks):
-        ax.plot(np.arange(num_trials), np.mean(corrects[t_idx], axis=(0,1,2,3)), label=f'{task_names[t_idx]}', lw=3, color=colors[t_idx])
+        if num_blocks==1:
+            ax.plot(np.arange(num_trials), np.mean(corrects[t_idx], axis=(0,1,2,3)), label=f'{task_names[t_idx]}', lw=3, color=colors[t_idx])
+        else:
+            ax.plot(np.arange(num_blocks), np.stack(np.split(np.mean(corrects[t_idx], axis=(0,1,2,3)), num_blocks)).mean(1), label=f'{task_names[t_idx]}', lw=3, color=colors[t_idx])
     ax.set_xlabel('Trial', fontsize=FONTSIZE)
     ax.set_ylabel('Accuracy', fontsize=FONTSIZE)
+    ax.set_ylim([0.6, 1.])
     plt.xticks(fontsize=FONTSIZE-2)
     plt.yticks(fontsize=FONTSIZE-2)
     plt.legend(fontsize=FONTSIZE-4, frameon=False,  loc="upper center", bbox_to_anchor=(.45, 1.2), ncol=3)  # place legend outside the plot
@@ -945,3 +949,58 @@ def compare_categorisation_model_fits_learning(task_name = 'smithstask'):
     f.tight_layout()
     plt.show()      
     f.savefig(f'{SYS_PATH}/categorisation/figures/fit_gcm_pm_learningtrials_{task_name}.svg', bbox_inches='tight', dpi=300)
+
+def model_comparison(list_models=None, task_name = 'smithstask'):
+
+    task_titles = {'smithstask': 'Smith and Minda (1998)', 'levering2020': 'Levering et al. (2020)', \
+                  'nosofsky1994': 'Nosofsky et al. (1994)', 'nosofsky1988': 'Nosofsky et al. (1988)',\
+                  'badham2017': 'Badham et al. (2017)'}
+    
+    models = ['badham2017_env=claude_generated_tasks_paramsNA_dim3_data100_tasks11518_pversion4_model=transformer_num_episodes500000_num_hidden=256_lr0.0003_num_layers=6_d_model=64_num_head=8_noise0.0_shuffleTrue_run=0_beta_sweep.npy',\
+              'badham2017_env=dim3synthetic_model=transformer_num_episodes500000_num_hidden=256_lr0.0003_num_layers=6_d_model=64_num_head=8_noise0.0_shuffleTrue_run=0_syntheticnonlinear_beta_sweep', \
+            'badham2017_env=dim3synthetic_model=transformer_num_episodes500000_num_hidden=256_lr0.0003_num_layers=6_d_model=64_num_head=8_noise0.0_shuffleTrue_run=0_synthetic_beta_sweep.npy']
+    models = list_models if list_models is not None else models
+    
+    nlls,fitted_betas = [], []
+    for model_name in models:
+        fits =  np.load(f'../model_comparison/{model_name}.npz')
+        betas, pnlls, pr2s = fits['betas'], fits['nlls'], fits['pr2s']
+        pr2s = np.array(pr2s)
+        min_nll_index = np.argmin(np.stack(pnlls), 0)
+        pr2s_min_nll = np.stack([pr2s[min_nll_index[idx], idx] for idx in range(pr2s.shape[1])])
+        nlls_min_nlls = np.stack([pnlls[min_nll_index[idx], idx] for idx in range(pnlls.shape[1])])
+        nlls.append(nlls_min_nlls)
+        fitted_betas.append(betas[min_nll_index])
+
+    nlls = np.array(nlls)
+    num_participants = len(nlls[0])
+
+    # compare mean nlls across models in a bar plot
+    f, ax = plt.subplots(1, 1, figsize=(5,5))
+    bar_positions = np.arange(len(nlls))*0.5
+    colors = ['#173b4f', '#8b9da7', '#5d7684']
+    ax.bar(bar_positions, nlls.mean(1), color=colors, width=0.4)
+    ax.errorbar(bar_positions, nlls.mean(1), yerr=nlls.std(1)/np.sqrt(num_participants-1), c='k', lw=3, fmt="o")
+    ax.axhline(y=-np.log(0.5)*384, color='k', linestyle='--', lw=3)
+    ax.set_xlabel('Meta-learner trained on', fontsize=FONTSIZE)
+    ax.set_ylabel('NLL', fontsize=FONTSIZE)
+    ax.set_xticks(bar_positions)  # set x-tick positions to bar_positions
+    ax.set_xticklabels(['LLM', 'Linear', 'Non-linear'], fontsize=FONTSIZE-2)  # assign category names to x-tick labels
+    ax.set_title(f'Model comparison for {task_titles[task_name]}', fontsize=FONTSIZE)
+    plt.xticks(fontsize=FONTSIZE-2)
+    plt.yticks(fontsize=FONTSIZE-2)
+    sns.despine()
+    f.tight_layout()
+    plt.show()
+
+    # plot histogram of fitted betas for each models in a different subplot
+    f, ax = plt.subplots(1, len(models), figsize=(5,15))
+    colors = ['#173b4f', '#8b9da7', '#5d7684']
+    for m_idx, model in enumerate(models):
+        ax[m_idx].hist(fitted_betas[m_idx], color=colors[m_idx])
+        ax[m_idx].set_xlabel('Beta', fontsize=FONTSIZE)
+        ax[m_idx].set_ylabel('Counts', fontsize=FONTSIZE)
+        ax[m_idx].set_title(f'{task_titles[task_name]}', fontsize=FONTSIZE)
+        sns.despine()
+
+    

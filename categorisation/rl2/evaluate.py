@@ -5,14 +5,14 @@ import argparse
 from baseline_classifiers import LogisticRegressionModel, SVMModel
 
 # evaluate a model
-def evaluate_1d(env_name=None, model_path=None, experiment='categorisation', env=None, model=None, mode='val', shuffle_trials=False, policy='binomial', beta=1., max_steps=70, device='cpu', return_all=False):
+def evaluate_1d(env_name=None, model_path=None, experiment='categorisation', env=None, model=None, mode='val', shuffle_trials=False, policy='binomial', beta=1., max_steps=70, nonlinear=False, num_dims=3, device='cpu', return_all=False):
     
     if env is None:
         # load environment
         if experiment == 'synthetic':
-            env = SyntheticCategorisationTask(max_steps=max_steps, shuffle_trials=shuffle_trials)
+            env = SyntheticCategorisationTask(nonlinear=nonlinear, num_dims=num_dims, max_steps=max_steps, shuffle_trials=shuffle_trials)
         if experiment == 'categorisation':
-            env = CategorisationTask(data=env_name, mode=mode, max_steps=max_steps, shuffle_trials=shuffle_trials)
+            env = CategorisationTask(data=env_name, num_dims=num_dims, mode=mode, max_steps=max_steps, shuffle_trials=shuffle_trials)
         elif experiment == 'shepard_categorisation':
             env = ShepardsTask(task=env_name, max_steps=max_steps, shuffle_trials=shuffle_trials)
         elif experiment == 'nosofsky_categorisation':

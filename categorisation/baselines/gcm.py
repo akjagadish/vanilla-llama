@@ -48,7 +48,7 @@ class GeneralizedContextModel():
         
         return nll
 
-    def fit_participants(self, df):
+    def fit_participants(self, df, num_blocks=1, reduce='sum'):
         """ fit gcm to individual participants and compute negative log likelihood 
         
         args:
@@ -57,18 +57,27 @@ class GeneralizedContextModel():
         returns:
         nll: negative log likelihood for each participant"""
 
+        num_conditions = len(df['condition'].unique())
         num_participants = len(df['participant'].unique())
-        log_likelihood, r2 = np.zeros(num_participants), np.zeros(num_participants)
+        log_likelihood, r2 = np.zeros((num_participants, num_conditions, num_blocks)), np.zeros((num_participants, num_conditions, num_blocks))
         self.bounds.extend(self.weight_bound * self.num_features)
+        store_params = np.zeros((num_participants, num_conditions, num_blocks, len(self.bounds))) # store params for each task feature and block
 
-        for idx, participant_id in enumerate(df['participant'].unique()):
+        for p_idx, participant_id in enumerate(df['participant'].unique()[:num_participants]):
             df_participant = df[(df['participant'] == participant_id)]
-            best_params = self.fit_parameters(df_participant)
-            log_likelihood[idx] = -self.compute_nll(best_params, df_participant)
-            num_trials = df_participant.trial.max()*0.5 if self.burn_in else df_participant.trial.max()
-            r2[idx] = 1 - (log_likelihood[idx]/(num_trials*np.log(1/2)))
-        
-        return log_likelihood, r2
+            for c_idx, condition_id in enumerate(df['condition'].unique()):
+                df_condition = df_participant[(df_participant['condition'] == condition_id)]
+                num_trials_per_block = int((df_condition.trial.max()+1)/num_blocks)
+                for b_idx, block in enumerate(range(num_blocks)):
+                    df_condition_block = df_condition[(df_condition['trial'] < (block+1)*num_trials_per_block) & (df_condition['trial'] >= block*num_trials_per_block)]
+                    best_params = self.fit_parameters(df_condition_block, reduce)
+                    log_likelihood[p_idx, c_idx, b_idx] = -self.compute_nll(best_params, df_condition_block, reduce)
+                    num_trials = len(df_condition_block)*(df_condition_block.task.max()+1)
+                    num_trials = num_trials*0.5 if self.burn_in else num_trials
+                    r2[p_idx, c_idx, b_idx] = 1 - (log_likelihood[p_idx, c_idx, b_idx]/(num_trials*np.log(1/2)))
+                    store_params[p_idx, c_idx, b_idx] = best_params
+                
+        return log_likelihood, r2, store_params
     
     def fit_metalearner(self, df, num_blocks=1, reduce='sum'):
         """ fit gcm to individual meta-learning model runs and compute negative log likelihood 

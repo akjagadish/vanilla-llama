@@ -7,6 +7,7 @@ import numpy as np
 import torch
 import statsmodels.discrete.discrete_model as sm
 import ipdb
+from scipy.optimize import LinearConstraint, Bounds
 
 #TODO: bias term? an additional guessing-rate parameter was added to the exemplar model wihich assumed that some proportion of the time (G) participants simply guessed Category A or B haphazardly.
 #TODO: hill-climbing search for the best weights run 4 times
@@ -15,7 +16,7 @@ import ipdb
 class GeneralizedContextModel():
     """ Generalized Context Model (GCM) """
     
-    def __init__(self, num_features=4, num_categories=2, distance_measure=1, num_iterations=1, burn_in=False):
+    def __init__(self, num_features=4, num_categories=2, distance_measure=1, num_iterations=1, burn_in=False, opt_method='minimize'):
         
         self.bounds = [(0, 10.), # sensitivity
                        (0, 1), # bias
@@ -25,6 +26,7 @@ class GeneralizedContextModel():
         self.num_iterations = num_iterations
         self.num_features = num_features
         self.num_categories = num_categories
+        self.opt_method = opt_method
         self.burn_in = burn_in
 
     def loo_nll(self, df):
@@ -111,19 +113,30 @@ class GeneralizedContextModel():
         constraint_obj = {'type': 'eq', 'fun': self.constraint}
         for _ in range(self.num_iterations):
     
-            result = minimize(
-                fun=self.compute_nll,
-                x0=[np.random.uniform(x, y) for x, y in self.bounds],
-                args=(df, reduce),
-                bounds=self.bounds,
-                constraints=constraint_obj
-            )
-            
-            # result = differential_evolution(self.compute_nll, 
-            #                     bounds=self.bounds, 
-            #                     args=(df),
-            #                     maxiter=100)
-            
+            if self.opt_method == 'minimize':
+                init = [np.random.uniform(x, y) for x, y in self.bounds]
+                result = minimize(
+                    fun=self.compute_nll,
+                    x0=init,
+                    args=(df, reduce),
+                    bounds=self.bounds,
+                    constraints=constraint_obj
+                )
+            elif self.opt_method == 'differential_evolution':
+                # lower, upper = [x[0] for x in self.bounds], [x[1] for x in self.bounds]
+                # bounds = Bounds(lower, upper)
+                # from_element = len(self.bounds)-2
+                # constraint = np.zeros((1, len(self.bounds)))
+                # constraint[0, from_element:] = 1
+                # lc = LinearConstraint(constraint, -np.inf, 1.)
+                bounds, constraint = self.return_bounds_constraints()
+                result = differential_evolution(func=self.compute_nll, 
+                                    bounds=bounds, 
+                                    args=(df, reduce),
+                                    constraints=constraint,
+                                    maxiter=1)
+            else:
+                raise NotImplementedError
             best_params = result.x
 
             if result.fun < best_fun:
@@ -141,6 +154,16 @@ class GeneralizedContextModel():
         """ define the constraint that the weights must sum to 1 """
         
         return np.sum(params[2:]) - 1
+
+    def return_bounds_constraints(self):
+        """ define bounds and constraints for differential evolution optimiser """
+        lower, upper = [x[0] for x in self.bounds], [x[1] for x in self.bounds]
+        bounds = Bounds(lower, upper)
+        from_element = len(self.bounds)-2
+        constraint = np.zeros((1, len(self.bounds)))
+        constraint[0, from_element:] = 1
+        lc = LinearConstraint(constraint, -np.inf, 1.)
+        return bounds, lc
     
     def compute_nll(self, params, df, reduce):
         """ compute negative log likelihood of the data given the parameters 

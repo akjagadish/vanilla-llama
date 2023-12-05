@@ -44,15 +44,18 @@ sys.path.append('../')
 
 # smiths task
 df = pd.read_csv('../data/meta_learner/smithstask_env=claude_generated_tasks_paramsNA_dim6_data500_tasks12911_pversion5_stage1_model=transformer_num_episodes500000_num_hidden=256_lr0.0003_num_layers=6_d_model=64_num_head=8_noise0.0_shuffleTrue_run=1_beta=0.3_num_trials=300_num_runs=1.csv')
-# gcm.burn_in = True
-num_runs, num_blocks, num_tasks = 10, 6, 2
-lls, r2s = np.zeros((num_runs, num_tasks, num_blocks)), np.zeros((num_runs, num_tasks, num_blocks))
+opt_method = 'minimize' #'minimize' or 'differential_evolution
+num_runs, num_blocks, NUM_TASKS = 5, 6, 2
+lls, r2s = np.zeros((num_runs, NUM_TASKS, num_blocks)), np.zeros((num_runs, NUM_TASKS, num_blocks))
+params_list = []
 for idx in range(num_runs):
-    gcm = GeneralizedContextModel(num_features=6, distance_measure=1, num_iterations=1)
-    lls[idx], r2s[idx] = gcm.fit_metalearner(df, num_blocks=num_blocks, reduce='sum')
+    gcm = GeneralizedContextModel(num_features=6, distance_measure=1, num_iterations=1, opt_method=opt_method)
+    lls[idx], r2s[idx], params = gcm.fit_metalearner(df, num_blocks=num_blocks, reduce='sum')
+    params_list.append(params)
     print(lls[idx], r2s[idx])
     print(f'mean log-likelihood across blocks: {lls[idx].mean()} \n')
     print(f'mean pseudo-r2 across blocks: {r2s[idx].mean()}')
+
 # save the r2 and ll values
-np.save('../data/meta_learner/r2_gcm_smithstask.npy', r2s)
-np.save('../data/meta_learner/ll_gcm_smithstask.npy', lls)
+np.savez(f'../data/meta_learner/gcm_smithstask_runs={num_runs}_blocks={num_blocks}_tasks={NUM_TASKS}'\
+         , r2s=r2s, lls=lls, params=np.stack(params_list), opt_method=opt_method)

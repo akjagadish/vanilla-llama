@@ -82,7 +82,8 @@ class GeneralizedContextModel():
         num_task_features = len(df['task_feature'].unique())
         log_likelihood, r2 = np.zeros((num_task_features, num_blocks)), np.zeros((num_task_features, num_blocks))
         self.bounds.extend(self.weight_bound * self.num_features)
-
+        # store params for each task feature and block
+        store_params = np.zeros((num_task_features, num_blocks, len(self.bounds)))
         for idx, task_feature_id in enumerate(df['task_feature'].unique()):
             df_task_feature = df[(df['task_feature'] == task_feature_id)]
             num_trials_per_block = int((df_task_feature.trial.max()+1)/num_blocks)
@@ -93,9 +94,9 @@ class GeneralizedContextModel():
                 num_trials = len(df_task_feature_block)*(df_task_feature_block.task.max()+1)
                 num_trials = num_trials*0.5 if self.burn_in else num_trials
                 r2[idx, b_idx] = 1 - (log_likelihood[idx, b_idx]/(num_trials*np.log(1/2)))
-                print('fitted parameters for task_level {}, block {}: c {}, bias {}, w1 {}, w2 {}, w3 {}'.format(participant_id, block, *best_params))
+                store_params[idx, b_idx] = best_params
         
-        return log_likelihood, r2
+        return log_likelihood, r2, store_params
 
 
     def fit_parameters(self, df, reduce='sum'):

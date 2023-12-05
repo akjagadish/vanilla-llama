@@ -119,8 +119,8 @@ class Devraj2022(nn.Module):
             true_choices = data_participant[data_participant.condition==condition].correct_choice.values
             
             # covert to 0 or 1 indexing
-            targets = true_choices-1
-            human_targets = human_choices-1
+            targets = true_choices#-1
+            human_targets = human_choices#-1
 
             # flip features, targets and humans choices 
             if np.random.rand(1) > 0.5:

@@ -35,7 +35,7 @@ for participant_id in range(len(stimulus_sequence)):
         block_id = trial_id//14
         trial_segment = trial_id//56
         new_df = new_df.append(pd.DataFrame({'participant': [participant_id], 'task': [0], 'block': [block_id], 'trial_segment': [trial_segment], 'condition': [conditions[participant_id]], \
-                                             'trial': [trial_id], 'category': [true_categories[participant_id][trial_id]], 'choice': [choices[participant_id][trial_id]-1], \
+                                             'trial': [trial_id], 'stimulus_id': [stimulus_sequence[participant_id][trial_id]],'category': [true_categories[participant_id][trial_id]], 'choice': [choices[participant_id][trial_id]-1], \
                                              'correct_choice': [true_categories[participant_id][trial_id]-1], 'all_features': [str(stimulus_features[stimulus_sequence[participant_id][trial_id]])], \
                                              'feature1': [stimulus_features[stimulus_sequence[participant_id][trial_id]][0]], 'feature2': [stimulus_features[stimulus_sequence[participant_id][trial_id]][1]], \
                                              'feature3': [stimulus_features[stimulus_sequence[participant_id][trial_id]][2]], 'feature4': [stimulus_features[stimulus_sequence[participant_id][trial_id]][3]], \

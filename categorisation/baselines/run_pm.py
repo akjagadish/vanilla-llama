@@ -15,23 +15,25 @@ df = df[df['condition'] == 'control'] # only pass 'control' condition
 ##### REMOVE THIS LINE AFTER TESTING #####
 # df = df[df['participant'] == 0] # keep only first participant for testing
 ##### REMOVE ABOVE LINE AFTER TESTING #####
-num_runs, num_blocks, NUM_TASKS, NUM_FEATURES = 1, 11, 1, 6
+num_runs, num_blocks, num_iter = 1, 11, 10
+loss = 'mse_transfer'
 opt_method = 'minimize'
+NUM_TASKS, NUM_FEATURES = 1, 6
 lls, r2s, params_list = [], [], []
 for idx in range(num_runs):
-    pm = PrototypeModel(num_features=6, distance_measure=1, num_iterations=1, learn_prototypes=False, prototypes='from_data')
+    pm = PrototypeModel(num_features=NUM_FEATURES, distance_measure=1, num_iterations=num_iter, learn_prototypes=False, prototypes='from_data', loss=loss)
     ll, r2, params = pm.fit_participants(df, num_blocks=num_blocks)
     params_list.append(params)
     lls.append(ll)
     r2s.append(r2)
     print(lls[idx], r2s[idx])
-    print(f'mean log-likelihood across blocks: {lls[idx].mean()} \n')
+    print(f'mean mse across blocks: {lls[idx].mean()} \n')
     print(f'mean pseudo-r2 across blocks: {r2s[idx].mean()}')
 
 # save the r2 and ll values
 lls = np.array(lls)
 r2s = np.array(r2s)
-np.savez(f'../data/meta_learner/pm_humans_devrajstask_runs={num_runs}_blocks={num_blocks}_tasks={NUM_TASKS}'\
+np.savez(f'../data/meta_learner/pm_humans_devrajstask_runs={num_runs}_iters={num_iter}_blocks={num_blocks}_tasks={NUM_TASKS}'\
          , r2s=r2s, lls=lls, params=np.stack(params_list), opt_method=opt_method)
  
 

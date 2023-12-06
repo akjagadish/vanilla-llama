@@ -25,7 +25,7 @@ for stim_seq_id in experiment_1.stimulus_sequence.values:
 stimulus_features = {0: [0, 0, 0, 0, 0, 0], 1: [1, 0, 0, 0, 0, 0], 2: [0, 1, 0, 0, 0, 0], 3: [0, 0, 1, 0, 0, 0], \
                      4: [0, 0, 0, 0, 1, 0], 5: [0, 0, 0, 0, 0, 1], 6: [1, 1, 1, 1, 0, 1], 7: [1, 1, 1, 1, 1, 1], \
                      8: [0, 1, 1, 1, 1, 1], 9: [1, 0, 1, 1, 1, 1], 10: [1, 1, 0, 1, 1, 1], 11: [1, 1, 1, 0, 1, 1],\
-                    12: [1, 1, 1, 1, 1, 0], 13: [0, 0, 0, 0, 1, 0]}
+                    12: [1, 1, 1, 1, 1, 0], 13: [0, 0, 0, 1, 0, 0]}
 prototype_features = {1: [0, 0, 0, 0, 0, 0], 2: [1, 1, 1, 1, 1, 1]}
                      
 # make a new dataframe with each row containing features of the task of one trial for a given participant

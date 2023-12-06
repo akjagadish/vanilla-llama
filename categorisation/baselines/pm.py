@@ -13,9 +13,9 @@ import ipdb
 class PrototypeModel():
     """ Prototype model for categorisation task """
     
-    def __init__(self, prototypes=None, num_features=3, num_categories=2, distance_measure=1, num_iterations=1, burn_in=False, learn_prototypes=False):
+    def __init__(self, prototypes=None, num_features=3, num_categories=2, distance_measure=1, num_iterations=1, burn_in=False, learn_prototypes=False, loss='nll'):
         
-        self.bounds = [(0, 10.), # sensitivity
+        self.bounds = [(0, 20.), # sensitivity
                        (0, 1), # bias
                        ]     
         self.weight_bound = [(0, 1)] # weights
@@ -28,6 +28,20 @@ class PrototypeModel():
         if self.learn_prototypes:
             self.bounds.extend(self.weight_bound * self.num_features * self.num_categories)
         self.prototypes = [np.ones(num_features) * 0.5, np.ones(num_features) * 0.5] if prototypes is None else prototypes
+        self.define_loss_fn(loss)
+        self.loss = loss
+    
+    def define_loss_fn(self, loss):
+        if loss == 'nll':
+            self.loss_fn = self.compute_nll
+        elif loss == 'nll_transfer':
+            self.loss_fun = self.compute_nll_transfer
+        elif loss == 'mse':
+            raise NotImplementedError
+        elif loss == 'mse_transfer':
+            self.loss_fn = self.compute_mse_transfer
+        else:
+            raise NotImplementedError
 
     def loo_nll(self, df):
         """ compute negative log likelihood for left out participants
@@ -107,7 +121,6 @@ class PrototypeModel():
         
         return log_likelihood, r2, store_params
 
-
     def fit_parameters(self, df):
         """ fit parameters using scipy optimiser 
         
@@ -119,16 +132,19 @@ class PrototypeModel():
         """
         
         best_fun = np.inf
+        minimize_loss_function = self.loss_fn
         # define the constraint that the weights must sum to 1 as an obj
         constraint_obj = {'type': 'eq', 'fun': self.constraint}
         for _ in range(self.num_iterations):
     
+            init = [np.random.uniform(x, y) for x, y in self.bounds]
             result = minimize(
-                fun=self.compute_nll,
-                x0=[np.random.uniform(x, y) for x, y in self.bounds],
+                fun=minimize_loss_function,
+                x0=init,
                 args=(df),
                 bounds=self.bounds,
-                constraints=constraint_obj
+                constraints=constraint_obj,
+                method='SLSQP',
             )
             
             # result = differential_evolution(self.compute_nll, 
@@ -214,7 +230,39 @@ class PrototypeModel():
             ll += self.prototype_model(params, current_stimuli, stimuli_seen, choice)
 
         return -2*ll
+
+    def compute_mse_transfer(self, params, df_train):
+        """ compute mse of the data given the parameters 
         
+        args:
+        params: parameters of the model
+        df: dataframe containing the data
+        
+        returns:
+        mse of the data given the parameters
+        """
+
+ 
+        stimuli_seen = [df_train[df_train['category'] == category][['feature{}'.format(i+1) for i in range(self.num_features)]].values for category in np.sort(df_train['category'].unique())]
+        stimuli_seen = [np.expand_dims(stimuli_seen[i], axis=1) for i in range(self.num_categories)]
+        self.prototypes = [np.array([params[2+i*self.num_features+j] for j in range(self.num_features)]) for i in range(self.num_categories)] if self.learn_prototypes else self.prototypes
+        self.prototypes = [df_train[df_train.category==category].iloc[0][['prototype_feature{}'.format(i+1) for i in range(self.num_features)]].values for category in np.sort(df_train['category'].unique())] if self.prototypes == 'from_data' else self.prototypes
+        REF_CATEGORY = 1
+        # keep one instance of each stimulus in order of stimulus_id
+        df_transfer = df_train.drop_duplicates(subset=['stimulus_id'], keep='first').sort_values(by=['stimulus_id'])
+        # compute the proportion of trials (out of those in which stimulus i was seen) in which the participant actually categorized stimulus i in category 1.
+        proportion_category_1 = np.array([np.mean(df_train[df_train['stimulus_id'] == i]['choice'].values==REF_CATEGORY) for i in df_transfer['stimulus_id'].values])
+        probability_category_1 = np.zeros(len(df_transfer['stimulus_id']))
+        for idx, stimulus_id in enumerate(df_transfer.stimulus_id.values):
+            df_trial = df_transfer[(df_transfer['stimulus_id'] == stimulus_id)]
+            current_stimuli = df_trial[['feature{}'.format(i+1) for i in range(self.num_features)]].values
+            category_probabilities = self.prototype_model(params, current_stimuli, stimuli_seen, None)
+            probability_category_1[idx] = category_probabilities[REF_CATEGORY]
+        
+        mse = np.sum((probability_category_1 - proportion_category_1)**2)
+
+        return mse
+
     def benchmark(self, df_train, df_transfer):
         """ fit pm to training data and transfer to new data 
         
@@ -276,9 +324,12 @@ class PrototypeModel():
         
         # compute log likelihood
         epsilon = 1e-10
-        log_likelihood = np.log(category_probabilities[choice]+epsilon)
 
-        return log_likelihood
+        if self.loss == 'nll':
+            log_likelihood = np.log(category_probabilities[choice]+epsilon)
+            return log_likelihood
+        else:
+            return category_probabilities
     
     def compute_attention_weighted_similarity(self, x, y, params):
         """ compute attention weighted similarity between current stimuli and stimuli seen so far 

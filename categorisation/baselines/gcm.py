@@ -16,9 +16,9 @@ from scipy.optimize import LinearConstraint, Bounds
 class GeneralizedContextModel():
     """ Generalized Context Model (GCM) """
     
-    def __init__(self, num_features=4, num_categories=2, distance_measure=1, num_iterations=1, burn_in=False, opt_method='minimize'):
+    def __init__(self, num_features=4, num_categories=2, distance_measure=1, num_iterations=1, burn_in=False, opt_method='minimize', loss='nll'):
         
-        self.bounds = [(0, 10.), # sensitivity
+        self.bounds = [(0, 20.), # sensitivity
                        (0, 1), # bias
                        ]     
         self.weight_bound = [(0, 1)] # weights
@@ -28,6 +28,20 @@ class GeneralizedContextModel():
         self.num_categories = num_categories
         self.opt_method = opt_method
         self.burn_in = burn_in
+        self.define_loss_fn(loss)
+        self.loss = loss
+    
+    def define_loss_fn(self, loss):
+        if loss == 'nll':
+            self.loss_fn = self.compute_nll
+        elif loss == 'nll_transfer':
+            self.loss_fun = self.compute_nll_transfer
+        elif loss == 'mse':
+            raise NotImplementedError
+        elif loss == 'mse_transfer':
+            self.loss_fn = self.compute_mse_transfer
+        else:
+            raise NotImplementedError
 
     def loo_nll(self, df):
         """ compute negative log likelihood for left out participants
@@ -107,7 +121,6 @@ class GeneralizedContextModel():
         
         return log_likelihood, r2, store_params
 
-
     def fit_parameters(self, df, reduce='sum'):
         """ fit parameters using scipy optimiser 
         
@@ -119,6 +132,7 @@ class GeneralizedContextModel():
         """
         
         best_fun = np.inf
+        minimize_loss_function = self.loss_fn
         # define the constraint that the weights must sum to 1 as an obj
         constraint_obj = {'type': 'eq', 'fun': self.constraint}
         for _ in range(self.num_iterations):
@@ -126,11 +140,12 @@ class GeneralizedContextModel():
             if self.opt_method == 'minimize':
                 init = [np.random.uniform(x, y) for x, y in self.bounds]
                 result = minimize(
-                    fun=self.compute_nll,
+                    fun=minimize_loss_function,
                     x0=init,
                     args=(df, reduce),
                     bounds=self.bounds,
-                    constraints=constraint_obj
+                    constraints=constraint_obj,
+                    method='SLSQP',
                 )
             elif self.opt_method == 'differential_evolution':
                 # lower, upper = [x[0] for x in self.bounds], [x[1] for x in self.bounds]
@@ -140,7 +155,7 @@ class GeneralizedContextModel():
                 # constraint[0, from_element:] = 1
                 # lc = LinearConstraint(constraint, -np.inf, 1.)
                 bounds, constraint = self.return_bounds_constraints()
-                result = differential_evolution(func=self.compute_nll, 
+                result = differential_evolution(func=minimize_loss_function, 
                                     bounds=bounds, 
                                     args=(df, reduce),
                                     constraints=constraint,

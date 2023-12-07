@@ -273,7 +273,7 @@ class GeneralizedContextModel():
             df_trial = df_transfer[(df_transfer['stimulus_id'] == stimulus_id)]
             current_stimuli = df_trial[['feature{}'.format(i+1) for i in range(self.num_features)]].values
             category_probabilities = self.gcm(params, current_stimuli, stimuli_seen, None, reduce=reduce)
-            probability_category_1[idx] = category_probabilities[REF_CATEGORY]
+            probability_category_1[idx] = category_probabilities[REF_CATEGORY]*(1-params[1]) + params[1]*(1/self.num_categories)
 
         mse = np.sum((probability_category_1 - proportion_category_1)**2)
 

@@ -23,31 +23,31 @@ sys.path.append('../')
 # print(f'mean pseudo-r2 across participants: {r2.mean()}')
 
 ## devraj et al. 2022
-df = pd.read_csv('../data/human/devraj2022rational.csv')
-df = df[df['condition'] == 'control'] # only pass 'control' condition
-##### REMOVE THIS LINE AFTER TESTING #####
-# df = df[df['participant']==0] # keep only first participant for testing
-##### REMOVE ABOVE LINE AFTER TESTING #####
-num_runs, num_blocks, num_iter = 1, 11, 10
-loss = 'mse_transfer'
-opt_method = 'minimize'
-NUM_TASKS, NUM_FEATURES = 1, 6
-lls, r2s, params_list = [], [], []
-for idx in range(num_runs):
-    gcm = GeneralizedContextModel(num_features=NUM_FEATURES, distance_measure=1, num_iterations=num_iter, opt_method=opt_method, loss=loss)
-    ll, r2, params = gcm.fit_participants(df, num_blocks=num_blocks, reduce='sum')
-    params_list.append(params)
-    lls.append(ll)
-    r2s.append(r2)
-    print(lls[idx], r2s[idx])
-    print(f'mean mse across blocks: {lls[idx].mean()} \n')
-    print(f'mean pseudo-r2 across blocks: {r2s[idx].mean()}')
+# df = pd.read_csv('../data/human/devraj2022rational.csv')
+# df = df[df['condition'] == 'control'] # only pass 'control' condition
+# ##### REMOVE THIS LINE AFTER TESTING #####
+# # df = df[df['participant']==0] # keep only first participant for testing
+# ##### REMOVE ABOVE LINE AFTER TESTING #####
+# num_runs, num_blocks, num_iter = 1, 11, 10
+# loss = 'mse_transfer'
+# opt_method = 'minimize'
+# NUM_TASKS, NUM_FEATURES = 1, 6
+# lls, r2s, params_list = [], [], []
+# for idx in range(num_runs):
+#     gcm = GeneralizedContextModel(num_features=NUM_FEATURES, distance_measure=1, num_iterations=num_iter, opt_method=opt_method, loss=loss)
+#     ll, r2, params = gcm.fit_participants(df, num_blocks=num_blocks, reduce='sum')
+#     params_list.append(params)
+#     lls.append(ll)
+#     r2s.append(r2)
+#     print(lls[idx], r2s[idx])
+#     print(f'mean mse across blocks: {lls[idx].mean()} \n')
+#     print(f'mean pseudo-r2 across blocks: {r2s[idx].mean()}')
 
-# save the r2 and ll values
-lls = np.array(lls)
-r2s = np.array(r2s)
-np.savez(f'../data/meta_learner/gcm_humans_devrajstask_runs={num_runs}_iters={num_iter}_blocks={num_blocks}_tasks={NUM_TASKS}'\
-         , r2s=r2s, lls=lls, params=np.stack(params_list), opt_method=opt_method)
+# # save the r2 and ll values
+# lls = np.array(lls)
+# r2s = np.array(r2s)
+# np.savez(f'../data/meta_learner/gcm_humans_devrajstask_runs={num_runs}_iters={num_iter}_blocks={num_blocks}_tasks={NUM_TASKS}'\
+#          , r2s=r2s, lls=lls, params=np.stack(params_list), opt_method=opt_method)
  
 ## benchmarking gcm model
 # df_train = pd.read_csv('../data/human/akshay-benchmark-across-languages-train.csv')
@@ -85,3 +85,30 @@ np.savez(f'../data/meta_learner/gcm_humans_devrajstask_runs={num_runs}_iters={nu
 # # save the r2 and ll values
 # np.savez(f'../data/meta_learner/gcm_simulations_smithstask_runs={num_runs}_blocks={num_blocks}_tasks={NUM_TASKS}'\
 #          , r2s=r2s, lls=lls, params=np.stack(params_list), opt_method=opt_method)
+
+
+beta=0.1
+df = pd.read_csv(f'../data/meta_learner/smith_categorisation__tasks12910_pversion5_stage2_model=transformer_num_episodes500000_num_hidden=256_lr0.0003_num_layers=6_d_model=64_num_head=8_noise0.0_shuffleTrue_run=1_beta={beta}_num_trials=616_num_runs=1.csv')
+##### REMOVE THIS LINE AFTER TESTING #####
+# df = df[df['participant']==0] # keep only first participant for testing
+##### REMOVE ABOVE LINE AFTER TESTING #####
+num_runs, num_blocks, num_iter = 1, 11, 1
+loss = 'mse_transfer'
+opt_method = 'minimize'
+NUM_TASKS, NUM_FEATURES = 1, 6
+lls, r2s, params_list = [], [], []
+for idx in range(num_runs):
+    gcm = GeneralizedContextModel(num_features=NUM_FEATURES, distance_measure=1, num_iterations=num_iter, opt_method=opt_method, loss=loss)
+    ll, r2, params = gcm.fit_metalearner(df, num_blocks=num_blocks, reduce='sum')
+    params_list.append(params)
+    lls.append(ll)
+    r2s.append(r2)
+    print(lls[idx], r2s[idx])
+    print(f'mean mse across blocks: {lls[idx].mean()} \n')
+    print(f'mean pseudo-r2 across blocks: {r2s[idx].mean()}')
+
+# save the r2 and ll values
+lls = np.array(lls)
+r2s = np.array(r2s)
+np.savez(f'../data/meta_learner/gcm_metalearner_devrajstask_beta={beta}_runs={num_runs}_iters={num_iter}_blocks={num_blocks}_tasks={NUM_TASKS}'\
+         , r2s=r2s, lls=lls, params=np.stack(params_list), opt_method=opt_method)

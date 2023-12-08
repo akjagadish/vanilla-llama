@@ -5,22 +5,22 @@ import pandas as pd
 import argparse
 from tqdm import tqdm
 
-def simulate(env_name=None, model_path=None, experiment='categorisation', env=None, model=None, mode='val', shuffle_trials=True, policy='binomial', beta=1., max_steps=100, batch_size=1, device='cpu'):
+def simulate(task_feature=None, model_path=None, experiment='categorisation', env=None, model=None, mode='val', shuffle_trials=True, policy='binomial', beta=1., max_steps=100, batch_size=1, device='cpu'):
     
     if env is None:
         # load environment
         if experiment == 'synthetic':
             env = SyntheticCategorisationTask(max_steps=max_steps, shuffle_trials=shuffle_trials)
         if experiment == 'categorisation':
-            env = CategorisationTask(data=env_name, mode=mode, max_steps=max_steps, shuffle_trials=shuffle_trials)
+            env = CategorisationTask(data=task_feature, mode=mode, max_steps=max_steps, shuffle_trials=shuffle_trials)
         elif experiment == 'shepard_categorisation':
-            env = ShepardsTask(task=env_name, return_prototype=True, batch_size=batch_size, max_steps=max_steps, shuffle_trials=shuffle_trials)
+            env = ShepardsTask(task=task_feature, return_prototype=True, batch_size=batch_size, max_steps=max_steps, shuffle_trials=shuffle_trials)
         elif experiment == 'nosofsky_categorisation':
-            env = NosofskysTask(task=env_name)
+            env = NosofskysTask(task=task_feature)
         elif experiment == 'levering_categorisation':
-            env = LeveringsTask(task=env_name)
+            env = LeveringsTask(task=task_feature)
         elif experiment == 'smith_categorisation':
-            env = SmithsTask(rule=env_name, return_prototype=True, batch_size=batch_size, max_steps=max_steps, shuffle_trials=shuffle_trials, use_existing_stimuli=True)
+            env = SmithsTask(rule=task_feature, return_prototype=True, batch_size=batch_size, max_steps=max_steps, shuffle_trials=shuffle_trials, use_existing_stimuli=True)
 
     if model is None: # load model
         model = torch.load(model_path)[1].to(device) if device=='cuda' else torch.load(model_path, map_location=torch.device('cpu'))[1].to(device)
@@ -46,17 +46,16 @@ def simulate(env_name=None, model_path=None, experiment='categorisation', env=No
         true_choices = np.stack(targets).squeeze() if batch_size>1 else np.stack(targets)
         prototypes = np.stack(stacked_prototypes) if env.return_prototype else None
         input_features = packed_inputs[..., :-1]
-        task_feature = env_name
         stimulus_dict = env.stimulus_dict if experiment=='smith_categorisation' else None
 
-    return model_choices, true_choices, sequence_lengths, stimulus_dict, prototypes, input_features, task_feature
+    return model_choices, true_choices, sequence_lengths, stimulus_dict, prototypes, input_features
      
 
-def simulate_metalearners_choices(env_name, model_path, experiment='categorisation', mode='test', shuffle_trials=False, beta=1., num_trials=100, num_runs=1, batch_size=1, device='cpu'):
+def simulate_metalearners_choices(task_feature, model_path, experiment='categorisation', mode='test', shuffle_trials=False, beta=1., num_trials=100, num_runs=1, batch_size=1, device='cpu'):
     
     for run_idx in range(num_runs):
 
-        model_choices, true_choices, sequences, stimulus_dict,  prototypes, input_features, task_feature = simulate(env_name=env_name,\
+        model_choices, true_choices, sequences, stimulus_dict,  prototypes, input_features = simulate(task_feature=task_feature,\
                     model_path=model_path, experiment=experiment, mode=mode, shuffle_trials=shuffle_trials, \
                     beta=beta, batch_size=batch_size, max_steps=num_trials, device=device)
         last_task_trial_idx = 0
@@ -74,43 +73,44 @@ def simulate_metalearners_choices(env_name, model_path, experiment='categorisati
 
                 # make a pandas data frame
                 df = pd.DataFrame(data, index=[0]) if run_idx==0 and task_idx==0 and trial_idx==0 else pd.concat([df, pd.DataFrame(data, index=[0])])
-            
-            last_task_trial_idx = 0 #trial_idx + 1
+            last_task_trial_idx = 0 # (trial_idx + 1) (uncomment: if you want to pool trials across batches into one big task with indexing continuing from previous batch)
+
     return df
 
-def simulate_task(model_name=None, task_name=None, tasks=[None], beta=1., num_runs=1, num_trials=100, batch_size=1, device='cpu'):
+def simulate_task(model_name=None, experiment=None, tasks=[None], beta=1., num_runs=1, num_trials=100, batch_size=1, device='cpu'):
 
     model_path = f"/u/ajagadish/vanilla-llama/categorisation/trained_models/{model_name}.pt"
-    for task in tasks:
+    for task_feature in tasks:
 
-        df = simulate_metalearners_choices(task, model_path, task_name, \
+        df = simulate_metalearners_choices(task_feature, model_path, experiment, \
                                     beta=beta, shuffle_trials=True, num_runs=num_runs, \
                                     batch_size=batch_size, num_trials=num_trials, device=device)
         
         # concate into one csv
-        if task == tasks[0]:
+        if task_feature == tasks[0]:
             df_all = df
         else:
             df_all = pd.concat([df_all, df])
 
     # save to csv
-    df_all.to_csv(f'/u/ajagadish/vanilla-llama/categorisation/data/meta_learner/{task_name}_{model_name[48:]}_beta={beta}_num_trials={num_trials}_num_runs={num_runs}.csv', index=False)
+    df_all.to_csv(f'/u/ajagadish/vanilla-llama/categorisation/data/meta_learner/{experiment}_{model_name[48:]}_beta={beta}_num_trials={num_trials}_num_runs={num_runs}.csv', index=False)
 
 if __name__  == '__main__':
     parser = argparse.ArgumentParser(description='save meta-learner choices on different categorisation tasks')
     parser.add_argument('--no-cuda', action='store_true', default=False, help='disables CUDA training')
-    parser.add_argument('--task-name', type=str, required=True, help='task name')
+    parser.add_argument('--experiment', type=str, required=True, help='task name')
     parser.add_argument('--model-name', type=str, required=True, help='model name')
     parser.add_argument('--beta', type=float, default=1., help='beta value for softmax')
+    parser.add_argument('--num-runs', type=int, default=1, help='number of runs')
 
     args = parser.parse_args()
     use_cuda = not args.no_cuda and torch.cuda.is_available()
     device = torch.device("cuda" if use_cuda else "cpu") 
     beta = args.beta
 
-    if args.task_name == 'shepard_categorisation':
-        simulate_task(model_name=args.model_name, task_name=args.task_name, tasks=np.arange(1,7), beta=beta, num_runs=1, batch_size=1, num_trials=100, device=device)#1000
-        use_existing_stimuli = True
+    if args.experiment == 'shepard_categorisation':
+        simulate_task(model_name=args.model_name, experiment=args.experiment, tasks=np.arange(1,7), beta=beta, num_runs=args.num_runs, batch_size=1, num_trials=100, device=device)#1000
+    elif args.experiment == 'smith_categorisation':
+        simulate_task(model_name=args.model_name,  experiment=args.experiment, tasks=['nonlinear'], beta=beta, num_runs=args.num_runs, batch_size=1, num_trials=616, device=device)#300, rule='linear', 
+         use_existing_stimuli = True
         #TODO: pass in use_existing_stimuli to simulate_task
-    elif args.task_name == 'smith_categorisation':
-        simulate_task(model_name=args.model_name,  task_name=args.task_name, tasks=['nonlinear'], beta=beta, num_runs=1, batch_size=1, num_trials=616, device=device)#300, rule='linear', 

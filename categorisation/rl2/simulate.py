@@ -112,5 +112,5 @@ if __name__  == '__main__':
         simulate_task(model_name=args.model_name, experiment=args.experiment, tasks=np.arange(1,7), beta=beta, num_runs=args.num_runs, batch_size=1, num_trials=100, device=device)#1000
     elif args.experiment == 'smith_categorisation':
         simulate_task(model_name=args.model_name,  experiment=args.experiment, tasks=['nonlinear'], beta=beta, num_runs=args.num_runs, batch_size=1, num_trials=616, device=device)#300, rule='linear', 
-         use_existing_stimuli = True
+        use_existing_stimuli = True
         #TODO: pass in use_existing_stimuli to simulate_task

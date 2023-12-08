@@ -489,7 +489,7 @@ class SmithsTask(nn.Module):
     based category learning tasks and studying if their behavior on the task will be more prototype or exemplar based
     """
     
-    def __init__(self, rule=None, num_categories=2, max_steps=392, num_dims=6, batch_size=64, device='cpu', noise=0., shuffle_trials=False, return_prototype=False):
+    def __init__(self, rule=None, num_categories=2, max_steps=392, num_dims=6, batch_size=64, use_existing_stimuli=False, device='cpu', noise=0., shuffle_trials=False, return_prototype=False):
         super(SmithsTask, self).__init__()
         
         self.device = torch.device(device)
@@ -502,6 +502,7 @@ class SmithsTask(nn.Module):
         self.shuffle_trials = shuffle_trials
         self.rule = rule
         self.return_prototype = return_prototype
+        self.use_existing_stimuli = use_existing_stimuli
 
     def sample_batch(self, rule='linear'):
         rule = self.rule if self.rule is not None else rule
@@ -557,6 +558,27 @@ class SmithsTask(nn.Module):
         assert self.num_categories==2, 'Only two categories are supported for linear rule'
         return np.array(stimuli)
 
+    def existing_stimuli(self, rule):
+
+        ## use stimuli used by Devraj et al. 2022 for the replication of Smith and Minda et al. 1998
+        if rule=='linear':
+            raise ValueError('Rule not supported')
+        elif rule=='nonlinear':
+            # empty list of stimuli for each of the self.num_categories
+            stimuli = [[] for _ in range(self.num_categories)]
+            stimuli[0] = [[0, 0, 0, 0, 0, 0], [1, 0, 0, 0, 0, 0], [0, 1, 0, 0, 0, 0], [0, 0, 1, 0, 0, 0], \
+                          [0, 0, 0, 0, 1, 0], [0, 0, 0, 0, 0, 1], [1, 1, 1, 1, 0, 1]]
+            stimuli[1] = [[1, 1, 1, 1, 1, 1], [0, 1, 1, 1, 1, 1], [1, 0, 1, 1, 1, 1], [1, 1, 0, 1, 1, 1], [1, 1, 1, 0, 1, 1],\
+                          [1, 1, 1, 1, 1, 0], [0, 0, 0, 1, 0, 0]]
+            self.prototypes = np.array([[0, 0, 0, 0, 0, 0], [1, 1, 1, 1, 1, 1]])
+            self.stimulus_dict = {0: [0, 0, 0, 0, 0, 0], 1: [1, 0, 0, 0, 0, 0], 2: [0, 1, 0, 0, 0, 0], 3: [0, 0, 1, 0, 0, 0], \
+                     4: [0, 0, 0, 0, 1, 0], 5: [0, 0, 0, 0, 0, 1], 6: [1, 1, 1, 1, 0, 1], 7: [1, 1, 1, 1, 1, 1], \
+                     8: [0, 1, 1, 1, 1, 1], 9: [1, 0, 1, 1, 1, 1], 10: [1, 1, 0, 1, 1, 1], 11: [1, 1, 1, 0, 1, 1],\
+                    12: [1, 1, 1, 1, 1, 0], 13: [0, 0, 0, 1, 0, 0]}
+        assert self.num_categories==2, 'Only two categories are supported'
+        assert self.num_dims==6, 'Only six dimensions are supported'
+        return np.array(stimuli)
+
 
     def generate_task(self, rule):
         
@@ -564,8 +586,11 @@ class SmithsTask(nn.Module):
         for _ in range(self.batch_size):
             
             # generate all possible combinations of features
-            stimuli = self.generate_stimuli(rule)
+            stimuli =  self.existing_stimuli(rule) if self.use_existing_stimuli else self.generate_stimuli(rule)
             
+            # make stimulus ids
+            stimulus_ids = np.arange(len(stimuli[0])+len(stimuli[1]))
+
             # concatenate all stimuli into one array
             all_feature_combinations = np.concatenate(stimuli)
             

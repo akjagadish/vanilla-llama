@@ -20,7 +20,7 @@ def simulate(env_name=None, model_path=None, experiment='categorisation', env=No
         elif experiment == 'levering_categorisation':
             env = LeveringsTask(task=env_name)
         elif experiment == 'smith_categorisation':
-            env = SmithsTask(rule=env_name, return_prototype=True, batch_size=batch_size, max_steps=max_steps, shuffle_trials=shuffle_trials)
+            env = SmithsTask(rule=env_name, return_prototype=True, batch_size=batch_size, max_steps=max_steps, shuffle_trials=shuffle_trials, use_existing_stimuli=True)
 
     if model is None: # load model
         model = torch.load(model_path)[1].to(device) if device=='cuda' else torch.load(model_path, map_location=torch.device('cpu'))[1].to(device)
@@ -46,26 +46,29 @@ def simulate(env_name=None, model_path=None, experiment='categorisation', env=No
         true_choices = np.stack(targets).squeeze() if batch_size>1 else np.stack(targets)
         prototypes = np.stack(stacked_prototypes) if env.return_prototype else None
         input_features = packed_inputs[..., :-1]
-        category_labels = torch.concat(env.stacked_labels, axis=0).float() if experiment=='nosofsky_categorisation' else None
         task_feature = env_name
-        
-    return model_choices, true_choices, sequence_lengths, category_labels, prototypes, input_features, task_feature
+        stimulus_dict = env.stimulus_dict if experiment=='smith_categorisation' else None
+
+    return model_choices, true_choices, sequence_lengths, stimulus_dict, prototypes, input_features, task_feature
      
+
 def simulate_metalearners_choices(env_name, model_path, experiment='categorisation', mode='test', shuffle_trials=False, beta=1., num_trials=100, num_runs=1, batch_size=1, device='cpu'):
     
     for run_idx in range(num_runs):
 
-        model_choices, true_choices, sequences, category_labels,  prototypes, input_features, task_feature = simulate(env_name=env_name,\
+        model_choices, true_choices, sequences, stimulus_dict,  prototypes, input_features, task_feature = simulate(env_name=env_name,\
                     model_path=model_path, experiment=experiment, mode=mode, shuffle_trials=shuffle_trials, \
                     beta=beta, batch_size=batch_size, max_steps=num_trials, device=device)
         last_task_trial_idx = 0
-
+        
         # loop over batches, indexing them as tasks in the pd data frame
         for task_idx, (model_choices_task, true_choices_task, sequence_lengths_task, prototypes_task, input_features_task) in enumerate(zip(model_choices, true_choices, sequences, prototypes, input_features)):
             # loop over trials in each batch
             for trial_idx, (model_choice, true_choice, input_feature) in enumerate(zip(model_choices_task, true_choices_task, input_features_task)):
-                
+                stimulus_id = int([k for k, v in stimulus_dict.items() if v == list(input_feature.numpy())][0]) if experiment=='smith_categorisation' else None
                 data = {'run': run_idx, 'task': task_idx, 'trial': trial_idx + last_task_trial_idx, 'task_feature': task_feature, 'choice': int(model_choice), 'correct_choice': int(true_choice), \
+                        'category': int(true_choice)+1, 'all_features': str(input_feature.numpy()),\
+                        'stimulus_id': stimulus_id,\
                         **{f'feature{i+1}': input_feature[i].numpy() for i in range(len(input_feature))},\
                         **{f'prototype_feature{i+1}': prototypes_task[int(true_choice)][i] for i in range(len(prototypes_task[0]))}}
 
@@ -79,6 +82,7 @@ def simulate_task(model_name=None, task_name=None, tasks=[None], beta=1., num_ru
 
     model_path = f"/u/ajagadish/vanilla-llama/categorisation/trained_models/{model_name}.pt"
     for task in tasks:
+
         df = simulate_metalearners_choices(task, model_path, task_name, \
                                     beta=beta, shuffle_trials=True, num_runs=num_runs, \
                                     batch_size=batch_size, num_trials=num_trials, device=device)
@@ -106,5 +110,7 @@ if __name__  == '__main__':
 
     if args.task_name == 'shepard_categorisation':
         simulate_task(model_name=args.model_name, task_name=args.task_name, tasks=np.arange(1,7), beta=beta, num_runs=1, batch_size=1, num_trials=100, device=device)#1000
+        use_existing_stimuli = True
+        #TODO: pass in use_existing_stimuli to simulate_task
     elif args.task_name == 'smith_categorisation':
-        simulate_task(model_name=args.model_name,  task_name=args.task_name, tasks=['linear', 'nonlinear'], beta=beta, num_runs=1, batch_size=1, num_trials=616, device=device)#300
+        simulate_task(model_name=args.model_name,  task_name=args.task_name, tasks=['nonlinear'], beta=beta, num_runs=1, batch_size=1, num_trials=616, device=device)#300, rule='linear', 

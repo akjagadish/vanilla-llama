@@ -83,7 +83,7 @@ def act(text=None, run_gpt='llama', temperature=1., max_length=300):
                     temperature=temperature,
                     max_tokens_to_sample=max_length,
                 ).completion#.replace(' ', '')
-            print(response)
+
         except:
             print("Error")
             exc_type, exc_value, exc_traceback = sys.exc_info()

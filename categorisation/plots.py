@@ -266,7 +266,7 @@ def plot_sorted_volumes(data, num_bins, min_value=0, max_value=1):
 
 def plot_data_stats(data, poly_degree=2):
 
-    all_corr, all_coef, posterior_logprob, per_feature_coef, per_feature_corrs = return_data_stats(data, poly_degree)
+    all_corr, all_coef, posterior_logprob, per_feature_coef, per_feature_corrs, gini_coeff = return_data_stats(data, poly_degree)
 
     COLORS['stats'] = '#173b4f'
     fig, axs = plt.subplots(1, 3,  figsize=(15,5))
@@ -351,6 +351,24 @@ def plot_data_stats(data, poly_degree=2):
     plt.tight_layout()
     plt.show()
     f.savefig(f'{SYS_PATH}/categorisation/figures/coefficient_features.svg', bbox_inches='tight', dpi=300)
+
+
+    # plot the gini coefficients
+    f, ax = plt.subplots(1, 1, figsize=(5,5))
+    gini_coeff = np.array(gini_coeff)
+    gini_coeff = gini_coeff[~np.isnan(gini_coeff)]
+    bin_max = np.max(gini_coeff)
+    sns.histplot(gini_coeff, ax=ax, bins=11, binrange=(0, bin_max), stat='probability', edgecolor='w', linewidth=1, color=COLORS['stats'])
+    ax.set_xlabel('Gini coefficient', fontsize=FONTSIZE)
+    ax.set_ylabel('Percentage', fontsize=FONTSIZE)
+    ax.set_ylim(0, 0.3)
+    ax.set_yticks(np.arange(0, 0.3, 0.1))
+    # set tick size
+    ax.tick_params(axis='both', which='major', labelsize=FONTSIZE-2)
+    sns.despine()
+    plt.tight_layout()
+    plt.show()
+    f.savefig(f'{SYS_PATH}/categorisation/figures/gini_coefficient.png', bbox_inches='tight', dpi=300)
 
 def plot_cue_validity(data):
 

@@ -425,6 +425,7 @@ def return_data_stats(data, poly_degree=2):
     all_corr, all_coef, all_bics_linear, all_bics_quadratic  = [], [], [], []
     f1_ceof, f2_coef, f3_coef = [], [], []
     f1_corr, f2_corr, f3_corr = [], [], []
+    gini_coeff = []
     for i in range(0, max_tasks):
         df_task = df[df['task_id'] == i]
         if len(df_task) > 50: # arbitary data size threshold
@@ -472,7 +473,14 @@ def return_data_stats(data, poly_degree=2):
                 all_bics_quadratic.append(log_reg_quadratic.bic)
                 # except:
                 #     print('error fitting quadratic')
-                    
+
+                # compute gini coefficient for log_reg.params    
+                abs_diff = np.abs(log_reg.params[1:] - log_reg.params[1:].reshape(-1, 1)).sum()
+                sum_all = np.abs(log_reg.params[1:]).sum()
+                gini = abs_diff/(2*sum_all*len(log_reg.params[1:]))
+                gini_coeff.append(gini)
+                
+
     # compute posterior probabilities
     logprobs = torch.from_numpy(-0.5 * np.stack((all_bics_linear, all_bics_quadratic), -1))
     joint_logprob = logprobs + torch.log(torch.ones([]) /logprobs.shape[1])
@@ -491,7 +499,7 @@ def return_data_stats(data, poly_degree=2):
     features_corrs = np.stack((f1_corr, f2_corr, f3_corr), -1)
 
 
-    return all_corr, all_coef, posterior_logprob, feature_coef, features_corrs
+    return all_corr, all_coef, posterior_logprob, feature_coef, features_corrs, gini_coeff
 
 def retrieve_features_and_categories(path, file_name, task_id):
  

@@ -151,15 +151,9 @@ class GeneralizedContextModel():
                     args=(df, reduce),
                     bounds=self.bounds,
                     constraints=constraint_obj,
-                    method='SLSQP',
+                    method='SLSQP' if self.loss == 'mse_transfer' else None
                 )
             elif self.opt_method == 'differential_evolution':
-                # lower, upper = [x[0] for x in self.bounds], [x[1] for x in self.bounds]
-                # bounds = Bounds(lower, upper)
-                # from_element = len(self.bounds)-2
-                # constraint = np.zeros((1, len(self.bounds)))
-                # constraint[0, from_element:] = 1
-                # lc = LinearConstraint(constraint, -np.inf, 1.)
                 bounds, constraint = self.return_bounds_constraints()
                 result = differential_evolution(func=minimize_loss_function, 
                                     bounds=bounds, 
@@ -385,9 +379,10 @@ class GeneralizedContextModel():
         return:
         p: probability of each category
         """
+        #TODO: bias term b for weighting similarity of categories differently
         
         assert len(s) == 2, "number of categories must be 2"
-        weighted_similarities = np.array([b, 1-b]) * s
+        weighted_similarities = np.array([1, 1]) * s #np.array([b, 1-b]) * s
         epsilon = 1e-10
         sum_weighted_similarities = np.sum(weighted_similarities)
         p = weighted_similarities / (sum_weighted_similarities + epsilon)

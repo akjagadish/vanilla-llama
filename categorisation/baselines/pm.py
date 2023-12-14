@@ -150,7 +150,7 @@ class PrototypeModel():
                 args=(df),
                 bounds=self.bounds,
                 constraints=constraint_obj,
-                method='SLSQP',
+                method='SLSQP'if self.loss == 'mse_transfer' else None
             )
             
             # result = differential_evolution(self.compute_nll, 
@@ -368,9 +368,10 @@ class PrototypeModel():
         return:
         p: probability of each category
         """
+        #TODO: bias term b for weighting similarity of categories differently
         
         assert len(s) == 2, "number of categories must be 2"
-        weighted_similarities = np.array([b, 1-b]) * s
+        weighted_similarities = np.array([1, 1]) * s #np.array([b, 1-b]) * s
         epsilon = 1e-10
         sum_weighted_similarities = np.sum(weighted_similarities)
         p = weighted_similarities / (sum_weighted_similarities + epsilon)

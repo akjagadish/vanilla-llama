@@ -26,6 +26,7 @@ sys.path.append(f'{SYS_PATH}/categorisation/data')
 # print(f'mean pseudo-r2 across participants: {r2.mean()}')
 
 ## devraj et al. 2022
+#TODO: in devraj every participant does only one condition so need to select only one condition
 # df = pd.read_csv('../data/human/devraj2022rational.csv')
 # df = df[df['condition'] == 'control'] # only pass 'control' condition
 # ##### REMOVE THIS LINE AFTER TESTING #####

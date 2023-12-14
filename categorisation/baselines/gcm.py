@@ -73,7 +73,7 @@ class GeneralizedContextModel():
 
         num_conditions = len(df['condition'].unique())
         num_participants = len(df['participant'].unique())
-        log_likelihood, r2 = np.zeros((num_participants, num_conditions, num_blocks)), np.zeros((num_participants, num_conditions, num_blocks))
+        fit_measure, r2 = np.zeros((num_participants, num_conditions, num_blocks)), np.zeros((num_participants, num_conditions, num_blocks))
         self.bounds.extend(self.weight_bound * self.num_features)
         store_params = np.zeros((num_participants, num_conditions, num_blocks, len(self.bounds))) # store params for each task feature and block
 
@@ -85,13 +85,14 @@ class GeneralizedContextModel():
                 for b_idx, block in enumerate(range(num_blocks)):
                     df_condition_block = df_condition[(df_condition['trial'] < (block+1)*num_trials_per_block) & (df_condition['trial'] >= block*num_trials_per_block)]
                     best_params = self.fit_parameters(df_condition_block, reduce)
-                    log_likelihood[p_idx, c_idx, b_idx] = -self.compute_nll(best_params, df_condition_block, reduce)
-                    num_trials = len(df_condition_block)*(df_condition_block.task.max()+1)
-                    num_trials = num_trials*0.5 if self.burn_in else num_trials
-                    r2[p_idx, c_idx, b_idx] = 1 - (log_likelihood[p_idx, c_idx, b_idx]/(num_trials*np.log(1/2)))
+                    fit_measure[p_idx, c_idx, b_idx] = self.loss_fn(best_params, df_condition_block, reduce)
+                    if self.loss == 'nll':
+                        num_trials = len(df_condition_block)*(df_condition_block.task.max()+1)
+                        num_trials = num_trials*0.5 if self.burn_in else num_trials
+                        r2[p_idx, c_idx, b_idx] = 1 - (fit_measure[p_idx, c_idx, b_idx]/(num_trials*np.log(1/2)))
                     store_params[p_idx, c_idx, b_idx] = best_params
                 
-        return log_likelihood, r2, store_params
+        return fit_measure, r2, store_params
     
     def fit_metalearner(self, df, num_blocks=1, reduce='sum'):
         """ fit gcm to individual meta-learning model runs and compute negative log likelihood 
@@ -103,23 +104,28 @@ class GeneralizedContextModel():
         nll: negative log likelihood for each participant"""
 
         num_task_features = len(df['task_feature'].unique())
-        log_likelihood, r2 = np.zeros((num_task_features, num_blocks)), np.zeros((num_task_features, num_blocks))
+        num_runs = len(df['run'].unique())
+        fit_measure, r2 = np.zeros((num_runs, num_task_features, num_blocks)), np.zeros((num_runs, num_task_features, num_blocks))
         self.bounds.extend(self.weight_bound * self.num_features)
-        # store params for each task feature and block
-        store_params = np.zeros((num_task_features, num_blocks, len(self.bounds)))
-        for idx, task_feature_id in enumerate(df['task_feature'].unique()):
-            df_task_feature = df[(df['task_feature'] == task_feature_id)]
-            num_trials_per_block = int((df_task_feature.trial.max()+1)/num_blocks)
-            for b_idx, block in enumerate(range(num_blocks)):
-                df_task_feature_block = df_task_feature[(df_task_feature['trial'] < (block+1)*num_trials_per_block)]# & (df_task_feature['trial'] >= block*num_trials_per_block)]
-                best_params = self.fit_parameters(df_task_feature_block, reduce)
-                log_likelihood[idx, b_idx] = -self.compute_nll(best_params, df_task_feature_block, reduce)
-                num_trials = len(df_task_feature_block)*(df_task_feature_block.task.max()+1)
-                num_trials = num_trials*0.5 if self.burn_in else num_trials
-                r2[idx, b_idx] = 1 - (log_likelihood[idx, b_idx]/(num_trials*np.log(1/2)))
-                store_params[idx, b_idx] = best_params
+        store_params = np.zeros((num_runs, num_task_features, num_blocks, len(self.bounds)))
+
+        for r_idx, run_id in enumerate(df['run'].unique()[:num_runs]):
+            df_run = df[(df['run'] == run_id)]
+            for idx, task_feature_id in enumerate(df_run['task_feature'].unique()):
+                df_task_feature = df_run[(df_run['task_feature'] == task_feature_id)]
+                num_trials_per_block = int((df_task_feature.trial.max()+1)/num_blocks)
+                for b_idx, block in enumerate(range(num_blocks)):
+                    df_task_feature_block = df_task_feature[(df_task_feature['trial'] < (block+1)*num_trials_per_block) & (df_task_feature['trial'] >= block*num_trials_per_block)]
+                    best_params = self.fit_parameters(df_task_feature_block, reduce)
+                    fit_measure[r_idx, idx, b_idx] = self.loss_fn(best_params, df_task_feature_block, reduce)
+                    # fit_measure[idx, b_idx] = -self.compute_nll(best_params, df_task_feature_block, reduce)
+                    if self.loss == 'nll':
+                        num_trials = len(df_task_feature_block)*(df_task_feature_block.task.max()+1)
+                        num_trials = num_trials*0.5 if self.burn_in else num_trials
+                        r2[r_idx, idx, b_idx] = 1 - (fit_measure[r_idx, idx, b_idx]/(num_trials*np.log(1/2)))
+                    store_params[r_idx, idx, b_idx] = best_params
         
-        return log_likelihood, r2, store_params
+        return fit_measure, r2, store_params
 
     def fit_parameters(self, df, reduce='sum'):
         """ fit parameters using scipy optimiser 

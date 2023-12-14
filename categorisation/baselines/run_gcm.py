@@ -3,7 +3,9 @@ from gcm import GeneralizedContextModel
 import sys
 import numpy as np
 import argparse
-sys.path.append('../')
+import sys
+SYS_PATH = '/u/ajagadish/vanilla-llama' #'/raven/u/ajagadish/vanilla-llama/'
+sys.path.append(f'{SYS_PATH}/categorisation/data')
 
 ## badham et al.
 # df = pd.read_csv('../data/human/exp1.csv')
@@ -47,7 +49,7 @@ sys.path.append('../')
 # # save the r2 and ll values
 # lls = np.array(lls)
 # r2s = np.array(r2s)
-# np.savez(f'../data/meta_learner/gcm_humans_devrajstask_runs={num_runs}_iters={num_iter}_blocks={num_blocks}_tasks={NUM_TASKS}'\
+# np.savez(f'../data/baselines/gcm_humans_devrajstask_runs={num_runs}_iters={num_iter}_blocks={num_blocks}_tasks={NUM_TASKS}'\
 #          , r2s=r2s, lls=lls, params=np.stack(params_list), opt_method=opt_method)
  
 ## benchmarking gcm model
@@ -91,7 +93,7 @@ sys.path.append('../')
 
 def fit_gcm_to_metalearner(beta, num_runs=1, num_blocks=11, num_iter=1, num_tasks=1, num_features=6, opt_method='minimize', loss='mse_transfer'):
     # beta=0.1
-    df = pd.read_csv(f'../data/meta_learner/smith_categorisation__tasks12910_pversion5_stage2_model=transformer_num_episodes500000_num_hidden=256_lr0.0003_num_layers=6_d_model=64_num_head=8_noise0.0_shuffleTrue_run=1_beta={beta}_num_trials=616_num_runs=10.csv')
+    df = pd.read_csv(f'{SYS_PATH}/categorisation/data/meta_learner/smith_categorisation__tasks12910_pversion5_stage2_model=transformer_num_episodes500000_num_hidden=256_lr0.0003_num_layers=6_d_model=64_num_head=8_noise0.0_shuffleTrue_run=1_beta={beta}_num_trials=616_num_runs=10.csv')
     # num_runs, num_blocks, num_iter = 1, 11, 1
     # loss = 'mse_transfer'
     # opt_method = 'minimize'
@@ -110,9 +112,9 @@ def fit_gcm_to_metalearner(beta, num_runs=1, num_blocks=11, num_iter=1, num_task
     # save the r2 and ll values
     lls = np.array(lls)
     r2s = np.array(r2s)
-    np.savez(f'../data/meta_learner/gcm_metalearner_devrajstask_beta={beta}_runs={num_runs}_iters={num_iter}_blocks={num_blocks}_tasks={NUM_TASKS}'\
+    np.savez(f'{SYS_PATH}/categorisation/data/meta_learner/gcm_metalearner_devrajstask_beta={beta}_runs={num_runs}_iters={num_iter}_blocks={num_blocks}_tasks={NUM_TASKS}'\
             , r2s=r2s, lls=lls, params=np.stack(params_list), opt_method=opt_method)
-
+    
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='fit gcm to meta-learner choices')

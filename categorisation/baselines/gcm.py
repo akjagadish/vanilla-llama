@@ -122,7 +122,7 @@ class GeneralizedContextModel():
                     if self.loss == 'nll':
                         num_trials = len(df_task_feature_block)*(df_task_feature_block.task.max()+1)
                         num_trials = num_trials*0.5 if self.burn_in else num_trials
-                        r2[r_idx, idx, b_idx] = 1 - (fit_measure[r_idx, idx, b_idx]/(num_trials*np.log(1/2)))
+                        r2[r_idx, idx, b_idx] = 1 - (fit_measure[r_idx, idx, b_idx]/(-num_trials*np.log(1/2)))
                     store_params[r_idx, idx, b_idx] = best_params
         
         return fit_measure, r2, store_params

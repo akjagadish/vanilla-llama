@@ -79,6 +79,30 @@ sys.path.append(f'{SYS_PATH}/categorisation/data')
 # np.savez(f'../data/meta_learner/pm_simulations_smithstask_runs={num_runs}_blocks={num_blocks}_tasks={NUM_TASKS}'\
 #          , r2s=r2s, lls=lls, params=np.stack(params_list), opt_method=opt_method)
 
+def fit_pm_to_humans(num_runs, num_blocks, num_iter, num_tasks, num_features, opt_method, loss):
+    #TODO: in devraj every participant does only one condition so need to select only one condition
+    df = pd.read_csv('../data/human/devraj2022rational.csv')
+    df = df[df['condition'] == 'control'] # only pass 'control' condition
+    # num_runs, num_blocks, num_iter = 1, 11, 10
+    # loss = 'mse_transfer'
+    # opt_method = 'minimize'
+    NUM_TASKS, NUM_FEATURES = 1, 6
+    lls, r2s, params_list = [], [], []
+    for idx in range(num_runs):
+        pm = PrototypeModel(num_features=NUM_FEATURES, distance_measure=1, num_iterations=num_iter, learn_prototypes=False, prototypes='from_data', loss=loss)
+        ll, r2, params = pm.fit_participants(df, num_blocks=num_blocks)
+        params_list.append(params)
+        lls.append(ll)
+        r2s.append(r2)
+        print(f'mean fit across blocks: {lls[idx].mean()} \n')
+        print(f'mean pseudo-r2 across blocks: {r2s[idx].mean()}')
+
+    # save the r2 and ll values
+    lls = np.array(lls)
+    r2s = np.array(r2s)
+    np.savez(f'{SYS_PATH}/categorisation/data/model_comparison/devraj2022_pm_runs={num_runs}_iters={num_iter}_blocks={num_blocks}_loss={loss}'\
+             , r2s=r2s, lls=lls, params=np.stack(params_list), opt_method=opt_method)
+    
 
 def fit_pm_to_metalearner(beta, num_runs, num_blocks, num_iter, num_tasks, num_features, opt_method, loss):
     # beta=0.1
@@ -94,8 +118,7 @@ def fit_pm_to_metalearner(beta, num_runs, num_blocks, num_iter, num_tasks, num_f
         params_list.append(params)
         lls.append(ll)
         r2s.append(r2)
-        print(lls[idx], r2s[idx])
-        print(f'mean mse across blocks: {lls[idx].mean()} \n')
+        print(f'mean fit across blocks: {lls[idx].mean()} \n')
         print(f'mean pseudo-r2 across blocks: {r2s[idx].mean()}')
 
     # save the r2 and ll values
@@ -106,17 +129,25 @@ def fit_pm_to_metalearner(beta, num_runs, num_blocks, num_iter, num_tasks, num_f
     
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='fit gcm to meta-learner choices')
-    parser.add_argument('--beta', type=float, required=True, help='beta value')
+    parser = argparse.ArgumentParser(description='fit pm to meta-learner choices')
+    parser.add_argument('--beta', type=float, required=False, help='beta value')
     parser.add_argument('--num-iter', type=int, required=True, default=1, help='number of iterations')
-    parser.add_argument('--num-runs', type=int, required=False,  default=11, help='number of runs')
+    parser.add_argument('--num-runs', type=int, required=False,  default=1, help='number of runs')
     parser.add_argument('--num-blocks', type=int,required=False, default=11, help='number of blocks')
     parser.add_argument('--num-tasks', type=int, required=False, default=1, help='number of tasks')
     parser.add_argument('--num-features', type=int, required=False, default=6, help='number of features')
     parser.add_argument('--opt-method', type=str, required=False, default='minimize', help='optimization method')
     parser.add_argument('--loss', type=str, required=False, default='mse_transfer', help='loss function')
-    parser.add_argument('--learn-prototypes', type=bool, required=False, default=False, help='learn prototypes')
+    parser.add_argument('--learn-prototypes', action='store_true', help='learn prototypes')
     parser.add_argument('--prototypes', type=str, required=False, default='from_data', help='prototypes')
+    parser.add_argument('--fit-human-data', action='store_true', help='fit pm to human choices')
     args = parser.parse_args()
 
-    fit_pm_to_metalearner(beta=args.beta, num_runs=args.num_runs, num_blocks=args.num_blocks, num_iter=args.num_iter, num_tasks=args.num_tasks, num_features=args.num_features, opt_method=args.opt_method, loss=args.loss)
+    if args.fit_human_data:
+        fit_pm_to_humans(num_runs=args.num_runs, num_blocks=args.num_blocks, num_iter=args.num_iter, num_tasks=args.num_tasks, num_features=args.num_features, opt_method=args.opt_method, loss=args.loss)
+
+    else:   
+        assert args.beta is not None, 'beta value not provided'
+        fit_pm_to_metalearner(beta=args.beta, num_runs=args.num_runs, num_blocks=args.num_blocks, num_iter=args.num_iter, num_tasks=args.num_tasks, num_features=args.num_features, opt_method=args.opt_method, loss=args.loss)
+
+    

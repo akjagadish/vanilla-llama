@@ -89,7 +89,7 @@ class GeneralizedContextModel():
                     if self.loss == 'nll':
                         num_trials = len(df_condition_block)*(df_condition_block.task.max()+1)
                         num_trials = num_trials*0.5 if self.burn_in else num_trials
-                        r2[p_idx, c_idx, b_idx] = 1 - (fit_measure[p_idx, c_idx, b_idx]/(num_trials*np.log(1/2)))
+                        r2[p_idx, c_idx, b_idx] = 1 - (fit_measure[p_idx, c_idx, b_idx]/(-num_trials*np.log(1/2)))
                     store_params[p_idx, c_idx, b_idx] = best_params
                 
         return fit_measure, r2, store_params
@@ -203,6 +203,7 @@ class GeneralizedContextModel():
    
         ll = 0.
         num_tasks = df['task'].max() + 1
+        epsilon = 1e-10
         categories = {'j': 0, 'f': 1}
 
         for task_id in range(num_tasks):
@@ -218,8 +219,13 @@ class GeneralizedContextModel():
                 current_stimuli = df_trial[['feature{}'.format(i+1) for i in range(self.num_features)]].values
                 
                 # given stimuli and list of objects seen so far within cateogry return probablity the object belongs to each category 
-                ll += 0 if (self.burn_in and (trial_id<int(num_trials/2))) else self.gcm(params, current_stimuli, stimuli_seen, choice, reduce=reduce)
-
+                category_probabilities = self.gcm(params, current_stimuli, stimuli_seen, choice, reduce=reduce)
+                p_choice = category_probabilities[choice]*(1-params[1]) + params[1]*(1/self.num_categories)
+                if self.burn_in:
+                    ll += 0 if (trial_id<int(num_trials/2)) else np.log(p_choice + epsilon)
+                else:
+                    ll += np.log(p_choice + epsilon)
+                # ll += 0 if (self.burn_in and (trial_id<int(num_trials/2))) else self.gcm(params, current_stimuli, stimuli_seen, choice, reduce=reduce)
                 # update stimuli seen
                 stimuli_seen[true_choice].append(current_stimuli)
     
@@ -338,14 +344,7 @@ class GeneralizedContextModel():
         # compute category probabilities
         category_probabilities = self.compute_category_probabilities(category_similarity, bias)
         
-        # compute log likelihood
-        epsilon = 1e-10
-
-        if self.loss == 'nll':
-            log_likelihood = np.log(category_probabilities[choice]+epsilon)
-            return log_likelihood
-        else:
-            return category_probabilities
+        return category_probabilities
     
     def compute_attention_weighted_similarity(self, x, y, params, reduce='sum'):
         """ compute attention weighted similarity between current stimuli and stimuli seen so far 

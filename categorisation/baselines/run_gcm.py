@@ -93,12 +93,14 @@ sys.path.append(f'{SYS_PATH}/categorisation/data')
 
 def fit_gcm_to_humans(num_runs, num_blocks, num_iter, num_tasks, num_features, opt_method, loss):
     #TODO: in devraj every participant does only one condition so need to select only one condition
-    df = pd.read_csv('../data/human/devraj2022rational.csv')
-    df = df[df['condition'] == 'control'] # only pass 'control' condition
-    # num_runs, num_blocks, num_iter = 1, 11, 10
-    # loss = 'mse_transfer'
-    # opt_method = 'minimize'
-    NUM_TASKS, NUM_FEATURES = 1, 6
+    # df = pd.read_csv('../data/human/devraj2022rational.csv')
+    # task_name = 'devraj2022'
+    # df = df[df['condition'] == 'control'] # only pass 'control' condition
+    # NUM_TASKS, NUM_FEATURES = 1, 6
+    
+    df = pd.read_csv('../data/human/badham2017deficits.csv')
+    task_name = 'badham2017'
+    NUM_TASKS, NUM_FEATURES = 1, 3
     lls, r2s, params_list = [], [], []
     for idx in range(num_runs):
         gcm = GeneralizedContextModel(num_features=NUM_FEATURES, distance_measure=1, num_iterations=num_iter, opt_method=opt_method, loss=loss)
@@ -106,14 +108,13 @@ def fit_gcm_to_humans(num_runs, num_blocks, num_iter, num_tasks, num_features, o
         params_list.append(params)
         lls.append(ll)
         r2s.append(r2)
-        print(lls[idx], r2s[idx])
-        print(f'mean mse across blocks: {lls[idx].mean()} \n')
+        print(f'mean fit across blocks: {lls[idx].mean()} \n')
         print(f'mean pseudo-r2 across blocks: {r2s[idx].mean()}')
 
     # save the r2 and ll values
     lls = np.array(lls)
     r2s = np.array(r2s)
-    np.savez(f'{SYS_PATH}/categorisation/data/model_comparsion/devraj2022_gcm_runs={num_runs}_iters={num_iter}_blocks={num_blocks}_loss={loss}'\
+    np.savez(f'{SYS_PATH}/categorisation/data/model_comparison/{task_name}_gcm_runs={num_runs}_iters={num_iter}_blocks={num_blocks}_loss={loss}'\
              , r2s=r2s, lls=lls, params=np.stack(params_list), opt_method=opt_method)
     
 

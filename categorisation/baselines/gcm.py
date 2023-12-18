@@ -81,9 +81,10 @@ class GeneralizedContextModel():
             df_participant = df[(df['participant'] == participant_id)]
             for c_idx, condition_id in enumerate(df['condition'].unique()):
                 df_condition = df_participant[(df_participant['condition'] == condition_id)]
-                num_trials_per_block = int((df_condition.trial.max()+1)/num_blocks)
+                num_trials_per_block = int(len(df_condition)/num_blocks)
                 for b_idx, block in enumerate(range(num_blocks)):
-                    df_condition_block = df_condition[(df_condition['trial'] < (block+1)*num_trials_per_block) & (df_condition['trial'] >= block*num_trials_per_block)]
+                    offset_trial = df_condition.trial.min()
+                    df_condition_block = df_condition[(df_condition['trial'] < ((block+1)*num_trials_per_block + offset_trial)) & (df_condition['trial'] >= (block*num_trials_per_block + offset_trial))]
                     best_params = self.fit_parameters(df_condition_block, reduce)
                     fit_measure[p_idx, c_idx, b_idx] = self.loss_fn(best_params, df_condition_block, reduce)
                     if self.loss == 'nll':
@@ -205,7 +206,6 @@ class GeneralizedContextModel():
         num_tasks = df['task'].max() + 1
         epsilon = 1e-10
         categories = {'j': 0, 'f': 1}
-
         for task_id in range(num_tasks):
             df_task = df[(df['task'] == task_id)]
             num_trials = df_task['trial'].max() + 1

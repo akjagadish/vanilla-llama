@@ -79,19 +79,17 @@ sys.path.append(f'{SYS_PATH}/categorisation/data')
 # np.savez(f'../data/meta_learner/pm_simulations_smithstask_runs={num_runs}_blocks={num_blocks}_tasks={NUM_TASKS}'\
 #          , r2s=r2s, lls=lls, params=np.stack(params_list), opt_method=opt_method)
 
-def fit_pm_to_humans(num_runs, num_blocks, num_iter, num_tasks, num_features, opt_method, loss, learn_prototypes, prototypes):
-    #TODO: in devraj every participant does only one condition so need to select only one condition
-    # df = pd.read_csv('../data/human/devraj2022rational.csv')
-    # df = df[df['condition'] == 'control'] # only pass 'control' condition
-    # task_name = 'devraj2022'
-    # # num_runs, num_blocks, num_iter = 1, 11, 10
-    # # loss = 'mse_transfer'
-    # # opt_method = 'minimize'
-    # NUM_TASKS, NUM_FEATURES = 1, 6
-
-    df = pd.read_csv('../data/human/badham2017deficits.csv')
-    task_name = 'badham2017'
-    NUM_TASKS, NUM_FEATURES = 1, 3
+def fit_pm_to_humans(num_runs, num_blocks, num_iter, num_tasks, num_features, opt_method, loss, learn_prototypes, prototypes, task_name):
+    
+    if task_name == 'devraj2022':
+        df = pd.read_csv('../data/human/devraj2022rational.csv')
+        df = df[df['condition'] == 'control'] # only pass 'control' condition
+        NUM_TASKS, NUM_FEATURES = 1, 6
+    elif task_name == 'badham2017':
+        df = pd.read_csv('../data/human/badham2017deficits.csv')
+        NUM_TASKS, NUM_FEATURES = 1, 3
+    else:
+        raise NotImplementedError
     lls, r2s, params_list = [], [], []
     for idx in range(num_runs):
         pm = PrototypeModel(num_features=NUM_FEATURES, distance_measure=1, num_iterations=num_iter, learn_prototypes=learn_prototypes, prototypes=prototypes, loss=loss)
@@ -146,10 +144,11 @@ if __name__ == '__main__':
     parser.add_argument('--learn-prototypes', action='store_true', help='learn prototypes')
     parser.add_argument('--prototypes', type=str, required=False, default=None, help='prototypes')
     parser.add_argument('--fit-human-data', action='store_true', help='fit pm to human choices')
+    parser.add_argument('--task-name', type=str, required=False, default='devraj2022', help='task name')
     args = parser.parse_args()
 
     if args.fit_human_data:
-        fit_pm_to_humans(num_runs=args.num_runs, num_blocks=args.num_blocks, num_iter=args.num_iter, num_tasks=args.num_tasks, num_features=args.num_features, opt_method=args.opt_method, loss=args.loss, learn_prototypes=args.learn_prototypes, prototypes=args.prototypes)
+        fit_pm_to_humans(num_runs=args.num_runs, num_blocks=args.num_blocks, num_iter=args.num_iter, num_tasks=args.num_tasks, num_features=args.num_features, opt_method=args.opt_method, loss=args.loss, learn_prototypes=args.learn_prototypes, prototypes=args.prototypes, task_name=args.task_name)
 
     else:   
         assert args.beta is not None, 'beta value not provided'

@@ -91,16 +91,17 @@ sys.path.append(f'{SYS_PATH}/categorisation/data')
 #          , r2s=r2s, lls=lls, params=np.stack(params_list), opt_method=opt_method)
 
 
-def fit_gcm_to_humans(num_runs, num_blocks, num_iter, num_tasks, num_features, opt_method, loss):
-    #TODO: in devraj every participant does only one condition so need to select only one condition
-    # df = pd.read_csv('../data/human/devraj2022rational.csv')
-    # task_name = 'devraj2022'
-    # df = df[df['condition'] == 'control'] # only pass 'control' condition
-    # NUM_TASKS, NUM_FEATURES = 1, 6
+def fit_gcm_to_humans(num_runs, num_blocks, num_iter, num_tasks, num_features, opt_method, loss, task_name):
     
-    df = pd.read_csv('../data/human/badham2017deficits.csv')
-    task_name = 'badham2017'
-    NUM_TASKS, NUM_FEATURES = 1, 3
+    if task_name == 'devraj2022':
+        df = pd.read_csv('../data/human/devraj2022rational.csv')
+        df = df[df['condition'] == 'control'] # only pass 'control' condition
+        NUM_TASKS, NUM_FEATURES = 1, 6
+    elif task_name == 'badham2017':
+        df = pd.read_csv('../data/human/badham2017deficits.csv')
+        NUM_TASKS, NUM_FEATURES = 1, 3
+    else:
+        raise NotImplementedError
     lls, r2s, params_list = [], [], []
     for idx in range(num_runs):
         gcm = GeneralizedContextModel(num_features=NUM_FEATURES, distance_measure=1, num_iterations=num_iter, opt_method=opt_method, loss=loss)
@@ -154,12 +155,13 @@ if __name__ == '__main__':
     parser.add_argument('--opt-method', type=str, required=False, default='minimize', help='optimization method')
     parser.add_argument('--loss', type=str, required=False, default='mse_transfer', help='loss function')
     parser.add_argument('--fit-human-data', action='store_true', help='fit gcm to human choices')
+    parser.add_argument('--task-name', type=str, required=False, default='devraj2022', help='task name')
     args = parser.parse_args()
 
     if args.fit_human_data:
         fit_gcm_to_humans(num_runs=args.num_runs, num_blocks=args.num_blocks, num_iter=args.num_iter,\
                            num_tasks=args.num_tasks, num_features=args.num_features, \
-                              opt_method=args.opt_method, loss=args.loss)
+                              opt_method=args.opt_method, loss=args.loss, task_name=args.task_name)
     else:   
         assert args.beta is not None, 'beta value not provided'
         fit_gcm_to_metalearner(beta=args.beta, num_runs=args.num_runs, num_blocks=args.num_blocks, num_iter=args.num_iter, num_tasks=args.num_tasks, num_features=args.num_features, opt_method=args.opt_method, loss=args.loss)

@@ -26,9 +26,7 @@ def compute_loglikelihood_human_choices_under_model(env=None, model_path=None, p
             packed_inputs, sequence_lengths, correct_choices, human_choices, stacked_prototypes = outputs
         else:
             packed_inputs, sequence_lengths, correct_choices, human_choices = outputs
-        # print(human_choices[:, :10])
-        #import ipdb; ipdb.set_trace()
-            
+        
         ## set human choices to correct choices
         # human_choices = correct_choices
         ## randomise human choices
@@ -40,7 +38,6 @@ def compute_loglikelihood_human_choices_under_model(env=None, model_path=None, p
         
         if method == 'eps_greedy' or method == 'both': 
             # make a new tensor containing model_choice_probs for each trial for option 1 and 1-model_choice_probs for option 2
-            #probs = torch.stack([model_choice_probs[i, :sequence_lengths[i]] for i in range(len(model_choice_probs))])
             probs = torch.cat([1-model_choice_probs, model_choice_probs], axis=2)
             # keep only the probabilities for the chosen option from human_choices
             probs = torch.vstack([probs[batch, i, human_choices[batch, i, 0].long()] for batch in range(probs.shape[0]) for i in range(sequence_lengths[batch])])
@@ -66,27 +63,6 @@ def compute_loglikelihood_human_choices_under_model(env=None, model_path=None, p
 
     return summed_loglikelihoods, chance_loglikelihood, model_accuracy 
 
-              
-def evaluate_model(env=None, model_name=None, beta=1., epsilon=0., method='soft_sigmoid', num_runs=1, **task_features):
-    '''  compute log likelihoods of human choices under model choice probs based on binomial distribution
-    '''
-
-    model_path = f"/u/ajagadish/vanilla-llama/categorisation/trained_models/{model_name}.pt"
-    participants = env.data.participant.unique()
-    loglikelihoods, p_r2, model_acc = [], [], []
-    for participant in participants:
-        ll, chance_ll, acc  = compute_loglikelihood_human_choices_under_model(env=env, model_path=model_path, participant=participant, experiment='badham2017deficits', shuffle_trials=True,\
-                                                                            beta=beta, epsilon=epsilon, method=method, **task_features)
-        loglikelihoods.append(ll)
-        p_r2.append(1 - (ll/chance_ll))
-        model_acc.append(acc)
-    
-    loglikelihoods = np.array(loglikelihoods)
-    p_r2 = np.array(p_r2)
-    model_acc = np.array(model_acc)
-    
-    return -loglikelihoods, p_r2, model_acc
-
 def grid_search(args):
 
     if args.method == 'soft_sigmoid':
@@ -101,7 +77,27 @@ def grid_search(args):
 
     else:
         raise NotImplementedError
-    
+              
+    def objective(env=None, model_name=None, beta=1., epsilon=0., method='soft_sigmoid', num_runs=1, **task_features):
+        '''  compute log likelihoods of human choices under model choice probs based on binomial distribution
+        '''
+
+        model_path = f"/u/ajagadish/vanilla-llama/categorisation/trained_models/{model_name}.pt"
+        participants = env.data.participant.unique()
+        loglikelihoods, p_r2, model_acc = [], [], []
+        for participant in participants:
+            ll, chance_ll, acc  = compute_loglikelihood_human_choices_under_model(env=env, model_path=model_path, participant=participant, experiment='badham2017deficits', shuffle_trials=True,\
+                                                                                beta=beta, epsilon=epsilon, method=method, **task_features)
+            loglikelihoods.append(ll)
+            p_r2.append(1 - (ll/chance_ll))
+            model_acc.append(acc)
+        
+        loglikelihoods = np.array(loglikelihoods)
+        p_r2 = np.array(p_r2)
+        model_acc = np.array(model_acc)
+        
+        return -loglikelihoods, p_r2, model_acc
+
     nlls, pr2s, accs = [], [], []
     for idx, param in enumerate(parameters):
         epsilon = param if args.method == 'eps_greedy' else 0.
@@ -110,10 +106,10 @@ def grid_search(args):
             env = Badham2017() 
             #TODO: for task in tasks:
             task_features = {}
-            nll_per_beta, pr2_per_beta, model_acc_per_beta = evaluate_model(env=env, model_name=args.model_name, epsilon=epsilon, beta=beta, method=args.method, num_runs=1, **task_features)
+            nll_per_beta, pr2_per_beta, model_acc_per_beta = objective(env=env, model_name=args.model_name, epsilon=epsilon, beta=beta, method=args.method, num_runs=1, **task_features)
         elif args.task_name == 'devraj2022':
             env = Devraj2022()
-            nll_per_beta, pr2_per_beta, model_acc_per_beta = evaluate_model(env=env, model_name=args.model_name, epsilon=epsilon, beta=beta, method=args.method, num_runs=1)
+            nll_per_beta, pr2_per_beta, model_acc_per_beta = objective(env=env, model_name=args.model_name, epsilon=epsilon, beta=beta, method=args.method, num_runs=1)
         else:
             raise NotImplementedError
         nlls.append(nll_per_beta)
@@ -197,13 +193,11 @@ if __name__  == '__main__':
     
     if args.optimizer:
         pr2s, nlls, accs, parameters = optimizer(args)
-
+        optimizer = 'differential_evolution'
     else:
         pr2s, nlls, accs, parameters = grid_search(args)
+        optimizer = 'grid_search'
 
     # save list of results
-    save_path = f"/u/ajagadish/vanilla-llama/categorisation/data/model_comparison/{args.task_name}_{args.model_name}_{args.method}_{args.optimizer}.npz"
+    save_path = f"/u/ajagadish/vanilla-llama/categorisation/data/model_comparison/{args.task_name}_{args.model_name}_{args.method}_{optimizer}.npz"
     np.savez(save_path, betas=parameters, nlls=nlls, pr2s=pr2s, accs=accs)
-
-#python model_comparison/fit.py --model-name claude_generated_tasks_paramsNA_dim3_data100_tasks11518_pversion4_model=transformer_num_episodes500000_num_hidden=256_lr0.0003_num_layers=6_d_model=64_num_head=8 --task-name badham2017
-

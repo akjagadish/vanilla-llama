@@ -3,6 +3,7 @@ import torch
 from human_envs import Badham2017, Devraj2022
 import argparse
 from tqdm import tqdm
+from scipy.optimize import differential_evolution, minimize
 import sys
 sys.path.insert(0, '/u/ajagadish/vanilla-llama/categorisation/rl2')
 
@@ -20,17 +21,24 @@ def compute_loglikelihood_human_choices_under_model(env=None, model_path=None, p
 
         # env setup: sample batch from environment and unpack
         outputs = env.sample_batch(participant)
+        # print(participant)
         if (env.return_prototype is True) and hasattr(env, 'return_prototype'):
             packed_inputs, sequence_lengths, correct_choices, human_choices, stacked_prototypes = outputs
         else:
             packed_inputs, sequence_lengths, correct_choices, human_choices = outputs
-
+        # print(human_choices[:, :10])
+        #import ipdb; ipdb.set_trace()
+            
+        ## set human choices to correct choices
+        # human_choices = correct_choices
+        ## randomise human choices
+        # human_choices = torch.randint(0, 2, human_choices.shape).to(device)
+            
         # get model choices
         model_choice_probs = model(packed_inputs.float().to(device), sequence_lengths) 
        
         
-        if method == 'eps_greedy': 
-            assert beta == 1., "beta must be 1 for eps_greedy"
+        if method == 'eps_greedy' or method == 'both': 
             # make a new tensor containing model_choice_probs for each trial for option 1 and 1-model_choice_probs for option 2
             #probs = torch.stack([model_choice_probs[i, :sequence_lengths[i]] for i in range(len(model_choice_probs))])
             probs = torch.cat([1-model_choice_probs, model_choice_probs], axis=2)
@@ -40,6 +48,7 @@ def compute_loglikelihood_human_choices_under_model(env=None, model_path=None, p
             loglikehoods = torch.log(probs_with_guessing)
             summed_loglikelihoods = loglikehoods.sum()
         elif method == 'soft_sigmoid':
+            assert epsilon == 0., "epsilon must be 0 for soft_sigmoid"
             # compute log likelihoods of human choices under model choice probs (binomial distribution)
             loglikehoods = torch.distributions.Binomial(probs=model_choice_probs).log_prob(human_choices)
             summed_loglikelihoods = torch.vstack([loglikehoods[idx, :sequence_lengths[idx]].sum() for idx in range(len(loglikehoods))]).sum()
@@ -58,7 +67,7 @@ def compute_loglikelihood_human_choices_under_model(env=None, model_path=None, p
     return summed_loglikelihoods, chance_loglikelihood, model_accuracy 
 
               
-def evaluate_model(env=None, model_name=None, beta=1., epsilon=0., method='soft_sigmoid', num_runs=5, **task_features):
+def evaluate_model(env=None, model_name=None, beta=1., epsilon=0., method='soft_sigmoid', num_runs=1, **task_features):
     '''  compute log likelihoods of human choices under model choice probs based on binomial distribution
     '''
 
@@ -78,27 +87,16 @@ def evaluate_model(env=None, model_name=None, beta=1., epsilon=0., method='soft_
     
     return -loglikelihoods, p_r2, model_acc
 
-if __name__  == '__main__':
-    parser = argparse.ArgumentParser(description='save meta-learner choices on different categorisation tasks')
-    parser.add_argument('--no-cuda', action='store_true', default=False, help='disables CUDA training')
-    parser.add_argument('--task-name', type=str, required=True, help='task name')
-    parser.add_argument('--model-name', type=str, required=True, help='model name')
-    parser.add_argument('--method', type=str, default='soft_sigmoid', help='method for computing model choice probabilities')
-    args = parser.parse_args()
-    use_cuda = not args.no_cuda and torch.cuda.is_available()
-    device = torch.device("cuda" if use_cuda else "cpu") 
-    
+def grid_search(args):
+
     if args.method == 'soft_sigmoid':
         # beta sweep
         betas = np.arange(0., 10., 0.05)
         parameters = betas
+
     elif args.method == 'eps_greedy':
         # epsilon sweep
         epsilons = np.arange(0., 1., 0.05)
-        parameters = epsilons
-    elif args.method == 'both':
-        epsilons = np.arange(0., 1., 0.05)
-        betas = np.arange(0., 10., 0.05)
         parameters = epsilons
 
     else:
@@ -122,14 +120,89 @@ if __name__  == '__main__':
         pr2s.append(pr2_per_beta)
         accs.append(model_acc_per_beta)
 
-    pr2s = np.array(pr2s)
-    min_nll_index = np.argmin(np.stack(nlls), 0)
-    pr2s_min_nll = np.stack([pr2s[min_nll_index[idx], idx] for idx in range(pr2s.shape[1])])
-    # print(f"beta with min nll: {betas[min_nll_index]}")
-    # print(f"beta with min nll: {parameters[min_nll_index]}" if args.method == 'soft_sigmoid' else f"epsilon with min nll: {parameters[min_nll_index]}")
+    return np.array(pr2s), np.array(nlls), accs, parameters
+    
+def optimizer(args):
+
+    model_path = f"/u/ajagadish/vanilla-llama/categorisation/trained_models/{args.model_name}.pt"
+    if args.task_name == 'badham2017':
+        env = Badham2017()
+        task_features = {}
+    elif args.task_name == 'devraj2022':
+        env = Devraj2022()
+        task_features = {}
+    else:
+        raise NotImplementedError
+    
+    def objective(x, participant):
+        epsilon = x[0] if args.method == 'eps_greedy' else 0.
+        beta = x[0] if args.method == 'soft_sigmoid' else 1.
+        if args.method == 'both':
+            epsilon = x[0]
+            beta = x[1]
+        ll, _, _  = compute_loglikelihood_human_choices_under_model(env=env, model_path=model_path, participant=participant, shuffle_trials=True,\
+                                                                            beta=beta, epsilon=epsilon, method=args.method, **task_features)
+        return -ll.numpy()
+    
+    if args.method == 'soft_sigmoid':
+        bounds = [(0., 1.)]
+    elif args.method == 'eps_greedy':
+        bounds = [(0., 1.)]
+    elif args.method == 'both':
+        bounds = [(0., 1.), (0., 1.)]
+    else:
+        raise NotImplementedError
+    
+    pr2s, nlls, accs, parameters = [], [], [], []
+    NUM_ITERS = 5
+    participants = env.data.participant.unique()
+    for participant in participants:
+        res_fun = np.inf
+        for _ in tqdm(range(NUM_ITERS)):
+            
+            # x0 = [np.random.uniform(x, y) for x, y in bounds]
+            # result = minimize(objective, x0, args=(participant), bounds=bounds, method='SLSQP')
+            result = differential_evolution(func=objective, args=(participant,), bounds=bounds)
+
+            if result.fun < res_fun:
+                res_fun = result.fun
+                res = result
+                print(f"min nll and parameter: {res_fun, res.x}")
+
+        epsilon = res.x[0] if args.method == 'eps_greedy' else 0.
+        beta = res.x[0] if args.method == 'soft_sigmoid' else 1.
+        if args.method == 'both':
+            epsilon = res.x[0]
+            beta = res.x[1]
+
+        ll, chance_ll, acc  = compute_loglikelihood_human_choices_under_model(env=env, model_path=model_path, participant=participant, shuffle_trials=True,\
+                                                                        beta=beta, epsilon=epsilon, method=args.method, **task_features)
+        nlls.append(-ll)
+        pr2s.append(1 - (ll/chance_ll))
+        accs.append(acc)
+        parameters.append(res.x)
+
+    return np.array(pr2s), np.array(nlls), accs, parameters
+
+if __name__  == '__main__':
+    parser = argparse.ArgumentParser(description='save meta-learner choices on different categorisation tasks')
+    parser.add_argument('--no-cuda', action='store_true', default=False, help='disables CUDA training')
+    parser.add_argument('--task-name', type=str, required=True, help='task name')
+    parser.add_argument('--model-name', type=str, required=True, help='model name')
+    parser.add_argument('--method', type=str, default='soft_sigmoid', help='method for computing model choice probabilities')
+    parser.add_argument('--optimizer', action='store_true', default=False, help='find optimal beta using optimizer')
+    args = parser.parse_args()
+    use_cuda = not args.no_cuda and torch.cuda.is_available()
+    device = torch.device("cuda" if use_cuda else "cpu") 
+    
+    if args.optimizer:
+        pr2s, nlls, accs, parameters = optimizer(args)
+
+    else:
+        pr2s, nlls, accs, parameters = grid_search(args)
 
     # save list of results
-    save_path = f"/u/ajagadish/vanilla-llama/categorisation/data/model_comparison/{args.task_name}_{args.model_name}_{args.method}"
+    save_path = f"/u/ajagadish/vanilla-llama/categorisation/data/model_comparison/{args.task_name}_{args.model_name}_{args.method}_{args.optimizer}.npz"
     np.savez(save_path, betas=parameters, nlls=nlls, pr2s=pr2s, accs=accs)
 
 #python model_comparison/fit.py --model-name claude_generated_tasks_paramsNA_dim3_data100_tasks11518_pversion4_model=transformer_num_episodes500000_num_hidden=256_lr0.0003_num_layers=6_d_model=64_num_head=8 --task-name badham2017

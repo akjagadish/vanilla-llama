@@ -102,6 +102,14 @@ def fit_gcm_to_humans(num_runs, num_blocks, num_iter, num_tasks, num_features, o
         NUM_TASKS, NUM_FEATURES = 1, 3
     else:
         raise NotImplementedError
+    
+    ## shuffle the choice column in df
+    # df['choice'] = np.random.permutation(df['choice'].values)
+    # df['correct_choice'] = np.random.permutation(df['correct_choice'].values)
+    
+    ## set the choice to correct_choice 
+    # df['choice'] = df['correct_choice']
+    
     lls, r2s, params_list = [], [], []
     for idx in range(num_runs):
         gcm = GeneralizedContextModel(num_features=NUM_FEATURES, distance_measure=1, num_iterations=num_iter, opt_method=opt_method, loss=loss)

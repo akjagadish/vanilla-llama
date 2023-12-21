@@ -90,6 +90,18 @@ def fit_pm_to_humans(num_runs, num_blocks, num_iter, num_tasks, num_features, op
         NUM_TASKS, NUM_FEATURES = 1, 3
     else:
         raise NotImplementedError
+    
+    # shuffle the choice column in df
+    # df['choice'] = np.random.permutation(df['choice'].values)
+    # df['correct_choice'] = np.random.permutation(df['correct_choice'].values)
+    # # shuffle values taken by prototype_feature1 to prototype_feature5 columns
+    # for col in df.columns:
+    #     if col.startswith('prototype_feature'):
+    #         df[col] = np.random.permutation(df[col].values)
+
+    # set choice to correct_choice
+    # df['choice'] = df['correct_choice']
+    
     lls, r2s, params_list = [], [], []
     for idx in range(num_runs):
         pm = PrototypeModel(num_features=NUM_FEATURES, distance_measure=1, num_iterations=num_iter, learn_prototypes=learn_prototypes, prototypes=prototypes, loss=loss)

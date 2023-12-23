@@ -7,15 +7,22 @@ import sys
 SYS_PATH = '/u/ajagadish/vanilla-llama' #'/raven/u/ajagadish/vanilla-llama/'
 sys.path.append(f'{SYS_PATH}/categorisation/data')
 
-def fit_rulex_to_humans(num_runs, num_blocks, num_iter, num_tasks, num_features, opt_method, loss, exception):
-    #TODO: in devraj every participant does only one condition so need to select only one condition
-    df = pd.read_csv('../data/human/devraj2022rational.csv')
-    df = df[df['condition'] == 'control'] # only pass 'control' condition
-    # num_runs, num_blocks, num_iter = 1, 11, 10
-    # loss = 'mse_transfer'
-    # opt_method = 'minimize'
-    exceptions = [[1, 1, 1 , 1, 0, 1], [0, 0, 0, 1, 0, 0]]
-    NUM_TASKS, NUM_FEATURES = 1, 6
+def fit_rulex_to_humans(num_runs, num_blocks, num_iter, opt_method, loss, exception, task_name):
+    
+    if task_name == 'devraj2022':
+        df = pd.read_csv('../data/human/devraj2022rational.csv')
+        df = df[df['condition'] == 'control'] # only pass 'control' condition
+        NUM_TASKS, NUM_FEATURES = 1, 6
+        exceptions = [[1, 1, 1 , 1, 0, 1], [0, 0, 0, 1, 0, 0]]
+    elif task_name == 'badham2017':
+        df = pd.read_csv('../data/human/badham2017deficits.csv')
+        df = df[df['condition']<=2]
+        # keep 
+        exceptions = [[1, 1, 1], [0, 0, 0]]
+        NUM_TASKS, NUM_FEATURES = 1, 3
+    else:
+        raise NotImplementedError
+
     lls, r2s, params_list = [], [], []
     for idx in range(num_runs):
         rulex = RulExModel(num_features=NUM_FEATURES, opt_method=opt_method, loss=loss, exception=exception, exceptions=exceptions)
@@ -30,7 +37,7 @@ def fit_rulex_to_humans(num_runs, num_blocks, num_iter, num_tasks, num_features,
     # save the r2 and ll values
     lls = np.array(lls)
     r2s = np.array(r2s)
-    np.savez(f'{SYS_PATH}/categorisation/data/model_comparison/devraj2022_rulex_runs={num_runs}_iters={num_iter}_blocks={num_blocks}_loss={loss}_exception={exception}'\
+    np.savez(f'{SYS_PATH}/categorisation/data/model_comparison/{task_name}_rulex_runs={num_runs}_iters={num_iter}_blocks={num_blocks}_loss={loss}_exception={exception}'\
              , r2s=r2s, lls=lls, params=np.stack(params_list), opt_method=opt_method)    
 
 if __name__ == '__main__':
@@ -39,16 +46,15 @@ if __name__ == '__main__':
     parser.add_argument('--num-iter', type=int, required=True, default=1, help='number of iterations')
     parser.add_argument('--num-runs', type=int, required=False,  default=1, help='number of runs')
     parser.add_argument('--num-blocks', type=int,required=False, default=11, help='number of blocks')
-    parser.add_argument('--num-tasks', type=int, required=False, default=1, help='number of tasks')
-    parser.add_argument('--num-features', type=int, required=False, default=6, help='number of features')
     parser.add_argument('--opt-method', type=str, required=False, default='minimize', help='optimization method')
     parser.add_argument('--loss', type=str, required=False, default='mse_transfer', help='loss function')
     parser.add_argument('--fit-human-data', action='store_true', help='fit gcm to human choices')
+    parser.add_argument('--task-name', type=str, required=False, default='devraj2022', help='task name')
     args = parser.parse_args()
 
     if args.fit_human_data:
         fit_rulex_to_humans(num_runs=args.num_runs, num_blocks=args.num_blocks, num_iter=args.num_iter,\
-                           num_tasks=args.num_tasks, num_features=args.num_features, \
-                              opt_method=args.opt_method, loss=args.loss, exception=args.exception)
+                              opt_method=args.opt_method, loss=args.loss, exception=args.exception, \
+                              task_name=args.task_name)
     else:   
         raise NotImplementedError

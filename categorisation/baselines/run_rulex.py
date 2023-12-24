@@ -16,9 +16,7 @@ def fit_rulex_to_humans(num_runs, num_blocks, num_iter, opt_method, loss, except
         exceptions = [[1, 1, 1 , 1, 0, 1], [0, 0, 0, 1, 0, 0]]
     elif task_name == 'badham2017':
         df = pd.read_csv('../data/human/badham2017deficits.csv')
-        df = df[df['condition']<=2]
-        # keep 
-        exceptions = [[1, 1, 1], [0, 0, 0]]
+        exceptions = [[1, 1, 1], [0, 0, 0]] #TODO: Passing exceptions correctly
         NUM_TASKS, NUM_FEATURES = 1, 3
     else:
         raise NotImplementedError

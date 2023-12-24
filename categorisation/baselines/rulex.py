@@ -7,6 +7,7 @@ import numpy as np
 import torch
 import statsmodels.discrete.discrete_model as sm
 import ipdb
+import itertools
 
 class RulExModel():
     """ RuleEX Model """
@@ -48,7 +49,7 @@ class RulExModel():
         num_conditions = len(df['condition'].unique())
         num_participants = len(df['participant'].unique())
         fit_measure, r2 = np.zeros((num_participants, num_conditions, num_blocks)), np.zeros((num_participants, num_conditions, num_blocks))
-        store_params = np.zeros((num_participants, num_conditions, num_blocks, len(self.bounds)+1)) # store params for each task feature and block
+        store_params = np.zeros((num_participants, num_conditions, num_blocks, len(self.bounds)+3)) # store params for each task feature and block
 
         for p_idx, participant_id in enumerate(df['participant'].unique()[:num_participants]):
             df_participant = df[(df['participant'] == participant_id)]
@@ -58,12 +59,16 @@ class RulExModel():
                 for b_idx, block in enumerate(range(num_blocks)):
                     df_condition_block = df_condition[(df_condition['trial'] < (block+1)*num_trials_per_block) & (df_condition['trial'] >= block*num_trials_per_block)]
                     best_params = self.fit_parameters(df_condition_block)
-                    fit_measure[p_idx, c_idx, b_idx] = self.loss_fn(best_params[[0]], df_condition_block, int(best_params[1]))
+                    fit_measure[p_idx, c_idx, b_idx] = self.loss_fn(best_params[[0]], df_condition_block, best_params[2:].astype('int'), int(best_params[1]))
                     if self.loss == 'nll':
                         num_trials = len(df_condition_block)*(df_condition_block.task.max()+1)
                         r2[p_idx, c_idx, b_idx] = 1 - (fit_measure[p_idx, c_idx, b_idx]/(-num_trials*np.log(1/2)))
-                    store_params[p_idx, c_idx, b_idx] = best_params
-                
+
+                    if condition_id == 2:
+                        store_params[p_idx, c_idx, b_idx] = best_params
+                    else:
+                        store_params[p_idx, c_idx, b_idx] = np.hstack([best_params[:2], np.nan, best_params[-1]])
+
         return fit_measure, r2, store_params
     
 
@@ -79,34 +84,45 @@ class RulExModel():
         
         best_fun = np.inf
         minimize_loss_function = self.loss_fn
-        for feature_dim in range(self.num_features):
+        
+        # sample order invariant pairs of features to use for the conjunctive rule
+        if df.condition.unique()[0] == 2:
+            feature_pairs = np.array(list(itertools.combinations(range(self.num_features), 2)))
+        else:
+            # pass a list of 1-dim features
+            feature_pairs = np.arange(self.num_features).reshape(-1, 1)
 
-            for _ in range(self.num_iterations):
+        for feature_dim in feature_pairs:
 
-                if self.opt_method == 'minimize':
-                    init = [np.random.uniform(x, y) for x, y in self.bounds]
-                    result = minimize(
-                        fun=minimize_loss_function,
-                        x0=init,
-                        args=(df, feature_dim),
-                        bounds=self.bounds,
-                    )
-                best_params = result.x
+            for category_code in range(self.num_categories):
 
-                if result.fun < best_fun:
-                    best_fun = result.fun
-                    best_res = result
-                    best_feature_dim = feature_dim
+                for _ in range(self.num_iterations):
+
+                    if self.opt_method == 'minimize':
+                        init = [np.random.uniform(x, y) for x, y in self.bounds]
+                        result = minimize(
+                            fun=minimize_loss_function,
+                            x0=init,
+                            args=(df, feature_dim, category_code),
+                            bounds=self.bounds,
+                        )
+                    best_params = result.x
+
+                    if result.fun < best_fun:
+                        best_fun = result.fun
+                        best_res = result
+                        best_feature_dim = feature_dim
+                        best_category_code = category_code
 
         if best_res.success:
             print("The optimiser converged successfully.")
         else:
             Warning("The optimiser did not converge.")
 
-        best_params = np.hstack([best_params, best_feature_dim])
+        best_params = np.hstack([best_params, best_category_code, best_feature_dim])
         return best_params
     
-    def compute_nll(self, params, df, feature_dim):
+    def compute_nll(self, params, df, feature_dim, category_code):
         """ compute negative log likelihood of the data given the parameters 
         
         args:
@@ -135,6 +151,7 @@ class RulExModel():
                 
                 # compute probability of choice given the stimuli
                 category_probabilities = self.rule_ex(feature_dim, current_stimuli)
+                category_probabilities = category_code - category_probabilities if category_code == 1 else category_probabilities
                 p_choice = category_probabilities[choice]*(1-params[0]) + params[0]*(1/self.num_categories)
                 ll += np.log(p_choice + epsilon)
             
@@ -160,23 +177,35 @@ class RulExModel():
         args:
         feature_dim: feature_dim of the stimuli to use for the rule
         current_stimuli: features of the current stimuli
+        category_code: category code for which the rule should be applied
         
         returns:
         category_probabilities: probability of choices given the stimuli based on a rule
         """
-        assert feature_dim < self.num_features, "feature_dim must be less than num_features"
+        
         assert self.num_categories == 2, "only 2 categories are supported"
+        if len(feature_dim)==1:
+            assert feature_dim < self.num_features, "feature_dim must be less than num_features"
+            ## 1-dim rule with exception
+            # if current stimuli is one of the exceptions retun the category for the exception
+            if self.exception and (current_stimuli.tolist() in self.exceptions):
+                # reverse the category assignment for the exception stimuli based on the value taken on the feature_dim
+                category_probabilities = np.array([1., .0]) if (current_stimuli[feature_dim] == 1) else np.array([.0, 1.])
+            elif current_stimuli[feature_dim] == 0:
+                category_probabilities = np.array([1., .0])
+            else:
+                category_probabilities = np.array([.0, 1.])
 
-        # if current stimuli is one of the exceptions retun the category for the exception
-        if self.exception and (current_stimuli.tolist() in self.exceptions):
-            # reverse the category assignment for the exception stimuli based on the value taken on the feature_dim
-            category_probabilities = np.array([1., .0]) if (current_stimuli[feature_dim] == 1) else np.array([.0, 1.])
-            #deprecated: correctly assign the category for the exception stimuli
-            # category_probabilities = np.array([1., .0]) if self.exceptions.index(current_stimuli.tolist()) == 0 else np.array([.0, 1.])
-        elif current_stimuli[feature_dim] == 0:
-            category_probabilities = np.array([1., .0])
+        ## conjunctive rule 
+        elif len(feature_dim)>1:
+            feature_dim1, feature_dim2 = feature_dim
+            if current_stimuli[feature_dim1]==current_stimuli[feature_dim2]:
+                category_probabilities = np.array([1., .0])
+            else:
+                category_probabilities = np.array([.0, 1.])
+
         else:
-            category_probabilities = np.array([.0, 1.])
+            raise NotImplementedError
     
         return category_probabilities
     

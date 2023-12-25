@@ -4,6 +4,7 @@ import torch.nn as nn
 import torch
 import torch.nn.utils.rnn as rnn_utils
 from model_utils import MLP
+SYS_PATH = '/u/ajagadish/vanilla-llama/'
 
 class CategorisationTask(nn.Module):
     """
@@ -188,9 +189,9 @@ class SyntheticCategorisationTask(nn.Module):
             w = torch.randn(self.num_tasks, self.num_dims)
             self.c = torch.sigmoid((self.x * w).sum(-1)).round()
 
-    def get_synthetic_data(self, mode=None):
+    def get_synthetic_data(self, mode=None, num_tasks=None):
         
-        num_tasks = self.num_tasks
+        num_tasks = self.num_tasks if num_tasks is None else num_tasks
         tasks = np.arange(num_tasks)[:self.split[0]] if self.mode == 'train' else np.arange(num_tasks)[self.split[0]:self.split[1]] if self.mode == 'val' else np.arange(num_tasks)[self.split[1]:]
         
         # get batched data 
@@ -201,6 +202,8 @@ class SyntheticCategorisationTask(nn.Module):
             self.batch_size = self.split[1] - self.split[0]
         elif mode == 'test':
             self.batch_size = self.split[2] - self.split[1]
+        elif mode == 'all':
+            self.batch_size = self.num_tasks
 
         inputs = self.x.permute(1, 0, 2)[tasks].to(self.device)
         if self.nonlinear:
@@ -232,6 +235,22 @@ class SyntheticCategorisationTask(nn.Module):
 
         return packed_inputs.to(self.device), sequence_lengths, stacked_targets.to(self.device) 
 
+    def save_synthetic_data(self, num_tasks=5000):
+
+        inputs, targets = self.get_synthetic_data(num_tasks=num_tasks, mode='all')
+        data = pd.DataFrame(columns=['task_id', 'trial_id', 'input', 'target']) # prepare dataframe
+        if self.nonlinear:
+            inputs = inputs.detach()
+            targets = targets.detach()
+        # save inputs and targets into the data dataframe: inputs is of shape (num_tasks, max_steps, num_dims) and targets is of shape (num_tasks, max_steps)
+        for task_id, (task_inputs, task_targets) in enumerate(zip(inputs, targets)):
+            for trial_id, (input, target) in enumerate(zip(task_inputs, task_targets)):
+                data = pd.concat([data, pd.DataFrame({'task_id':task_id, 'trial_id':trial_id, 'input':str(input.cpu().numpy().tolist()), 'target':[target.cpu().numpy().tolist()]})], ignore_index=True)
+                # append({'task_id':task_id, 'trial_id':trial_id, 'input':input.cpu().numpy(), 'target':target.cpu().numpy()}, ignore_index=True)
+        
+        # save data to csv file
+        data.to_csv(f'{SYS_PATH}/categorisation/data/synthetic_tasks_dim{self.num_dims}_data{self.max_steps}_tasks{num_tasks}_nonlinear{self.nonlinear}.csv', index=False)
+        
 class ShepardsTask(nn.Module):
     """
     Categorisation task inspired by Shepard et al. (1961) for evaluating meta-learned model on six different difficulty levels of categorisation

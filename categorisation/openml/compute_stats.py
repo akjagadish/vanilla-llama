@@ -14,9 +14,6 @@ import sys
 sys.path.append("/u/ajagadish/vanilla-llama/categorisation/rl2")
 sys.path.append("/u/ajagadish/vanilla-llama/categorisation/")
 sys.path.append("/u/ajagadish/vanilla-llama/categorisation/data")
-# sys.path.append('/raven/u/ajagadish/vanilla-llama/categorisation/')
-# sys.path.append('/raven/u/ajagadish/vanilla-llama/categorisation/data')
-# sys.path.append('/raven/u/ajagadish/vanilla-llama/categorisation/rl2')
 from baseline_classifiers import benchmark_baseline_models_regex_parsed_random_points, benchmark_baseline_models_regex_parsed
 from baseline_classifiers import LogisticRegressionModel, SVMModel
 
@@ -24,10 +21,9 @@ FONTSIZE=20
 color = '#173b4f'
 
 def compute_gini(x):
-    abs_diff = np.abs(x - x.reshape(-1, 1)).sum()
-    sum_all = np.abs(x).sum()
-    gini = abs_diff/(2*sum_all*len(x))
-    return gini
+    mad = np.abs(np.subtract.outer(x, x)).mean()
+    rmad = mad/np.mean(x)
+    return 0.5 * rmad
 
 benchmark_suite = openml.study.get_suite('OpenML-CC18') # obtain the benchmark suite
 # binary classification tasks with no-nans and less than 100 features
@@ -72,7 +68,7 @@ for task_id in task_ids: # iterate over all taskIDs that has passed some prelim 
         log_reg_quadratic = sm.Logit(y, X_poly).fit(method='bfgs', maxiter=10000)
         all_bics_linear.append(log_reg.bic)
         all_bics_quadratic.append(log_reg_quadratic.bic)
-        gini_coeff.append(compute_gini(log_reg.params[1:]))
+        gini_coeff.append(compute_gini(np.abs(log_reg.params[1:])))
     except Exception as e:
         print(e)
         continue
@@ -263,4 +259,4 @@ ax.tick_params(axis='both', which='major', labelsize=FONTSIZE-2)
 sns.despine()
 plt.tight_layout()
 plt.show()
-f.savefig(f'../figures/gini_coefficient_openml.png', bbox_inches='tight', dpi=300)
+f.savefig(f'../figures/gini_coefficient_openML.png', bbox_inches='tight', dpi=300)

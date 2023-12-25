@@ -20,6 +20,18 @@ class LogisticRegressionModel:
     
     def score(self, X, y):
         return self.model.score(X, y)
+    
+    def calculate_bic(self, X, y):
+        n = len(y)  # Number of observations
+        k = X.shape[1] + 1  # Number of parameters (features + intercept)
+        probas = self.model.predict_proba(X)[:, 1]  # Probability of the positive class
+
+        # Calculating the log-likelihood
+        log_likelihood = np.sum(y * np.log(probas) + (1 - y) * np.log(1 - probas))
+
+        # Calculating BIC
+        bic = k * np.log(n) - 2 * log_likelihood
+        return bic, log_likelihood
 
 # binary classifier class for support vector machines using sklearn
 class SVMModel:
@@ -41,6 +53,20 @@ class SVMModel:
     
     def score(self, X, y):
         return self.model.score(X, y)
+    
+    def calculate_bic(self, X, y):
+        n = len(y)  # Number of observations
+        k = len(self.model.support_vectors_)  # Number of support vectors as proxy for parameters
+
+        # Probabilities of positive class
+        probas = self.model.predict_proba(X)[:, 1]
+
+        # Calculating the log-likelihood (assuming binary classification)
+        log_likelihood = np.sum(y * np.log(probas) + (1 - y) * np.log(1 - probas))
+
+        # Calculating BIC
+        bic = k * np.log(n) - 2 * log_likelihood
+        return bic, log_likelihood
     
 # benchmark baseline models on 2 dimensional llm generated data
 def benchmark_baseline_models_2d(num_tasks, data):

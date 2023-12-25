@@ -418,6 +418,11 @@ def bin_data_points(num_bins, data, min_value=0, max_value=1):
     target_counts = np.array(target_counts)
     return bin_counts, target_counts
 
+def gini_compute(x):
+                    mad = np.abs(np.subtract.outer(x, x)).mean()
+                    rmad = mad/np.mean(x)
+                    return 0.5 * rmad
+
 def return_data_stats(data, poly_degree=2):
 
     df = data.copy()
@@ -425,7 +430,7 @@ def return_data_stats(data, poly_degree=2):
     all_corr, all_coef, all_bics_linear, all_bics_quadratic  = [], [], [], []
     f1_ceof, f2_coef, f3_coef = [], [], []
     f1_corr, f2_corr, f3_corr = [], [], []
-    gini_coeff = []
+    gini_coeff, advantage = [], []
     for i in range(0, max_tasks):
         df_task = df[df['task_id'] == i]
         if len(df_task) > 50: # arbitary data size threshold
@@ -467,17 +472,24 @@ def return_data_stats(data, poly_degree=2):
                 X_poly = PolynomialFeatures(poly_degree).fit_transform(X)
                 # try:
                 log_reg_quadratic = sm.Logit(y, X_poly).fit(method='bfgs', maxiter=10000)
+                
+                svm = SVMModel(X, y)
+                score_svm = svm.score(X, y)
+                bic_svm, ll_svm = svm.calculate_bic(X, y)
+
+                lr = LogisticRegressionModel(X, y)
+                score_lr = lr.score(X, y)
+                bic_lr, ll_lr = lr.calculate_bic(X, y)
+
+                advantage.append(score_svm - score_lr)#ll_svm-ll_lr) #
 
                 # bics
-                all_bics_linear.append(log_reg.bic)
-                all_bics_quadratic.append(log_reg_quadratic.bic)
+                all_bics_linear.append(-2*ll_lr) #log_reg.bic)
+                all_bics_quadratic.append(-2*ll_svm) #log_reg_quadratic.bic)
                 # except:
                 #     print('error fitting quadratic')
 
-                # compute gini coefficient for log_reg.params    
-                abs_diff = np.abs(log_reg.params[1:] - log_reg.params[1:].reshape(-1, 1)).sum()
-                sum_all = np.abs(log_reg.params[1:]).sum()
-                gini = abs_diff/(2*sum_all*len(log_reg.params[1:]))
+                gini = gini_compute(np.abs(log_reg.params[1:])) 
                 gini_coeff.append(gini)
                 
 
@@ -499,7 +511,7 @@ def return_data_stats(data, poly_degree=2):
     features_corrs = np.stack((f1_corr, f2_corr, f3_corr), -1)
 
 
-    return all_corr, all_coef, posterior_logprob, feature_coef, features_corrs, gini_coeff
+    return all_corr, all_coef, posterior_logprob, feature_coef, features_corrs, gini_coeff, advantage
 
 def retrieve_features_and_categories(path, file_name, task_id):
  

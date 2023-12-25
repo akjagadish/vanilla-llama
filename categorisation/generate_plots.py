@@ -8,23 +8,31 @@ sys.path.append(f'{SYS_PATH}/categorisation/data')
 sys.path.append(f'{SYS_PATH}/categorisation/rl2')
 
 
-#### Data Statistics
+# #### Data Statistics
 from plots import label_imbalance, plot_mean_number_tasks, plot_data_stats, plot_trial_by_trial_performance, plot_burstiness_training_curriculum
 
-## load and filter data
-env_name='claude_generated_tasks_paramsNA_dim4_data650_tasks8950_pversion5_stage1'
-data = pd.read_csv(f'{SYS_PATH}/categorisation/data/{env_name}.csv') 
-data = data.groupby(['task_id']).filter(lambda x: len(x['target'].unique()) == 2) # check if data has only two values for target in each task
-data.input = data['input'].apply(lambda x: np.array(eval(x)))
+# # load and filter data
+# env_name='claude_generated_tasks_paramsNA_dim3_data100_tasks11518_pversion4'
+# #dim4: 'claude_generated_tasks_paramsNA_dim4_data650_tasks8950_pversion5_stage1'
+# #dim6: 'claude_generated_tasks_paramsNA_dim6_data500_tasks12910_pversion5_stage2'
+# #dim3: 'claude_generated_tasks_paramsNA_dim3_data100_tasks11518_pversion4'
+# data = pd.read_csv(f'{SYS_PATH}/categorisation/data/{env_name}.csv') 
+# data = data.groupby(['task_id']).filter(lambda x: len(x['target'].unique()) == 2) # check if data has only two values for target in each task
+# data.input = data['input'].apply(lambda x: np.array(eval(x)))
 
-## analyse llm generated data
-label_imbalance(data)
-plot_mean_number_tasks(data)
-plot_burstiness_training_curriculum(data)#, num_tasks=100
-min_trials, burn_in = 50, 1
-df = data.groupby('task_id').filter(lambda x: len(x)>=min_trials)
-data = data[data.trial_id<=min_trials] # keep only min_trials for all tasks for model fitting
-plot_trial_by_trial_performance(df, burn_in, min_trials-burn_in, min_trials)
+###
+# data = data[data['task_id']<=1000]
+###
+
+
+# ## analyse llm generated data
+# label_imbalance(data)
+# plot_mean_number_tasks(data)
+# plot_burstiness_training_curriculum(data)#, num_tasks=100
+# min_trials, burn_in = 50, 1
+# df = data.groupby('task_id').filter(lambda x: len(x)>=min_trials)
+# data = data[data.trial_id<=min_trials] # keep only min_trials for all tasks for model fitting
+# plot_trial_by_trial_performance(df, burn_in, min_trials-burn_in, min_trials)
 # plot_data_stats(data, poly_degree=2) #TODO: extend this function to work for data with more than 3 dims
 
 #--------------------------- 
@@ -82,3 +90,28 @@ from plots import compare_metalearners
 # env_name = 'claude_generated_tasks_paramsNA_dim3_data100_tasks14000'
 # model_env = 'num_episodes500000_num_hidden=128_lr0.0003'
 # compare_metalearners(env_name, model_env, noises=[0.05, 0.1, 0.0], shuffles=[True, False], shuffle_evals=[False], num_runs=10)
+
+#---------------------------
+from plots import plot_data_stats_synthetic
+
+env_name='synthetic_tasks_dim3_data100_tasks5000_nonlinearFalse'
+#synthetic dim3: 'synthetic_tasks_dim3_data100_tasks5_nonlinearFalse'
+data = pd.read_csv(f'{SYS_PATH}/categorisation/data/{env_name}.csv') 
+data = data.groupby(['task_id']).filter(lambda x: len(x['target'].unique()) == 2) # check if data has only two values for target in each task
+data.input = data['input'].apply(lambda x: np.array(eval(x)))
+# if in env_name nonlinear is followed by True for synthetic data set synthetic_type=True
+synthetic_type = 'nonlinear' if env_name.split('nonlinear')[1]=='True' else 'linear'
+dim = int(env_name.split('dim')[1].split('_')[0])
+
+#####
+data = data[data['task_id']<=1000]
+#####
+
+plot_data_stats_synthetic(data, poly_degree=2, synthetic_type=synthetic_type, dim=dim)
+
+#---------------------------
+# min_trials, burn_in = 90, 1
+# df = data.groupby('task_id').filter(lambda x: len(x)>=min_trials)
+# data = data[data.trial_id<=min_trials] # keep only min_trials for all tasks for model fitting
+# plot_trial_by_trial_performance(df, burn_in, min_trials-burn_in, min_trials)
+

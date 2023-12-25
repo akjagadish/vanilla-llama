@@ -89,7 +89,6 @@ def label_imbalance(data, categories=['A','B']):
     # save figure
     f.savefig(f'{SYS_PATH}/categorisation/figures/label_balance.svg', bbox_inches='tight', dpi=300)
 
-
 # plot mean number of tasks
 def plot_mean_number_tasks(data):
     f, ax = plt.subplots(1, 1, figsize=(5,5))
@@ -263,10 +262,9 @@ def plot_sorted_volumes(data, num_bins, min_value=0, max_value=1):
     f.tight_layout()
     plt.show()
 
-
 def plot_data_stats(data, poly_degree=2):
 
-    all_corr, all_coef, posterior_logprob, per_feature_coef, per_feature_corrs, gini_coeff = return_data_stats(data, poly_degree)
+    all_corr, all_coef, posterior_logprob, per_feature_coef, per_feature_corrs, gini_coeff, advantage = return_data_stats(data, poly_degree)
 
     COLORS['stats'] = '#173b4f'
     fig, axs = plt.subplots(1, 3,  figsize=(15,5))
@@ -369,6 +367,171 @@ def plot_data_stats(data, poly_degree=2):
     plt.tight_layout()
     plt.show()
     f.savefig(f'{SYS_PATH}/categorisation/figures/gini_coefficient.png', bbox_inches='tight', dpi=300)
+
+    
+    COLORS['stats'] = '#173b4f'
+    posterior_logprob = posterior_logprob[:, 0].exp().detach().numpy().round(4)
+    fig, axs = plt.subplots(1, 3,  figsize=(15,5))
+    sns.histplot(np.array(all_corr), ax=axs[0], bins=11, binrange=(-1., 1.), stat='probability', edgecolor='w', linewidth=1, color=COLORS['stats'])
+    sns.histplot(gini_coeff, ax=axs[1], bins=11, binrange=(0, bin_max), stat='probability', edgecolor='w', linewidth=1, color=COLORS['stats'])
+    sns.histplot(posterior_logprob, ax=axs[2], bins=11, stat='probability', edgecolor='w', linewidth=1, color=COLORS['stats'])
+    
+    #axs[2].set_ylim(0, 0.5)
+    axs[0].set_xlim(-1, 1)
+    axs[0].set_ylim(0, 0.25)
+    axs[1].set_ylim(0, 0.3)
+    
+    axs[0].set_yticks(np.arange(0, 0.25, 0.05))
+    axs[1].set_yticks(np.arange(0, 0.3, 0.1))
+    # set tick size
+    axs[0].tick_params(axis='both', which='major', labelsize=FONTSIZE-2)
+    axs[1].tick_params(axis='both', which='major', labelsize=FONTSIZE-2)
+    axs[2].tick_params(axis='both', which='major', labelsize=FONTSIZE-2)
+
+
+    axs[0].set_ylabel('Percentage', fontsize=FONTSIZE)
+    axs[1].set_ylabel('')
+    axs[2].set_ylabel('')
+
+    axs[0].set_xlabel('Input correlation', fontsize=FONTSIZE)
+    axs[1].set_xlabel('Gini coefficient', fontsize=FONTSIZE)
+    axs[2].set_xlabel('Linearity', fontsize=FONTSIZE)
+
+    plt.tight_layout()
+    sns.despine()
+    plt.show()
+
+    # save figure
+    fig.savefig(f'{SYS_PATH}/categorisation/figures/corr_gini_linearity.svg', bbox_inches='tight', dpi=300)
+
+
+
+    advantage = np.stack(advantage)
+    advantage[advantage<0] = 0  # set values below 0 to 0
+    #advantage = 1-(np.stack(advantage)/np.max(np.stack(advantage)))
+
+
+    COLORS['stats'] = '#173b4f'
+    fig, axs = plt.subplots(1, 3,  figsize=(15,5))
+    sns.histplot(np.array(all_corr), ax=axs[0], bins=11, binrange=(-1., 1.), stat='probability', edgecolor='w', linewidth=1, color=COLORS['stats'])
+    sns.histplot(gini_coeff, ax=axs[1], bins=11, binrange=(0, bin_max), stat='probability', edgecolor='w', linewidth=1, color=COLORS['stats'])
+    sns.histplot(advantage, ax=axs[2], bins=11, binrange=(0, 0.5), stat='probability', edgecolor='w', linewidth=1, color=COLORS['stats'])
+    #axs[2].set_ylim(0, 0.5)
+    axs[0].set_xlim(-1, 1)
+    axs[0].set_ylim(0, 0.25)
+    axs[2].set_xlim(0., 0.5)
+    axs[1].set_ylim(0, 0.3)
+    
+    axs[0].set_yticks(np.arange(0, 0.25, 0.05))
+    axs[1].set_yticks(np.arange(0, 0.3, 0.1))
+    # set tick size
+    axs[0].tick_params(axis='both', which='major', labelsize=FONTSIZE-2)
+    axs[1].tick_params(axis='both', which='major', labelsize=FONTSIZE-2)
+    axs[2].tick_params(axis='both', which='major', labelsize=FONTSIZE-2)
+
+
+    axs[0].set_ylabel('Percentage', fontsize=FONTSIZE)
+    axs[1].set_ylabel('')
+    axs[2].set_ylabel('')
+
+    axs[0].set_xlabel('Input correlation', fontsize=FONTSIZE)
+    axs[1].set_xlabel('Gini coefficient', fontsize=FONTSIZE)
+    axs[2].set_xlabel('Linearity', fontsize=FONTSIZE)
+
+    plt.tight_layout()
+    sns.despine()
+    plt.show()
+
+    # save figure
+    fig.savefig(f'{SYS_PATH}/categorisation/figures/corr_gini_adv.svg', bbox_inches='tight', dpi=300)
+
+
+def plot_data_stats_synthetic(data, poly_degree=2, synthetic_type='linear', dim=None):
+
+    all_corr, all_coef, posterior_logprob, per_feature_coef, per_feature_corrs, gini_coeff, advantage = return_data_stats(data, poly_degree)
+    
+    gini_coeff = np.array(gini_coeff)
+    gini_coeff = gini_coeff[~np.isnan(gini_coeff)]
+    bin_max = np.max(gini_coeff)
+
+    posterior_logprob = posterior_logprob[:, 0].exp().detach().numpy().round(4)
+    
+    advantage = np.stack(advantage)
+    advantage[advantage<0] = 0  # set values below 0 to 0
+    # advantage = 1-(np.stack(advantage)/np.max(np.stack(advantage)))
+
+    COLORS['stats'] = '#173b4f'
+    fig, axs = plt.subplots(1, 3,  figsize=(15,5))
+    sns.histplot(np.array(all_corr), ax=axs[0], bins=11, binrange=(-1., 1.), stat='probability', edgecolor='w', linewidth=1, color=COLORS['stats'])
+    sns.histplot(gini_coeff, ax=axs[1], bins=11, binrange=(0, bin_max), stat='probability', edgecolor='w', linewidth=1, color=COLORS['stats'])
+    sns.histplot(posterior_logprob, ax=axs[2], bins=11, stat='probability', edgecolor='w', linewidth=1, color=COLORS['stats'])
+    #axs[2].set_ylim(0, 0.5)
+    axs[0].set_xlim(-1, 1)
+    assert dim==3, 'Only works for dim=3'
+    axs[1].set_xlim(0., 0.66 if dim==3 else None)   
+    axs[2].set_xlim(0., 1.05)
+    axs[0].set_ylim(0, 0.25)
+    # axs[1].set_ylim(0, 0.3)
+    
+    axs[0].set_yticks(np.arange(0, 0.25, 0.05))
+    axs[1].set_yticks(np.arange(0, 0.3, 0.1))
+    # set tick size
+    axs[0].tick_params(axis='both', which='major', labelsize=FONTSIZE-2)
+    axs[1].tick_params(axis='both', which='major', labelsize=FONTSIZE-2)
+    axs[2].tick_params(axis='both', which='major', labelsize=FONTSIZE-2)
+
+
+    axs[0].set_ylabel('Percentage', fontsize=FONTSIZE)
+    axs[1].set_ylabel('')
+    axs[2].set_ylabel('')
+
+    axs[0].set_xlabel('Input correlation', fontsize=FONTSIZE)
+    axs[1].set_xlabel('Gini coefficient', fontsize=FONTSIZE)
+    axs[2].set_xlabel('Linearity', fontsize=FONTSIZE)
+
+    plt.tight_layout()
+    sns.despine()
+    plt.show()
+
+    # save figure
+    fig.savefig(f'{SYS_PATH}/categorisation/figures/corr_gini_linearity_synthetic{synthetic_type}.svg', bbox_inches='tight', dpi=300)
+
+
+    COLORS['stats'] = '#173b4f'
+    fig, axs = plt.subplots(1, 3,  figsize=(15,5))
+    sns.histplot(np.array(all_corr), ax=axs[0], bins=11, binrange=(-1., 1.), stat='probability', edgecolor='w', linewidth=1, color=COLORS['stats'])
+    sns.histplot(gini_coeff, ax=axs[1], bins=11, binrange=(0, bin_max), stat='probability', edgecolor='w', linewidth=1, color=COLORS['stats'])
+    sns.histplot(advantage, ax=axs[2], bins=11, binrange=(0, 0.5), stat='probability', edgecolor='w', linewidth=1, color=COLORS['stats'])
+    #axs[2].set_ylim(0, 0.5)
+    axs[0].set_xlim(-1, 1)
+
+    axs[1].set_xlim(0., 0.66 if dim==3 else None)   
+    axs[2].set_xlim(0., 0.5)
+    axs[0].set_ylim(0, 0.25)
+    # axs[1].set_ylim(0, 0.3)
+    
+    axs[0].set_yticks(np.arange(0, 0.25, 0.05))
+    axs[1].set_yticks(np.arange(0, 0.3, 0.1))
+    # set tick size
+    axs[0].tick_params(axis='both', which='major', labelsize=FONTSIZE-2)
+    axs[1].tick_params(axis='both', which='major', labelsize=FONTSIZE-2)
+    axs[2].tick_params(axis='both', which='major', labelsize=FONTSIZE-2)
+
+
+    axs[0].set_ylabel('Percentage', fontsize=FONTSIZE)
+    axs[1].set_ylabel('')
+    axs[2].set_ylabel('')
+
+    axs[0].set_xlabel('Input correlation', fontsize=FONTSIZE)
+    axs[1].set_xlabel('Gini coefficient', fontsize=FONTSIZE)
+    axs[2].set_xlabel('Linearity', fontsize=FONTSIZE)
+
+    plt.tight_layout()
+    sns.despine()
+    plt.show()
+
+    # save figure
+    fig.savefig(f'{SYS_PATH}/categorisation/figures/corr_gini_adv_synthetic{synthetic_type}.svg', bbox_inches='tight', dpi=300)
 
 def plot_cue_validity(data):
 
@@ -474,8 +637,7 @@ def plot_per_task_features_for_selected_tasks(df, sample_task_per_feature=None):
     
      # save figure
     f.savefig(f'{SYS_PATH}/categorisation/figures/selected_task_features.svg', bbox_inches='tight', dpi=300)
-
-    
+   
 def errors_metalearner(env_name, model_path, mode='test', shuffle_trials=False, num_trials=96, num_runs=5):
 
     _, model_choices, true_choices, sequences = evaluate_1d(env_name=env_name, \

@@ -151,6 +151,40 @@ def fit_gcm_to_metalearner(beta, num_runs, num_blocks, num_iter, num_tasks, num_
     np.savez(f'{SYS_PATH}/categorisation/data/meta_learner/gcm_metalearner_devrajstask_beta={beta}_runs={num_runs}_iters={num_iter}_blocks={num_blocks}_tasks={NUM_TASKS}'\
             , r2s=r2s, lls=lls, params=np.stack(params_list), opt_method=opt_method)
     
+def fit_gcm_to_fitted_simulations(num_runs, num_blocks, num_iter, num_tasks, num_features, opt_method, loss, task_name, model_name, method):
+    
+    if task_name == 'devraj2022':
+        NUM_TASKS, NUM_FEATURES = 1, 6
+    elif task_name == 'badham2017':
+        NUM_TASKS, NUM_FEATURES = 1, 3
+    else:
+        raise NotImplementedError
+    
+    file_name =  f"{SYS_PATH}/categorisation/data/fitted_simulation/{task_name}_{model_name}_{method}.csv"
+    df = pd.read_csv(file_name)
+
+    ## shuffle the choice column in df
+    # df['choice'] = np.random.permutation(df['choice'].values)
+    # df['correct_choice'] = np.random.permutation(df['correct_choice'].values)
+    
+    ## set the choice to correct_choice 
+    # df['choice'] = df['correct_choice']
+
+    lls, r2s, params_list = [], [], []
+    for idx in range(num_runs):
+        gcm = GeneralizedContextModel(num_features=NUM_FEATURES, distance_measure=1, num_iterations=num_iter, opt_method=opt_method, loss=loss)
+        ll, r2, params = gcm.fit_participants(df, num_blocks=num_blocks, reduce='sum')
+        params_list.append(params)
+        lls.append(ll)
+        r2s.append(r2)
+        print(f'mean fit across blocks: {lls[idx].mean()} \n')
+        print(f'mean pseudo-r2 across blocks: {r2s[idx].mean()}')
+
+    # save the r2 and ll values
+    lls = np.array(lls)
+    r2s = np.array(r2s)
+    np.savez(f'{SYS_PATH}/categorisation/data/fitted_simulation/{task_name}_gcm_runs={num_runs}_iters={num_iter}_blocks={num_blocks}_loss={loss}'\
+             , r2s=r2s, lls=lls, params=np.stack(params_list), opt_method=opt_method)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='fit gcm to meta-learner choices')
@@ -164,6 +198,9 @@ if __name__ == '__main__':
     parser.add_argument('--loss', type=str, required=False, default='mse_transfer', help='loss function')
     parser.add_argument('--fit-human-data', action='store_true', help='fit gcm to human choices')
     parser.add_argument('--task-name', type=str, required=False, default='devraj2022', help='task name')
+    parser.add_argument('--model-name', type=str, required=False, default='transformer', help='model name')
+    parser.add_argument('--method', type=str, required=False, default='soft_sigmoid', help='method for computing model choice probabilities')
+
     args = parser.parse_args()
 
     if args.fit_human_data:
@@ -171,5 +208,8 @@ if __name__ == '__main__':
                            num_tasks=args.num_tasks, num_features=args.num_features, \
                               opt_method=args.opt_method, loss=args.loss, task_name=args.task_name)
     else:   
-        assert args.beta is not None, 'beta value not provided'
-        fit_gcm_to_metalearner(beta=args.beta, num_runs=args.num_runs, num_blocks=args.num_blocks, num_iter=args.num_iter, num_tasks=args.num_tasks, num_features=args.num_features, opt_method=args.opt_method, loss=args.loss)
+        fit_gcm_to_fitted_simulations(num_runs=args.num_runs, num_blocks=args.num_blocks, num_iter=args.num_iter,\
+                            num_tasks=args.num_tasks, num_features=args.num_features, \
+                                opt_method=args.opt_method, loss=args.loss, task_name=args.task_name, model_name=args.model_name, method=args.method)
+        # assert args.beta is not None, 'beta value not provided'
+        # fit_gcm_to_metalearner(beta=args.beta, num_runs=args.num_runs, num_blocks=args.num_blocks, num_iter=args.num_iter, num_tasks=args.num_tasks, num_features=args.num_features, opt_method=args.opt_method, loss=args.loss)

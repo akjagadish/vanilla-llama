@@ -23,9 +23,9 @@ def compute_loglikelihood_human_choices_under_model(env=None, model_path=None, p
         outputs = env.sample_batch(participant)
         # print(participant)
         if (env.return_prototype is True) and hasattr(env, 'return_prototype'):
-            packed_inputs, sequence_lengths, correct_choices, human_choices, stacked_prototypes = outputs
+            packed_inputs, sequence_lengths, correct_choices, human_choices, stacked_prototypes, _ = outputs
         else:
-            packed_inputs, sequence_lengths, correct_choices, human_choices = outputs
+            packed_inputs, sequence_lengths, correct_choices, human_choices, _ = outputs
         
         ## set human choices to correct choices
         # human_choices = correct_choices
@@ -86,7 +86,7 @@ def grid_search(args):
         participants = env.data.participant.unique()
         loglikelihoods, p_r2, model_acc = [], [], []
         for participant in participants:
-            ll, chance_ll, acc  = compute_loglikelihood_human_choices_under_model(env=env, model_path=model_path, participant=participant, experiment='badham2017deficits', shuffle_trials=True,\
+            ll, chance_ll, acc  = compute_loglikelihood_human_choices_under_model(env=env, model_path=model_path, participant=participant, shuffle_trials=True,\
                                                                                 beta=beta, epsilon=epsilon, method=method, **task_features)
             loglikelihoods.append(ll)
             p_r2.append(1 - (ll/chance_ll))
@@ -118,7 +118,7 @@ def grid_search(args):
 
     return np.array(pr2s), np.array(nlls), accs, parameters
     
-def optimizer(args):
+def optimize(args):
 
     model_path = f"/u/ajagadish/vanilla-llama/categorisation/trained_models/{args.model_name}.pt"
     if args.task_name == 'badham2017':
@@ -192,7 +192,7 @@ if __name__  == '__main__':
     device = torch.device("cuda" if use_cuda else "cpu") 
     
     if args.optimizer:
-        pr2s, nlls, accs, parameters = optimizer(args)
+        pr2s, nlls, accs, parameters = optimize(args)
         optimizer = 'differential_evolution'
     else:
         pr2s, nlls, accs, parameters = grid_search(args)

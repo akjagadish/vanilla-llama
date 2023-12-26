@@ -29,9 +29,9 @@ class Badham2017(nn.Module):
         padded_human_targets = rnn_utils.pad_sequence(stacked_human_targets, batch_first=True)
 
         if self.return_prototype:
-            return packed_inputs, sequence_lengths, padded_targets, padded_human_targets, stacked_prototypes
+            return packed_inputs, sequence_lengths, padded_targets, padded_human_targets, stacked_prototypes, None
         else:
-            return packed_inputs, sequence_lengths, padded_targets, padded_human_targets
+            return packed_inputs, sequence_lengths, padded_targets, padded_human_targets, None
 
     def get_participant_data(self, participant):
         
@@ -93,20 +93,21 @@ class Devraj2022(nn.Module):
 
     def sample_batch(self, participant):
     
-        stacked_task_features, stacked_targets, stacked_human_targets, stacked_prototypes = self.get_participant_data(participant)
+        stacked_task_features, stacked_targets, stacked_human_targets, stacked_prototypes, stacked_stimulus_ids = self.get_participant_data(participant)
         sequence_lengths = [len(data)for data in stacked_task_features]
         packed_inputs = rnn_utils.pad_sequence(stacked_task_features, batch_first=True)
         padded_targets = rnn_utils.pad_sequence(stacked_targets, batch_first=True)
         padded_human_targets = rnn_utils.pad_sequence(stacked_human_targets, batch_first=True)
+        padded_stimulus_ids = rnn_utils.pad_sequence(stacked_stimulus_ids, batch_first=True)
 
         if self.return_prototype:
-            return packed_inputs, sequence_lengths, padded_targets, padded_human_targets, stacked_prototypes
+            return packed_inputs, sequence_lengths, padded_targets, padded_human_targets, stacked_prototypes, padded_stimulus_ids
         else:
-            return packed_inputs, sequence_lengths, padded_targets, padded_human_targets
+            return packed_inputs, sequence_lengths, padded_targets, padded_human_targets, padded_stimulus_ids
         
     def get_participant_data(self, participant):
         
-        inputs_list, targets_list, human_targets_list, prototype_list = [], [], [], []
+        inputs_list, targets_list, human_targets_list, prototype_list, stimulus_id_list = [], [], [], [], []
     
         # get data for the participant
         data_participant = self.data[self.data['participant']==participant]
@@ -139,7 +140,15 @@ class Devraj2022(nn.Module):
             targets_list.append(torch.from_numpy(sampled_data[:, [self.num_dims+1]]))
             human_targets_list.append(torch.from_numpy(human_targets.reshape(-1, 1)))
 
-            # compute mean of each features for a category
-            prototype_list.append([np.mean(input_features[targets==0], axis=0), np.mean(input_features[targets==1], axis=0)])
+            # concatenate values from columns 'prototype_feature1' to 'prototype_feature6' from data_participant[data_participant.condition==condition]
+            columns  = [f'prototype_feature{i+1}' for i in range(self.num_dims)]
+            data_condition = data_participant[data_participant.condition==condition]
+            category_prototypes = []
+            for category in np.unique(data_condition.category):
+                category_prototypes.append(np.array([val for val in data_condition[data_condition.category==category][columns].values[0]]))
+            prototype_list.append(category_prototypes)
 
-        return inputs_list, targets_list, human_targets_list, prototype_list  
+            # stack all stimuli_id across all tasks
+            stimulus_id_list.append(torch.from_numpy(data_condition.stimulus_id.values.reshape(-1, 1)))
+
+        return inputs_list, targets_list, human_targets_list, prototype_list, stimulus_id_list  

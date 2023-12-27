@@ -1,6 +1,6 @@
 import numpy as np
 import torch
-from envs import CategorisationTask, ShepardsTask, NosofskysTask, LeveringsTask, SyntheticCategorisationTask, SmithsTask
+from envs import CategorisationTask, ShepardsTask, NosofskysTask, LeveringsTask, SyntheticCategorisationTask, SmithsTask, JohanssensTask
 import pandas as pd
 import argparse
 from tqdm import tqdm
@@ -21,6 +21,8 @@ def simulate(task_feature=None, model_path=None, experiment='categorisation', en
             env = LeveringsTask(task=task_feature)
         elif experiment == 'smith_categorisation':
             env = SmithsTask(rule=task_feature, return_prototype=True, batch_size=batch_size, max_steps=max_steps, shuffle_trials=shuffle_trials, use_existing_stimuli=True)
+        elif experiment == 'johanssen_categorisation':
+            env = JohanssensTask(block=task_feature, transfer=True, return_prototype=True, batch_size=batch_size, max_steps=max_steps, shuffle_trials=shuffle_trials, use_existing_stimuli=True)
 
     if model is None: # load model
         model = torch.load(model_path)[1].to(device) if device=='cuda' else torch.load(model_path, map_location=torch.device('cpu'))[1].to(device)
@@ -32,6 +34,10 @@ def simulate(task_feature=None, model_path=None, experiment='categorisation', en
             packed_inputs, sequence_lengths, targets, stacked_prototypes = outputs
         else:
             packed_inputs, sequence_lengths, targets = outputs
+
+        # if experiment == 'joahanssen_categorisation':
+        #     batch_stimulus_ids, batch_stimulus_names = env.batch_stimulus_ids, env.batch_stimulus_names
+
         model.beta = beta  # model beta is adjustable at test time
         model.device = device
         model_choices = model(packed_inputs.float().to(device), sequence_lengths) 
@@ -42,11 +48,11 @@ def simulate(task_feature=None, model_path=None, experiment='categorisation', en
         elif policy=='greedy':
             model_choices = model_choices.round()
 
-        model_choices = np.stack([model_choices[i, :seq_len] for i, seq_len in enumerate(sequence_lengths)]).squeeze() if batch_size>1 else np.stack([model_choices[i, :seq_len] for i, seq_len in enumerate(sequence_lengths)])
-        true_choices = np.stack(targets).squeeze() if batch_size>1 else np.stack(targets)
-        prototypes = np.stack(stacked_prototypes) if env.return_prototype else None
-        input_features = packed_inputs[..., :-1]
-        stimulus_dict = env.stimulus_dict if experiment=='smith_categorisation' else None
+    model_choices = np.stack([model_choices[i, :seq_len] for i, seq_len in enumerate(sequence_lengths)]).squeeze() if batch_size>1 else np.stack([model_choices[i, :seq_len] for i, seq_len in enumerate(sequence_lengths)])
+    true_choices = np.stack(targets).squeeze() if batch_size>1 else np.stack(targets)
+    prototypes = np.stack(stacked_prototypes) if env.return_prototype else None
+    input_features = packed_inputs[..., :-1]
+    stimulus_dict = env.stimulus_dict if (experiment=='smith_categorisation') or (experiment == 'johanssen_categorisation') else None
 
     return model_choices, true_choices, sequence_lengths, stimulus_dict, prototypes, input_features
      
@@ -64,10 +70,10 @@ def simulate_metalearners_choices(task_feature, model_path, experiment='categori
         for task_idx, (model_choices_task, true_choices_task, sequence_lengths_task, prototypes_task, input_features_task) in enumerate(zip(model_choices, true_choices, sequences, prototypes, input_features)):
             # loop over trials in each batch
             for trial_idx, (model_choice, true_choice, input_feature) in enumerate(zip(model_choices_task, true_choices_task, input_features_task)):
-                stimulus_id = int([k for k, v in stimulus_dict.items() if v == list(input_feature.numpy())][0]) if experiment=='smith_categorisation' else None
-                data = {'run': run_idx, 'task': task_idx, 'trial': trial_idx + last_task_trial_idx, 'task_feature': task_feature, 'choice': int(model_choice), 'correct_choice': int(true_choice), \
+                stimulus_id = [k for k, v in stimulus_dict.items() if v == list(input_feature.numpy())][0] if (experiment=='smith_categorisation') or (experiment == 'johanssen_categorisation') else None
+                data = {'task_feature': task_feature, 'run': run_idx, 'task': task_idx, 'trial': trial_idx + last_task_trial_idx,  'choice': int(model_choice), 'correct_choice': int(true_choice), \
                         'category': int(true_choice)+1, 'all_features': str(input_feature.numpy()),\
-                        'stimulus_id': stimulus_id,\
+                        'stimulus_id': np.nan if stimulus_id is None else stimulus_id,\
                         **{f'feature{i+1}': input_feature[i].numpy() for i in range(len(input_feature))},\
                         **{f'prototype_feature{i+1}': prototypes_task[int(true_choice)][i] for i in range(len(prototypes_task[0]))}}
 
@@ -114,3 +120,6 @@ if __name__  == '__main__':
         simulate_task(model_name=args.model_name,  experiment=args.experiment, tasks=['nonlinear'], beta=beta, num_runs=args.num_runs, batch_size=1, num_trials=616, device=device)#300, rule='linear', 
         use_existing_stimuli = True
         #TODO: pass in use_existing_stimuli to simulate_task
+    elif args.experiment == 'johanssen_categorisation':
+        simulate_task(model_name=args.model_name,  experiment=args.experiment, tasks=[2, 4, 8, 16, 24, 32], beta=beta, num_runs=args.num_runs, batch_size=68*10, num_trials=288, device=device)
+        # beta = 0.18564321475504575 (badham et al. 2018) 0.09495665880995116 (devraj et al. 2002)

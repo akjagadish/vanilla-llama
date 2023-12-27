@@ -353,8 +353,6 @@ class ShepardsTask(nn.Module):
      
         return inputs_list, targets_list, prototype_list  
        
-        
-
 class NosofskysTask(nn.Module):
 
     def __init__(self, task=[4, None, None], num_blocks=1, num_dims=3, batch_size=64, device='cpu'):
@@ -501,7 +499,6 @@ class LeveringsTask(nn.Module):
     
         return inputs_list, targets_list            
     
-
 class SmithsTask(nn.Module):
     """
     Categorisation task in from Smith and Minda et al. 1998 for evaluating meta-learned models on four and six-dimensional stimuli
@@ -640,5 +637,108 @@ class SmithsTask(nn.Module):
             prototype_list.append(self.prototypes) 
 
         return inputs_list, targets_list, prototype_list  
+             
+class JohanssensTask(nn.Module):
+    """
+    Categorisation task in from Johannsen et al. 2002 for evaluating meta-learned models on four stimuli
+    based category learning tasks and studying how their behavior generalises to transfer stimuli unseen during training
+    """
+    
+    def __init__(self, transfer=False, block=32, num_categories=2, max_steps=288, num_dims=4, batch_size=64, use_existing_stimuli=False, device='cpu', noise=0., shuffle_trials=False, return_prototype=False):
+        super(JohanssensTask, self).__init__()
+        
+        self.device = torch.device(device)
+        self.num_choices = 1 
+        self.num_categories = num_categories
+        self.max_steps = max_steps
+        self.num_blocks = 32
+        self.batch_size = batch_size
+        self.num_dims = num_dims
+        self.noise = noise
+        self.shuffle_trials = shuffle_trials
+        self.transfer = transfer
+        self.block = block
+        self.return_prototype = return_prototype
+        self.use_existing_stimuli = use_existing_stimuli
+
+    def sample_batch(self, block=32):
+
+        block = self.block if self.transfer else block
+        stacked_task_features, stacked_targets, stacked_prototypes, stacked_stimulus_ids = self.generate_task(block)
+        sequence_lengths = [len(data)for data in stacked_task_features]
+        packed_inputs = rnn_utils.pad_sequence(stacked_task_features, batch_first=True)
+        if self.transfer:
+            self.batch_stimulus_ids = np.stack(stacked_stimulus_ids)
+            self.batch_stimulus_names = np.array([f"T{stimulus_id+1}" for stimulus_id in self.batch_stimulus_ids])
+
+        if self.return_prototype:
+            return packed_inputs, sequence_lengths, stacked_targets, stacked_prototypes
+        else:
+            return packed_inputs, sequence_lengths, stacked_targets
+
+    def existing_stimuli(self):
+
+        # empty list of stimuli for each of the self.num_categories
+        stimuli = [[] for _ in range(self.num_categories)]
+        stimuli[0] = [[0, 0, 0, 1], [0, 1, 0, 1], [0, 1, 0, 0], [0, 0, 1, 0], [1, 0, 0, 0]]
+        stimuli[1] = [[0, 0, 1, 1], [1, 0, 0, 1], [1, 1, 1, 0], [1, 1, 1, 1]]
+        self.prototypes = np.array([[0, 0, 0, 0], [1, 1, 1, 1]])
+        self.transfer_stimuli = [[0, 1, 1, 0], [0, 1, 1, 1], [0, 0, 0, 0],\
+                                 [1, 1, 0, 1], [1, 0, 1, 0], [1, 1, 0, 0], [1, 0, 1, 1]]
+        self.stimulus_dict = {**{f"A{i+1}": stimulus for i, stimulus in enumerate(stimuli[0])},\
+                              **{f"B{i+1}": stimulus for i, stimulus in enumerate(stimuli[1])},\
+                              **{f"T{i+1}": stimulus for i, stimulus in enumerate(self.transfer_stimuli)}}
+        assert self.num_categories==2, 'Only two categories are supported'
+        assert self.num_dims==4, 'Only four dimensions are supported'
+        return np.array(stimuli)
+
+    def generate_task(self, block):
+        
+        inputs_list, targets_list, prototype_list, stimulus_ids_list = [], [], [], []
+        for _ in range(self.batch_size):
+            
+            # generate all possible combinations of features
+            stimuli =  self.existing_stimuli() 
+            
+            # make stimulus ids
+            stimulus_ids = np.arange(len(stimuli[0])+len(stimuli[1]))
+
+            # concatenate all stimuli into one array
+            all_feature_combinations = np.concatenate(stimuli)
+            
+            # assign targets to two halves of the stimuli
+            targets = np.concatenate((np.zeros(len(stimuli[0])), np.ones(len(stimuli[1]))))
+            # if np.random.rand(1) > 0.5:
+            #     targets = 1-targets # flip targets to 0 or 1 based on a random number
+            #     self.prototypes = np.flip(self.prototypes, axis=0) # flip prototypes order
+        
+            # add noise to selective elements of the targets
+            # if self.noise > 0.:
+            #     targets = np.array([target if np.random.rand(1) > self.noise else 1-target for target in targets])
+            
+            # concatenate all features and targets into one array with placed holder for shifted target
+            concat_data = np.concatenate((all_feature_combinations, targets.reshape(-1, 1), targets.reshape(-1, 1)), axis=1)
+            
+            # create a new sampled data array sampling from the concatenated data array wih replacement
+            num_steps = int(self.max_steps*(block/self.num_blocks))+1 if self.transfer else self.max_steps
+            sampled_data = concat_data[np.random.choice(np.arange(concat_data.shape[0]), num_steps, replace=True)]
+            
+            # replace placeholder with shifted targets to the sampled data array
+            sampled_data[:, self.num_dims] = np.concatenate((np.array([0. if np.random.rand(1) > 0.5 else 1.]), sampled_data[:-1, self.num_dims]))
+            
+            # if transfer then replace last stimuli in sampled data with transfer stimuli
+            if self.transfer:
+                stimulus_id = np.random.choice(np.arange(len(self.transfer_stimuli)))
+                sampled_data[-1, :self.num_dims] = self.transfer_stimuli[stimulus_id]
+                stimulus_ids_list.append(stimulus_id)
+
+            # stacking all the sampled data across all tasks
+            inputs_list.append(torch.from_numpy(sampled_data[:, :(self.num_dims+1)]))
+            targets_list.append(torch.from_numpy(sampled_data[:, [self.num_dims+1]]))
+
+            # pass prototype as a list 
+            prototype_list.append(self.prototypes) 
+
+        return inputs_list, targets_list, prototype_list, stimulus_ids_list  
        
         

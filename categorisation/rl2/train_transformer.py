@@ -10,13 +10,13 @@ from tqdm import tqdm
 from evaluate import evaluate, evaluate_1d
 
 
-def run(env_name, num_episodes, synthetic, nonlinear, num_dims, max_steps, sample_to_match_max_steps, noise, shuffle, print_every, save_every, num_hidden, num_layers, d_model, num_head, save_dir, device, lr, batch_size=64):
+def run(env_name, num_episodes, synthetic, nonlinear, num_dims, max_steps, sample_to_match_max_steps, noise, shuffle, shuffle_features, print_every, save_every, num_hidden, num_layers, d_model, num_head, save_dir, device, lr, batch_size=64):
 
     writer = SummaryWriter('runs/' + save_dir)
     if synthetic:
         env = SyntheticCategorisationTask(nonlinear=nonlinear, num_dims=num_dims, max_steps=max_steps, batch_size=batch_size, noise=noise, shuffle_trials=shuffle, device=device).to(device)
     else:
-        env = CategorisationTask(data=env_name, num_dims=num_dims, max_steps=max_steps, sample_to_match_max_steps=sample_to_match_max_steps, batch_size=batch_size, noise=noise, shuffle_trials=shuffle, device=device).to(device)
+        env = CategorisationTask(data=env_name, num_dims=num_dims, max_steps=max_steps, sample_to_match_max_steps=sample_to_match_max_steps, batch_size=batch_size, noise=noise, shuffle_trials=shuffle, shuffle_features=shuffle_features, device=device).to(device)
     
     # setup model
     model = TransformerDecoder(num_input=env.num_dims, num_output=env.num_choices, num_hidden=num_hidden, num_layers=num_layers, d_model=d_model, num_head=num_head, max_steps=max_steps, device=device).to(device)
@@ -77,6 +77,7 @@ if __name__ == "__main__":
     parser.add_argument('--nonlinear', action='store_true', default=False, help='train models on nonlinear synthetic data')
     parser.add_argument('--noise', type=float, default=0., help='noise level')
     parser.add_argument('--shuffle', action='store_true', default=False, help='shuffle trials')
+    parser.add_argument('--shuffle-features', action='store_true', default=False, help='shuffle features')
     parser.add_argument('--model-name', default='transformer', help='name of the model')
     parser.add_argument('--sample-to-match-max-steps', action='store_true', default=False, help='sample to match max steps')
     # parser.add_argument('--eval', default='categorisation', help='what to eval your meta-learner on')
@@ -96,4 +97,4 @@ if __name__ == "__main__":
             save_dir = save_dir.replace('.pt', f'_synthetic{"nonlinear" if args.nonlinear else ""}.pt')
             print(save_dir)
         
-        run(env_name, args.num_episodes, args.synthetic, args.nonlinear, args.num_dims, args.max_steps, args.sample_to_match_max_steps, args.noise, args.shuffle, args.print_every, args.save_every, args.num_hidden, args.num_layers, args.d_model, args.num_head, save_dir, device, args.lr, args.batch_size)
+        run(env_name, args.num_episodes, args.synthetic, args.nonlinear, args.num_dims, args.max_steps, args.sample_to_match_max_steps, args.noise, args.shuffle, args.shuffle_features, args.print_every, args.save_every, args.num_hidden, args.num_layers, args.d_model, args.num_head, save_dir, device, args.lr, args.batch_size)

@@ -11,7 +11,7 @@ class CategorisationTask(nn.Module):
     Categorisation task inspired by Shepard et al. (1961)
     Note: generates one task at a time, each containing max_steps datapoints, with no repitition of datapoints over blocks
     """
-    def __init__(self, data, max_steps=8, sample_to_match_max_steps=False, num_dims=3, num_categories=2, batch_size=64, mode='train', split=[0.8, 0.1, 0.1], device='cpu', synthetic_data=False, num_tasks=10000, noise=0., shuffle_trials=False, normalize_inputs=True): 
+    def __init__(self, data, max_steps=8, sample_to_match_max_steps=False, num_dims=3, num_categories=2, batch_size=64, mode='train', split=[0.8, 0.1, 0.1], device='cpu', synthetic_data=False, num_tasks=10000, noise=0., shuffle_trials=False, shuffle_features=True, normalize_inputs=True): 
         """ 
         Initialise the environment
         Args: 
@@ -39,6 +39,7 @@ class CategorisationTask(nn.Module):
         self.synthetic_data = synthetic_data
         self.noise = noise
         self.shuffle_trials = shuffle_trials
+        self.shuffle_features = shuffle_features
         self.normalize = normalize_inputs
         if synthetic_data:
             self.generate_synthetic_data(num_tasks, split)
@@ -149,6 +150,11 @@ class CategorisationTask(nn.Module):
         stacked_targets = [torch.from_numpy(np.stack(task_targets)) for task_targets in data.target.values]
         sequence_lengths = [len(task_input_features) for task_input_features in data.input.values]
         packed_inputs = rnn_utils.pad_sequence(stacked_task_features, batch_first=True)
+        if self.shuffle_features:
+            # permute the order of features in packed inputs but keep the last dimension as is
+            task_features = packed_inputs[:, :, :-1]
+            task_features = task_features[:, :, np.random.permutation(task_features.shape[2])]
+            packed_inputs[:, :, :-1] = task_features
 
         return packed_inputs.to(self.device), sequence_lengths, stacked_targets 
     

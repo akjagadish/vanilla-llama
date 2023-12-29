@@ -3,6 +3,8 @@ import pandas as pd
 import torch.nn as nn
 import torch
 import torch.nn.utils.rnn as rnn_utils
+from torch.distributions import Beta, Bernoulli, Categorical
+import torch.multiprocessing as mp
 from model_utils import MLP
 SYS_PATH = '/u/ajagadish/vanilla-llama/'
 
@@ -747,4 +749,163 @@ class JohanssensTask(nn.Module):
 
         return inputs_list, targets_list, prototype_list, stimulus_ids_list  
        
+class RMCTask(nn.Module):
+    """
+    Generate synthetic categorisation data with discrete features based on RMC model from Anderson (1991) for training and evaluating meta-learned models
+    model parameters taken from Nosofsky et al. (1994) "Comparing modes of rule-based classification learning: A replication and extension of Shepard, Hovland, and Jenkins (1961)"
+    """
+    def __init__(self, max_steps=8, num_dims=3, params=[0.318, 0.488, 0.046], batch_size=64, mode='train', split=[0.8, 0.1, 0.1], device='cpu', num_tasks=10000, noise=0., shuffle_trials=False): 
+        """ 
+        Initialise the environment
+        Args: 
+            max_steps: number of steps in each episode
+            num_dims: number of dimensions in each input
+            batch_size: number of tasks in each batch
+        """
+        super(RMCTask, self).__init__()
+
+        self.device = torch.device(device)
+        self.num_tasks = num_tasks
+        self.num_choices = 1 
+        self.max_steps = max_steps
+        self.batch_size = batch_size
+        self.num_dims = num_dims
+        self.mode = mode
+        self.split = (torch.tensor([split[0], split[0]+split[1], split[0]+split[1]+split[2]]) * self.num_tasks).int()
+        self.noise = noise
+        self.c, self.s_d, self.s_l = params
+        self.shuffle_trials = shuffle_trials
+
+    def sample_prior(self, batch_size, num_samples, num_features, c, s_d, s_l):
+        
+        inputs_list, targets_list = [], []
+        for _ in range(batch_size):
+            # sample latents
+            z = torch.zeros(num_samples).long()
+            M_k = []
+            for t in range(num_samples):
+                z_probs = torch.zeros(len(M_k)+1)
+                z_probs[-1] = (1-c) / ((1-c) + c*t)
+                z_probs[:-1] = (c * torch.Tensor(M_k)) / ((1-c) + c*t)
+
+                z[t] = Categorical(z_probs).sample()
+
+                if z[t] == len(M_k):
+                    M_k.append(1)
+                else:
+                    M_k[z[t]] += 1
+
+            # sample feature and class probs
+            x_probs = Beta(s_d * torch.ones(z.max()+1, num_features), s_d * torch.ones(z.max()+1, num_features)).sample()
+            y_probs = Beta(s_l * torch.ones(z.max()+1), s_l * torch.ones(z.max()+1)).sample() 
+
+            # sample feature and class values
+            x = Bernoulli(x_probs[z]).sample()
+            y = Bernoulli(y_probs[z]).sample()
+
+            inputs_list.append(x)
+            targets_list.append(y)
+
+        return torch.stack(inputs_list), torch.stack(targets_list)
+
+    def worker(self, args):
+        _, num_samples, num_features, c, s_d, s_l = args
+        # sample latents
+        z = torch.zeros(num_samples).long()
+        M_k = []
+        for t in range(num_samples):
+            z_probs = torch.zeros(len(M_k)+1)
+            z_probs[-1] = (1-c) / ((1-c) + c*t)
+            z_probs[:-1] = (c * torch.Tensor(M_k)) / ((1-c) + c*t)
+
+            z[t] = Categorical(z_probs).sample()
+
+            if z[t] == len(M_k):
+                M_k.append(1)
+            else:
+                M_k[z[t]] += 1
+
+        # sample feature and class probs
+        x_probs = Beta(s_d * torch.ones(z.max()+1, num_features), s_d * torch.ones(z.max()+1, num_features)).sample()
+        y_probs = Beta(s_l * torch.ones(z.max()+1), s_l * torch.ones(z.max()+1)).sample() 
+
+        # sample feature and class values
+        x = Bernoulli(x_probs[z]).sample()
+        y = Bernoulli(y_probs[z]).sample()
+
+        return x, y
+
+    def sample_prior_parallel(self, batch_size, num_samples, num_features, c, s_d, s_l):
+        with mp.Pool(processes=batch_size) as pool:
+            results = pool.map(self.worker, [(i, num_samples, num_features, c, s_d, s_l) for i in range(batch_size)])
+
+        inputs_list, targets_list = zip(*results)
+
+        return torch.stack(inputs_list), torch.stack(targets_list)
+
+    def get_synthetic_data(self, mode=None, num_tasks=None):
+        
+        num_tasks = self.num_tasks if num_tasks is None else num_tasks
+        tasks = np.arange(num_tasks)[:self.split[0]] if self.mode == 'train' else np.arange(num_tasks)[self.split[0]:self.split[1]] if self.mode == 'val' else np.arange(num_tasks)[self.split[1]:]
+        
+        # get batched data 
+        mode = self.mode if mode is None else mode
+        if mode == 'train':
+            tasks = np.random.choice(tasks, self.batch_size, replace=False)
+        elif mode == 'val':
+            self.batch_size = self.split[1] - self.split[0]
+        elif mode == 'test':
+            self.batch_size = self.split[2] - self.split[1]
+        elif mode == 'all':
+            self.batch_size = self.num_tasks
+        
+        
+        inputs, targets = self.sample_prior_parallel(self.batch_size, self.max_steps, self.num_dims, self.c, self.s_d, self.s_l)
+        # start = time.time()
+        # inputs, targets = self.sample_prior(self.batch_size, self.max_steps, self.num_dims, self.c, self.s_d, self.s_l)
+        # print(f'Time taken to og: {time.time()-start}')
+        
+        return inputs, targets
+
+    def sample_batch(self, mode='train'):
+        
+        # generate synthetic data
+        inputs, targets = self.get_synthetic_data(mode)
+       
+        # shuffle the order of trials within a task but keep all the trials 
+        if self.shuffle_trials:
+            permutation = torch.randperm(inputs.shape[1])
+            inputs, targets = inputs[:, permutation], targets[:, permutation]
+
+        # flip the target for %noise of total number of trials within each task
+        if self.noise > 0.:
+            targets = torch.stack([target if torch.rand(1) > self.noise else 1-target for target in targets])
+
+        # off set targets by 1 trial and randomly add zeros or ones in the beggining
+        shifted_targets = torch.stack([torch.cat((torch.tensor([1. if torch.rand(1) > 0.5 else 0.]).to(self.device), target[:-1])) for target in targets])
+        
+        # stacking input and targets
+        stacked_task_features = torch.cat((inputs, shifted_targets.unsqueeze(2)), dim=2)
+        stacked_targets = targets
+        sequence_lengths = [len(task_input_features) for task_input_features in inputs]
+        packed_inputs = rnn_utils.pad_sequence(stacked_task_features, batch_first=True)
+
+        return packed_inputs.to(self.device), sequence_lengths, stacked_targets.to(self.device) 
+
+    def save_synthetic_data(self, num_tasks=5000):
+
+        inputs, targets = self.get_synthetic_data(num_tasks=num_tasks, mode='all')
+        data = pd.DataFrame(columns=['task_id', 'trial_id', 'input', 'target']) # prepare dataframe
+        if self.nonlinear:
+            inputs = inputs.detach()
+            targets = targets.detach()
+
+        # save inputs and targets into the data dataframe: inputs is of shape (num_tasks, max_steps, num_dims) and targets is of shape (num_tasks, max_steps)
+        for task_id, (task_inputs, task_targets) in enumerate(zip(inputs, targets)):
+            for trial_id, (input, target) in enumerate(zip(task_inputs, task_targets)):
+                data = pd.concat([data, pd.DataFrame({'task_id':task_id, 'trial_id':trial_id, 'input':str(input.cpu().numpy().tolist()), 'target':[target.cpu().numpy().tolist()]})], ignore_index=True)
+                # append({'task_id':task_id, 'trial_id':trial_id, 'input':input.cpu().numpy(), 'target':target.cpu().numpy()}, ignore_index=True)
+        
+        # save data to csv file
+        data.to_csv(f'{SYS_PATH}/categorisation/data/rmc_tasks_dim{self.num_dims}_data{self.max_steps}_tasks{num_tasks}.csv', index=False)
         

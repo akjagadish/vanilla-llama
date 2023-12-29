@@ -23,7 +23,7 @@ class LogisticRegressionModel:
     
     def calculate_bic(self, X, y):
         n = len(y)  # Number of observations
-        k = X.shape[1] + 1  # Number of parameters (features + intercept)
+        k = X.shape[1]  # Number of parameters (assumes X already includes intercept)
         probas = self.model.predict_proba(X)[:, 1]  # Probability of the positive class
 
         # Calculating the log-likelihood

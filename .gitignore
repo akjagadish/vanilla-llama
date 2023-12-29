@@ -169,5 +169,4 @@ categorisation/logs
 categorisation/runs
 categorisation/dump.py
 categorisation/figures/
-categorisation/shell-scripts/*
 categorisation/data/benchmarking

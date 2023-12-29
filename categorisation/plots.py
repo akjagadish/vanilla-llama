@@ -751,7 +751,7 @@ def evaluate_nosofsky1994(env_name=None, experiment=None, tasks=[None], beta=1.,
                         model_name = f"env={env_name}_noise{noise}_shuffle{shuffle}_run={run}_synthetic{'nonlinear' if nonlinear else ''}.pt"
                     else:
                         model_name = f"env={env_name}_noise{noise}_shuffle{shuffle}_run={run}.pt"
-                    model_path = f"/raven/u/ajagadish/vanilla-llama/categorisation/trained_models/{model_name}"
+                    model_path = f"/u/ajagadish/vanilla-llama/categorisation/trained_models/{model_name}"
                     corrects[t_idx, n_idx, s_idx, se_idx] = evaluate_metalearner(task, model_path, 'shepard_categorisation', \
                                                                                  beta=beta, shuffle_trials=shuffle_eval, num_trials=num_trials, num_runs=num_runs)
         

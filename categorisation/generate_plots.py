@@ -2,7 +2,7 @@ import numpy as np
 import torch
 import pandas as pd
 import sys
-SYS_PATH = '/u/ajagadish/vanilla-llama/' #'/raven/u/ajagadish/vanilla-llama/'
+SYS_PATH = '/u/ajagadish/vanilla-llama' #'/raven/u/ajagadish/vanilla-llama/'
 sys.path.append(f'{SYS_PATH}/categorisation/')
 sys.path.append(f'{SYS_PATH}/categorisation/data')
 sys.path.append(f'{SYS_PATH}/categorisation/rl2')
@@ -11,28 +11,24 @@ sys.path.append(f'{SYS_PATH}/categorisation/rl2')
 # #### Data Statistics
 from plots import label_imbalance, plot_mean_number_tasks, plot_data_stats, plot_trial_by_trial_performance, plot_burstiness_training_curriculum
 
-# # load and filter data
+## load and filter data
+#dim4: 'claude_generated_tasks_paramsNA_dim4_data650_tasks8950_pversion5_stage1'
+#dim6: 'claude_generated_tasks_paramsNA_dim6_data500_tasks12910_pversion5_stage2'
+#dim3: 'claude_generated_tasks_paramsNA_dim3_data100_tasks11518_pversion4'
 # env_name='claude_generated_tasks_paramsNA_dim3_data100_tasks11518_pversion4'
-# #dim4: 'claude_generated_tasks_paramsNA_dim4_data650_tasks8950_pversion5_stage1'
-# #dim6: 'claude_generated_tasks_paramsNA_dim6_data500_tasks12910_pversion5_stage2'
-# #dim3: 'claude_generated_tasks_paramsNA_dim3_data100_tasks11518_pversion4'
 # data = pd.read_csv(f'{SYS_PATH}/categorisation/data/{env_name}.csv') 
 # data = data.groupby(['task_id']).filter(lambda x: len(x['target'].unique()) == 2) # check if data has only two values for target in each task
 # data.input = data['input'].apply(lambda x: np.array(eval(x)))
 
-###
-# data = data[data['task_id']<=1000]
-###
-
-
 # ## analyse llm generated data
-# label_imbalance(data)
-# plot_mean_number_tasks(data)
-# plot_burstiness_training_curriculum(data)#, num_tasks=100
-# min_trials, burn_in = 50, 1
-# df = data.groupby('task_id').filter(lambda x: len(x)>=min_trials)
-# data = data[data.trial_id<=min_trials] # keep only min_trials for all tasks for model fitting
-# plot_trial_by_trial_performance(df, burn_in, min_trials-burn_in, min_trials)
+# # label_imbalance(data)
+# # plot_mean_number_tasks(data)
+# # plot_burstiness_training_curriculum(data)#, num_tasks=100
+# # min_trials, burn_in = 50, 1
+# # df = data.groupby('task_id').filter(lambda x: len(x)>=min_trials)
+# # data = data[data.trial_id<=min_trials] # keep only min_trials for all tasks for model fitting
+# # plot_trial_by_trial_performance(df, burn_in, min_trials-burn_in, min_trials)
+
 # plot_data_stats(data, poly_degree=2) #TODO: extend this function to work for data with more than 3 dims
 
 #--------------------------- 
@@ -54,18 +50,25 @@ from plots import evaluate_nosofsky1988, evaluate_levering2020, evaluate_nosofsk
 # evaluate_nosofsky1994(env_name=env_name, tasks=np.arange(1,7),  beta=beta, noises=[0.0], shuffles=[False], shuffle_evals=[False], experiment='shepard_categorisation', num_runs=50, num_eval_tasks=64)
 
 ## meta-leaner trained on shuffled llm data
-# env_model_name = 'claude_generated_tasks_paramsNA_dim6_data500_tasks12910_pversion5_stage2_model=transformer_num_episodes500000_num_hidden=256_lr0.0003_num_layers=6_d_model=64_num_head=8'
-# # 'claude_generated_tasks_paramsNA_dim3_data100_tasks11518_pversion4_model=transformer_num_episodes500000_num_hidden=256_lr0.0003_num_layers=6_d_model=64_num_head=8'
-# run, beta, num_blocks, num_trials_per_block, num_runs = 1, 0.3, 10, 16, 50
-# # evaluate_nosofsky1988(env_name=env_model_name, experiment=2, beta=beta, noises=[0.0], shuffles=[True], num_runs=50, num_blocks=1, num_eval_tasks=64)
-# # evaluate_levering2020(env_name=env_model_name, noises=[0.0], beta=beta,  shuffles=[True], num_runs=50, num_eval_tasks=64, num_trials=150)
-# # evaluate_nosofsky1994(env_name=env_model_name, tasks=np.arange(1,7), beta=beta, noises=[0.0], shuffles=[True], shuffle_evals=[False], experiment='shepard_categorisation', num_runs=num_runs, num_blocks=num_blocks, num_trials=num_trials_per_block*num_blocks, num_eval_tasks=64)
-# # env_model_name = 'claude_generated_tasks_paramsNA_dim6_data500_tasks12911_pversion5_stage1_model=transformer_num_episodes500000_num_hidden=256_lr0.0003_num_layers=6_d_model=64_num_head=8'
-# dim = int(env_model_name.split('dim')[1].split('_')[0])
-# if dim==6:
+# env_model_name = 'claude_generated_tasks_paramsNA_dim3_data100_tasks11518_pversion4_model=transformer_num_episodes500000_num_hidden=256_lr0.0003_num_layers=6_d_model=64_num_head=8'
+# ## 'claude_generated_tasks_paramsNA_dim6_data500_tasks12910_pversion5_stage2_model=transformer_num_episodes500000_num_hidden=256_lr0.0003_num_layers=6_d_model=64_num_head=8'
+# ## 'claude_generated_tasks_paramsNA_dim3_data100_tasks11518_pversion4_model=transformer_num_episodes500000_num_hidden=256_lr0.0003_num_layers=6_d_model=64_num_head=8'
+# dim = int(env_model_name.split('dim')[1].split('_')[0]) 
+# beta = 0.1856 if dim==3 else 0.095 #0.3
+# if dim==3:
+#     run, num_runs = 1, 50 
+#     num_trials_per_block = 16
+#     num_blocks = 10
+#     evaluate_nosofsky1994(env_name=env_model_name, tasks=np.arange(1,7), beta=beta, noises=[0.0], shuffles=[True], shuffle_evals=[False],\
+#                            experiment='shepard_categorisation', num_runs=num_runs, num_blocks=num_blocks, num_trials=num_trials_per_block*num_blocks,\
+#                              run=run, num_eval_tasks=64)
+# elif dim==6:
+#  run, num_runs = 1, 50
 #  num_trials = 616
 #  num_blocks = 11
 #  evaluate_smith1998(env_name=env_model_name, noises=[0.0], beta=beta, shuffles=[True], num_runs=num_runs, num_eval_tasks=64, num_trials=num_trials, num_blocks=num_blocks, run=run)
+# evaluate_nosofsky1988(env_name=env_model_name, experiment=2, beta=beta, noises=[0.0], shuffles=[True], num_runs=50, num_blocks=1, num_eval_tasks=64)
+# evaluate_levering2020(env_name=env_model_name, noises=[0.0], beta=beta,  shuffles=[True], num_runs=50, num_eval_tasks=64, num_trials=150)
 
 #---------------------------
 # ## meta-leaner trained on synthetic data (note that for synthetic nonlinear shuffles is set to True)
@@ -94,8 +97,9 @@ from plots import compare_metalearners
 #---------------------------
 from plots import plot_data_stats_synthetic
 
-env_name='synthetic_tasks_dim3_data100_tasks5000_nonlinearFalse'
-#synthetic dim3: 'synthetic_tasks_dim3_data100_tasks5_nonlinearFalse'
+# ##synthetic dim3: 'synthetic_tasks_dim3_data100_tasks5000_nonlinearFalse'
+# ##synthetic dim3: 'synthetic_tasks_dim3_data100_tasks5000_nonlinearTrue'
+env_name='synthetic_tasks_dim3_data100_tasks5000_nonlinearTrue'
 data = pd.read_csv(f'{SYS_PATH}/categorisation/data/{env_name}.csv') 
 data = data.groupby(['task_id']).filter(lambda x: len(x['target'].unique()) == 2) # check if data has only two values for target in each task
 data.input = data['input'].apply(lambda x: np.array(eval(x)))
@@ -103,13 +107,8 @@ data.input = data['input'].apply(lambda x: np.array(eval(x)))
 synthetic_type = 'nonlinear' if env_name.split('nonlinear')[1]=='True' else 'linear'
 dim = int(env_name.split('dim')[1].split('_')[0])
 
-#####
-data = data[data['task_id']<=1000]
-#####
-
 plot_data_stats_synthetic(data, poly_degree=2, synthetic_type=synthetic_type, dim=dim)
 
-#---------------------------
 # min_trials, burn_in = 90, 1
 # df = data.groupby('task_id').filter(lambda x: len(x)>=min_trials)
 # data = data[data.trial_id<=min_trials] # keep only min_trials for all tasks for model fitting

@@ -374,7 +374,7 @@ def plot_data_stats(data, poly_degree=2):
     fig, axs = plt.subplots(1, 3,  figsize=(15,5))
     sns.histplot(np.array(all_corr), ax=axs[0], bins=11, binrange=(-1., 1.), stat='probability', edgecolor='w', linewidth=1, color=COLORS['stats'])
     sns.histplot(gini_coeff, ax=axs[1], bins=11, binrange=(0, bin_max), stat='probability', edgecolor='w', linewidth=1, color=COLORS['stats'])
-    sns.histplot(posterior_logprob, ax=axs[2], bins=11, stat='probability', edgecolor='w', linewidth=1, color=COLORS['stats'])
+    sns.histplot(posterior_logprob, ax=axs[2], bins=5, stat='probability', edgecolor='w', linewidth=1, color=COLORS['stats'])
     
     #axs[2].set_ylim(0, 0.5)
     axs[0].set_xlim(-1, 1)
@@ -415,11 +415,11 @@ def plot_data_stats(data, poly_degree=2):
     fig, axs = plt.subplots(1, 3,  figsize=(15,5))
     sns.histplot(np.array(all_corr), ax=axs[0], bins=11, binrange=(-1., 1.), stat='probability', edgecolor='w', linewidth=1, color=COLORS['stats'])
     sns.histplot(gini_coeff, ax=axs[1], bins=11, binrange=(0, bin_max), stat='probability', edgecolor='w', linewidth=1, color=COLORS['stats'])
-    sns.histplot(advantage, ax=axs[2], bins=11, binrange=(0, 0.5), stat='probability', edgecolor='w', linewidth=1, color=COLORS['stats'])
+    sns.histplot(advantage, ax=axs[2], bins=11, binrange=(-0.05, 1.05), stat='probability', edgecolor='w', linewidth=1, color=COLORS['stats'])
     #axs[2].set_ylim(0, 0.5)
     axs[0].set_xlim(-1, 1)
     axs[0].set_ylim(0, 0.25)
-    axs[2].set_xlim(0., 0.5)
+    #axs[2].set_xlim(0., 0.5)
     axs[1].set_ylim(0, 0.3)
     
     axs[0].set_yticks(np.arange(0, 0.25, 0.05))
@@ -464,7 +464,7 @@ def plot_data_stats_synthetic(data, poly_degree=2, synthetic_type='linear', dim=
     fig, axs = plt.subplots(1, 3,  figsize=(15,5))
     sns.histplot(np.array(all_corr), ax=axs[0], bins=11, binrange=(-1., 1.), stat='probability', edgecolor='w', linewidth=1, color=COLORS['stats'])
     sns.histplot(gini_coeff, ax=axs[1], bins=11, binrange=(0, bin_max), stat='probability', edgecolor='w', linewidth=1, color=COLORS['stats'])
-    sns.histplot(posterior_logprob, ax=axs[2], bins=11, stat='probability', edgecolor='w', linewidth=1, color=COLORS['stats'])
+    sns.histplot(posterior_logprob, ax=axs[2], bins=5, stat='probability', edgecolor='w', linewidth=1, color=COLORS['stats'])
     #axs[2].set_ylim(0, 0.5)
     axs[0].set_xlim(-1, 1)
     assert dim==3, 'Only works for dim=3'
@@ -501,12 +501,12 @@ def plot_data_stats_synthetic(data, poly_degree=2, synthetic_type='linear', dim=
     fig, axs = plt.subplots(1, 3,  figsize=(15,5))
     sns.histplot(np.array(all_corr), ax=axs[0], bins=11, binrange=(-1., 1.), stat='probability', edgecolor='w', linewidth=1, color=COLORS['stats'])
     sns.histplot(gini_coeff, ax=axs[1], bins=11, binrange=(0, bin_max), stat='probability', edgecolor='w', linewidth=1, color=COLORS['stats'])
-    sns.histplot(advantage, ax=axs[2], bins=11, binrange=(0, 0.5), stat='probability', edgecolor='w', linewidth=1, color=COLORS['stats'])
+    sns.histplot(advantage, ax=axs[2], bins=11, binrange=(-0.05, 1.05), stat='probability', edgecolor='w', linewidth=1, color=COLORS['stats'])
     #axs[2].set_ylim(0, 0.5)
     axs[0].set_xlim(-1, 1)
 
     axs[1].set_xlim(0., 0.66 if dim==3 else None)   
-    axs[2].set_xlim(0., 0.5)
+    # axs[2].set_xlim(0., 0.5)
     axs[0].set_ylim(0, 0.25)
     # axs[1].set_ylim(0, 0.3)
     

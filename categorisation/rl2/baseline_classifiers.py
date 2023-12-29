@@ -56,7 +56,10 @@ class SVMModel:
     
     def calculate_bic(self, X, y):
         n = len(y)  # Number of observations
-        k = len(self.model.support_vectors_)  # Number of support vectors as proxy for parameters
+        k = len(self.model.support_vectors_)  # Number of support vectors as proxy for parameters 
+        # alternative is self.model.dual_coef_.shape[1] but BIC is just not well defined for SVMs
+        #https://proceedings.mlr.press/v25/demyanov12/demyanov12.pdf
+        #https://stats.stackexchange.com/questions/247358/coefficients-in-support-vector-machine
 
         # Probabilities of positive class
         probas = self.model.predict_proba(X)[:, 1]

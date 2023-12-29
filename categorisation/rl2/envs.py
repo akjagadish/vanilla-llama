@@ -894,18 +894,25 @@ class RMCTask(nn.Module):
 
     def save_synthetic_data(self, num_tasks=5000):
 
-        inputs, targets = self.get_synthetic_data(num_tasks=num_tasks, mode='all')
-        data = pd.DataFrame(columns=['task_id', 'trial_id', 'input', 'target']) # prepare dataframe
-        if self.nonlinear:
-            inputs = inputs.detach()
-            targets = targets.detach()
+        # generate synthetic data
+        last_task_id = 0
+        if num_tasks>self.batch_size:
+            num_batches = int(num_tasks/self.batch_size)
+            per_batch_task = self.batch_size
+        else:
+            per_batch_task = num_tasks
+            num_batches = 1
 
-        # save inputs and targets into the data dataframe: inputs is of shape (num_tasks, max_steps, num_dims) and targets is of shape (num_tasks, max_steps)
-        for task_id, (task_inputs, task_targets) in enumerate(zip(inputs, targets)):
-            for trial_id, (input, target) in enumerate(zip(task_inputs, task_targets)):
-                data = pd.concat([data, pd.DataFrame({'task_id':task_id, 'trial_id':trial_id, 'input':str(input.cpu().numpy().tolist()), 'target':[target.cpu().numpy().tolist()]})], ignore_index=True)
-                # append({'task_id':task_id, 'trial_id':trial_id, 'input':input.cpu().numpy(), 'target':target.cpu().numpy()}, ignore_index=True)
-        
+        for _ in range(num_batches):
+            inputs, targets = inputs, targets = self.sample_prior(per_batch_task, self.max_steps, self.num_dims, self.c, self.s_d, self.s_l)
+            data = pd.DataFrame(columns=['task_id', 'trial_id', 'input', 'target']) # prepare dataframe
+           
+            # save inputs and targets into the data dataframe: inputs is of shape (num_tasks, max_steps, num_dims) and targets is of shape (num_tasks, max_steps)
+            for task_id, (task_inputs, task_targets) in enumerate(zip(inputs, targets)):
+                for trial_id, (input, target) in enumerate(zip(task_inputs, task_targets)):
+                    data = pd.concat([data, pd.DataFrame({'task_id':task_id+last_task_id, 'trial_id':trial_id, 'input':str(input.cpu().numpy().tolist()), 'target':[target.cpu().numpy().tolist()]})], ignore_index=True)
+                    # append({'task_id':task_id, 'trial_id':trial_id, 'input':input.cpu().numpy(), 'target':target.cpu().numpy()}, ignore_index=True)
+            last_task_id = data['task_id'].max()+1
         # save data to csv file
         data.to_csv(f'{SYS_PATH}/categorisation/data/rmc_tasks_dim{self.num_dims}_data{self.max_steps}_tasks{num_tasks}.csv', index=False)
         

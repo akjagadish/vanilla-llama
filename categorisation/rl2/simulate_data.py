@@ -18,7 +18,7 @@ if __name__ == "__main__":
     parser.add_argument('--num-tasks', type=int, default=100, help='number of tasks')
     parser.add_argument('--num-dims', type=int, default=3, help='number of dimensions')
     parser.add_argument('--max-steps', type=int, default=8, help='number of data points per task')
-    parser.add_argument('--batch_size', type=int, default=64, help='batch size')
+    parser.add_argument('--batch-size', type=int, default=64, help='batch size')
     parser.add_argument('--noise', type=float, default=0.0, help='noise level')
     parser.add_argument('--shuffle', type=bool, default=False, help='shuffle trials')
     parser.add_argument('--nonlinear', action='store_true', default=False, help='simulate nonlinear synthetic data')

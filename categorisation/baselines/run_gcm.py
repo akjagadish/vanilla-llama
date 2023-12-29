@@ -180,10 +180,17 @@ def fit_gcm_to_fitted_simulations(num_runs, num_blocks, num_iter, num_tasks, num
         print(f'mean fit across blocks: {lls[idx].mean()} \n')
         print(f'mean pseudo-r2 across blocks: {r2s[idx].mean()}')
 
+    if 'syntheticnonlinear' in model_name:
+        model_name = 'syntheticnonlinear'
+    elif 'synthetic' in model_name:
+        model_name = 'synthetic'
+    else:
+        model_name = 'ermi'
+
     # save the r2 and ll values
     lls = np.array(lls)
     r2s = np.array(r2s)
-    np.savez(f'{SYS_PATH}/categorisation/data/fitted_simulation/{task_name}_gcm_runs={num_runs}_iters={num_iter}_blocks={num_blocks}_loss={loss}'\
+    np.savez(f'{SYS_PATH}/categorisation/data/fitted_simulation/{task_name}_gcm_runs={num_runs}_iters={num_iter}_blocks={num_blocks}_loss={loss}_model={model_name}'\
              , r2s=r2s, lls=lls, params=np.stack(params_list), opt_method=opt_method)
 
 if __name__ == '__main__':

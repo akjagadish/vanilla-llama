@@ -99,18 +99,17 @@ from plots import plot_data_stats_synthetic
 
 # ##synthetic dim3: 'synthetic_tasks_dim3_data100_tasks5000_nonlinearFalse'
 # ##synthetic dim3: 'synthetic_tasks_dim3_data100_tasks5000_nonlinearTrue'
-env_name='synthetic_tasks_dim3_data100_tasks5000_nonlinearTrue'
+# ##rmc: 'rmc_tasks_dim3_data100_tasks5000'
+env_name='rmc_tasks_dim3_data100_tasks5000'
 data = pd.read_csv(f'{SYS_PATH}/categorisation/data/{env_name}.csv') 
 data = data.groupby(['task_id']).filter(lambda x: len(x['target'].unique()) == 2) # check if data has only two values for target in each task
 data.input = data['input'].apply(lambda x: np.array(eval(x)))
-# if in env_name nonlinear is followed by True for synthetic data set synthetic_type=True
-synthetic_type = 'nonlinear' if env_name.split('nonlinear')[1]=='True' else 'linear'
+synthetic_type = 'rmc' if 'rmc' in env_name else 'nonlinear' if env_name.split('nonlinear')[1]=='True' else 'linear'
 dim = int(env_name.split('dim')[1].split('_')[0])
 
 plot_data_stats_synthetic(data, poly_degree=2, synthetic_type=synthetic_type, dim=dim)
-
-# min_trials, burn_in = 90, 1
-# df = data.groupby('task_id').filter(lambda x: len(x)>=min_trials)
-# data = data[data.trial_id<=min_trials] # keep only min_trials for all tasks for model fitting
-# plot_trial_by_trial_performance(df, burn_in, min_trials-burn_in, min_trials)
+min_trials, burn_in = 90, 1
+df = data.groupby('task_id').filter(lambda x: len(x)>=min_trials)
+data = data[data.trial_id<=min_trials] # keep only min_trials for all tasks for model fitting
+plot_trial_by_trial_performance(df, burn_in, min_trials-burn_in, min_trials)
 

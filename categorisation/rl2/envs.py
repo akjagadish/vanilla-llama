@@ -865,7 +865,7 @@ class RMCTask(nn.Module):
         # inputs, targets = self.sample_prior(self.batch_size, self.max_steps, self.num_dims, self.c, self.s_d, self.s_l)
         # print(f'Time taken to og: {time.time()-start}')
         
-        return inputs, targets
+        return inputs.to(self.device), targets.to(self.device)
 
     def sample_batch(self, mode='train'):
         

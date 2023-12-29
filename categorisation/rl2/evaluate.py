@@ -1,6 +1,6 @@
 import numpy as np
 import torch
-from envs import CategorisationTask, ShepardsTask, NosofskysTask, LeveringsTask, SyntheticCategorisationTask, SmithsTask
+from envs import CategorisationTask, ShepardsTask, NosofskysTask, LeveringsTask, SyntheticCategorisationTask, SmithsTask, RMCTask
 import argparse
 from baseline_classifiers import LogisticRegressionModel, SVMModel
 
@@ -11,6 +11,8 @@ def evaluate_1d(env_name=None, model_path=None, experiment='categorisation', env
         # load environment
         if experiment == 'synthetic':
             env = SyntheticCategorisationTask(nonlinear=nonlinear, num_dims=num_dims, max_steps=max_steps, shuffle_trials=shuffle_trials)
+        elif experiment == 'rmc':
+            env = RMCTask(num_dims=num_dims, max_steps=max_steps, shuffle_trials=shuffle_trials)
         if experiment == 'categorisation':
             env = CategorisationTask(data=env_name, num_dims=num_dims, mode=mode, max_steps=max_steps, shuffle_trials=shuffle_trials)
         elif experiment == 'shepard_categorisation':
@@ -51,7 +53,7 @@ def evaluate_1d(env_name=None, model_path=None, experiment='categorisation', env
 
         #TODO: this reshaping limits the future possilibites chagne it
         model_choices = torch.concat([model_choices[i, :seq_len] for i, seq_len in enumerate(sequence_lengths)], axis=0).squeeze().float()
-        true_choices = targets.reshape(-1).float().to(device) if experiment == 'synthetic' else torch.concat(targets, axis=0).float().to(device)
+        true_choices = targets.reshape(-1).float().to(device) if (experiment == 'synthetic' or experiment == 'rmc') else torch.concat(targets, axis=0).float().to(device)
         category_labels = torch.concat(env.stacked_labels, axis=0).float() if experiment=='nosofsky_categorisation' else None
         accuracy = (model_choices==true_choices).sum()/(model_choices.shape[0])
    

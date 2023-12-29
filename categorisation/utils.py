@@ -470,24 +470,29 @@ def return_data_stats(data, poly_degree=2):
 
 
                 X_poly = PolynomialFeatures(poly_degree).fit_transform(X)
-                # try:
                 log_reg_quadratic = sm.Logit(y, X_poly).fit(method='bfgs', maxiter=10000)
                 
-                svm = SVMModel(X, y)
-                score_svm = svm.score(X, y)
-                bic_svm, ll_svm = svm.calculate_bic(X, y)
-
-                lr = LogisticRegressionModel(X, y)
-                score_lr = lr.score(X, y)
-                bic_lr, ll_lr = lr.calculate_bic(X, y)
-
-                advantage.append(score_svm - score_lr)#ll_svm-ll_lr) #
+                # svm using sklearn
+                # svm = SVMModel(X, y)
+                # score_svm = svm.score(X, y)
+                # bic_svm, ll_svm = svm.calculate_bic(X, y)
+                
+                # logisitic regression with polynomial features using sklearn
+                svm = LogisticRegressionModel(X_poly, y)
+                score_svm = svm.score(X_poly, y)
+                bic_svm, ll_svm = svm.calculate_bic(X_poly, y)
+                
+                # logisitic regression with linear features using sklearn
+                lr = LogisticRegressionModel(X_linear, y)
+                score_lr = lr.score(X_linear, y)
+                bic_lr, ll_lr = lr.calculate_bic(X_linear, y)
+                # print(bic_lr, bic_svm)
+               
+                advantage.append(0. if score_svm > score_lr else 1.) #0 if score_svm > score_lr else 1) #(score_svm - score_lr) #(ll_svm-ll_lr)
 
                 # bics
-                all_bics_linear.append(-2*ll_lr) #log_reg.bic)
-                all_bics_quadratic.append(-2*ll_svm) #log_reg_quadratic.bic)
-                # except:
-                #     print('error fitting quadratic')
+                all_bics_linear.append(bic_lr) #(-2*ll_lr) #(log_reg.bic)
+                all_bics_quadratic.append(bic_svm) #(-2*ll_svm) #(log_reg_quadratic.bic)
 
                 gini = gini_compute(np.abs(log_reg.params[1:])) 
                 gini_coeff.append(gini)

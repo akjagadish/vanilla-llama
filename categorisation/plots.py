@@ -740,7 +740,7 @@ def compare_metalearners(env_name=None, model_env=None, experiment='categorisati
     f.tight_layout()
     plt.show()
 
-def evaluate_nosofsky1994(env_name=None, experiment=None, tasks=[None], beta=1., noises=[0.05, 0.1, 0.0], shuffles=[True, False], shuffle_evals=[True, False], num_runs=5, num_trials=96, num_blocks=1, num_eval_tasks=1113, synthetic=False, nonlinear=False, run=0):
+def evaluate_nosofsky1994(env_name=None, experiment=None, tasks=[None], beta=1., noises=[0.05, 0.1, 0.0], shuffles=[True, False], shuffle_evals=[True, False], num_runs=5, num_trials=96, num_blocks=1, num_eval_tasks=1113, synthetic=False, rmc=False, nonlinear=False, run=0):
 
     corrects = np.ones((len(tasks), len(noises), len(shuffles), len(shuffle_evals), num_eval_tasks, num_trials))
     for t_idx, task in enumerate(tasks):
@@ -749,6 +749,8 @@ def evaluate_nosofsky1994(env_name=None, experiment=None, tasks=[None], beta=1.,
                 for se_idx, shuffle_eval in enumerate(shuffle_evals):
                     if synthetic:
                         model_name = f"env={env_name}_noise{noise}_shuffle{shuffle}_run={run}_synthetic{'nonlinear' if nonlinear else ''}.pt"
+                    elif rmc:
+                        model_name = f"env={env_name}_noise{noise}_shuffle{shuffle}_run={run}_rmc.pt"
                     else:
                         model_name = f"env={env_name}_noise{noise}_shuffle{shuffle}_run={run}.pt"
                     model_path = f"/u/ajagadish/vanilla-llama/categorisation/trained_models/{model_name}"

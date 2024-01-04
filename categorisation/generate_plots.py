@@ -87,6 +87,17 @@ from plots import evaluate_nosofsky1988, evaluate_levering2020, evaluate_nosofsk
 #     num_blocks = 11
 #     evaluate_smith1998(env_name=env_model_name, noises=[0.0], beta=beta, shuffles=[True], num_runs=num_runs, num_eval_tasks=64, num_trials=num_trials, num_blocks=num_blocks, synthetic=True, nonlinear=nonlinear, run=run)
 
+## RMC
+env_model_name = 'dim3RMC_model=transformer_num_episodes500000_num_hidden=256_lr0.0003_num_layers=6_d_model=64_num_head=8'
+dim = 3 
+beta = 0.1856 
+run, num_runs = 0, 50 
+num_trials_per_block = 16
+num_blocks = 10
+shuffle = True 
+rmc = True
+evaluate_nosofsky1994(env_name=env_model_name, tasks=np.arange(1,7), beta=beta, noises=[0.0], shuffles=[shuffle], shuffle_evals=[False], experiment='shepard_categorisation', num_runs=num_runs, num_blocks=num_blocks, num_trials=num_trials_per_block*num_blocks, num_eval_tasks=64, rmc=rmc, run=run)
+
 #---------------------------
 from plots import compare_metalearners
 ## compare meta-learners for different noises and shuffles
@@ -100,16 +111,16 @@ from plots import plot_data_stats_synthetic
 # ##synthetic dim3: 'synthetic_tasks_dim3_data100_tasks5000_nonlinearFalse'
 # ##synthetic dim3: 'synthetic_tasks_dim3_data100_tasks5000_nonlinearTrue'
 # ##rmc: 'rmc_tasks_dim3_data100_tasks5000'
-env_name='rmc_tasks_dim3_data100_tasks5000'
-data = pd.read_csv(f'{SYS_PATH}/categorisation/data/{env_name}.csv') 
-data = data.groupby(['task_id']).filter(lambda x: len(x['target'].unique()) == 2) # check if data has only two values for target in each task
-data.input = data['input'].apply(lambda x: np.array(eval(x)))
-synthetic_type = 'rmc' if 'rmc' in env_name else 'nonlinear' if env_name.split('nonlinear')[1]=='True' else 'linear'
-dim = int(env_name.split('dim')[1].split('_')[0])
+# env_name='rmc_tasks_dim3_data100_tasks5000'
+# data = pd.read_csv(f'{SYS_PATH}/categorisation/data/{env_name}.csv') 
+# data = data.groupby(['task_id']).filter(lambda x: len(x['target'].unique()) == 2) # check if data has only two values for target in each task
+# data.input = data['input'].apply(lambda x: np.array(eval(x)))
+# synthetic_type = 'rmc' if 'rmc' in env_name else 'nonlinear' if env_name.split('nonlinear')[1]=='True' else 'linear'
+# dim = int(env_name.split('dim')[1].split('_')[0])
 
-plot_data_stats_synthetic(data, poly_degree=2, synthetic_type=synthetic_type, dim=dim)
-min_trials, burn_in = 90, 1
-df = data.groupby('task_id').filter(lambda x: len(x)>=min_trials)
-data = data[data.trial_id<=min_trials] # keep only min_trials for all tasks for model fitting
-plot_trial_by_trial_performance(df, burn_in, min_trials-burn_in, min_trials)
+# plot_data_stats_synthetic(data, poly_degree=2, synthetic_type=synthetic_type, dim=dim)
+# min_trials, burn_in = 90, 1
+# df = data.groupby('task_id').filter(lambda x: len(x)>=min_trials)
+# data = data[data.trial_id<=min_trials] # keep only min_trials for all tasks for model fitting
+# plot_trial_by_trial_performance(df, burn_in, min_trials-burn_in, min_trials)
 

@@ -12,7 +12,7 @@ def evaluate_1d(env_name=None, model_path=None, experiment='categorisation', env
         if experiment == 'synthetic':
             env = SyntheticCategorisationTask(nonlinear=nonlinear, num_dims=num_dims, max_steps=max_steps, shuffle_trials=shuffle_trials)
         elif experiment == 'rmc':
-            env = RMCTask(num_dims=num_dims, max_steps=max_steps, shuffle_trials=shuffle_trials)
+            env = RMCTask(data=env_name, num_dims=num_dims, max_steps=max_steps, shuffle_trials=shuffle_trials)
         if experiment == 'categorisation':
             env = CategorisationTask(data=env_name, num_dims=num_dims, mode=mode, max_steps=max_steps, shuffle_trials=shuffle_trials)
         elif experiment == 'shepard_categorisation':

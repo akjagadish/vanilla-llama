@@ -754,7 +754,7 @@ class RMCTask(nn.Module):
     Generate synthetic categorisation data with discrete features based on RMC model from Anderson (1991) for training and evaluating meta-learned models
     model parameters taken from Nosofsky et al. (1994) "Comparing modes of rule-based classification learning: A replication and extension of Shepard, Hovland, and Jenkins (1961)"
     """
-    def __init__(self, max_steps=8, num_dims=3, params=[0.318, 0.488, 0.046], batch_size=64, mode='train', split=[0.8, 0.1, 0.1], device='cpu', num_tasks=10000, noise=0., shuffle_trials=False): 
+    def __init__(self, data=None, max_steps=8, num_dims=3, params=[0.318, 0.488, 0.046], num_categories=2, batch_size=64, mode='train', split=[0.8, 0.1, 0.1], device='cpu', num_tasks=10000, noise=0., shuffle_trials=False, online=False): 
         """ 
         Initialise the environment
         Args: 
@@ -765,6 +765,13 @@ class RMCTask(nn.Module):
         super(RMCTask, self).__init__()
 
         self.device = torch.device(device)
+        data = pd.read_csv(data)
+        data = data.groupby('task_id').filter(lambda x: len(x)<=max_steps)
+        data = data.groupby('task_id').filter(lambda x: len(x['target'].unique()) == num_categories)
+        data['target'] = data.groupby('task_id')['target'].apply(lambda x: x.replace(x.unique(), ['A', 'B']))
+        data['task_id'] = data.groupby('task_id').ngroup()  # reset task_ids based on number of unique task_id
+        self.data = data
+        self.online = online
         self.num_tasks = num_tasks
         self.num_choices = 1 
         self.max_steps = max_steps
@@ -859,8 +866,15 @@ class RMCTask(nn.Module):
         elif mode == 'all':
             self.batch_size = self.num_tasks
         
-        
-        inputs, targets = self.sample_prior_parallel(self.batch_size, self.max_steps, self.num_dims, self.c, self.s_d, self.s_l)
+        if self.online:
+            inputs, targets = self.sample_prior_parallel(self.batch_size, self.max_steps, self.num_dims, self.c, self.s_d, self.s_l)
+        else: 
+            data = self.data[self.data.task_id.isin(tasks)]
+            data['target'] = data['target'].apply(lambda x: 0. if x=='A' else 1.) if torch.rand(1) > 0.5 else data['target'].apply(lambda x: 1. if x=='A' else 0.)
+            data['input'] = data['input'].apply(lambda x: list(map(float, x.strip('[]').split(','))))
+            inputs = torch.stack([torch.stack([torch.tensor(input) for input in task_inputs]) for task_inputs in data.groupby('task_id')['input'].apply(list)])
+            targets = torch.stack([torch.stack([torch.tensor(target) for target in task_targets]) for task_targets in data.groupby('task_id')['target'].apply(list)])
+
         # start = time.time()
         # inputs, targets = self.sample_prior(self.batch_size, self.max_steps, self.num_dims, self.c, self.s_d, self.s_l)
         # print(f'Time taken to og: {time.time()-start}')

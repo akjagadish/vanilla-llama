@@ -25,7 +25,7 @@ pip3 install --user fire sentencepiece ipdb accelerate tqdm
 ## llm generated data: prompt version 4, with different run ids and GPUs for dim 3 data
 # python rl2/train_transformer.py --num-episodes 500000 --save-every 100 --print-every 100 --max-steps 250 --env-name claude_generated_tasks_paramsNA_dim3_data100_tasks11518_pversion4  --first-run-id 0 --noise 0.0 --model-name transformer --num_hidden 256 --num_layers 6 --d_model 64 --num_head 8 --batch_size 64 --shuffle --env-dir u/ajagadish/vanilla-llama/categorisation/data --first-run-id 2
 # python rl2/train_transformer.py --num-episodes 500000 --save-every 100 --print-every 100 --max-steps 250 --env-name claude_generated_tasks_paramsNA_dim3_data100_tasks11518_pversion4  --first-run-id 0 --noise 0.0 --model-name transformer --num_hidden 256 --num_layers 6 --d_model 64 --num_head 8 --batch_size 64 --env-dir u/ajagadish/vanilla-llama/categorisation/data --first-run-id 1
-python rl2/train_transformer.py --num-episodes 500000 --save-every 100 --print-every 100 --max-steps 250 --env-name claude_generated_tasks_paramsNA_dim3_data100_tasks11518_pversion4 --noise 0.0 --model-name transformer --num_hidden 256 --num_layers 6 --d_model 64 --num_head 8 --batch_size 64 --shuffle --env-dir u/ajagadish/vanilla-llama/categorisation/data --shuffle-features --first-run-id 2
+# python rl2/train_transformer.py --num-episodes 500000 --save-every 100 --print-every 100 --max-steps 250 --env-name claude_generated_tasks_paramsNA_dim3_data100_tasks11518_pversion4 --noise 0.0 --model-name transformer --num_hidden 256 --num_layers 6 --d_model 64 --num_head 8 --batch_size 64 --shuffle --env-dir u/ajagadish/vanilla-llama/categorisation/data --shuffle-features --first-run-id 2
 
 ## llm generated data: prompt version 5 for dim 6 data
 # (testing) python rl2/train_transformer.py --num-episodes 500000 --save-every 100 --print-every 100 --max-steps 300 --num-dims 6 --env-name claude_generated_tasks_paramsNA_dim6_data500_tasks12911_pversion5_stage1  --first-run-id 0 --noise 0.0 --model-name transformer --num_hidden 256 --num_layers 6 --d_model 64 --num_head 8 --batch_size 64 --shuffle --env-dir u/ajagadish/vanilla-llama/categorisation/data --first-run-id 2
@@ -41,6 +41,7 @@ python rl2/train_transformer.py --num-episodes 500000 --save-every 100 --print-e
 
 ## rmc generated data for dim 3
 # python rl2/train_transformer.py  --rmc --num-episodes 500000 --save-every 100 --print-every 10 --max-steps 400 --num-dims 3  --env-name dim3RMC --first-run-id 0 --noise 0.0 --model-name transformer --num_hidden 256 --num_layers 6 --d_model 64 --num_head 8 --batch_size 64 --shuffle 
+python rl2/train_transformer.py  --rmc --env-name rmc_tasks_dim3_data100_tasks11499  --num-episodes 500000 --save-every 100 --print-every 10 --max-steps 400 --num-dims 3 --first-run-id 1 --noise 0.0 --model-name transformer --num_hidden 256 --num_layers 6 --d_model 64 --num_head 8 --batch_size 64 --shuffle --env-dir u/ajagadish/vanilla-llama/categorisation/data 
 
 ### synthetic data
 # dim 3 synthetic data

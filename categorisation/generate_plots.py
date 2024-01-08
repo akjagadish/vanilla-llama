@@ -88,15 +88,15 @@ from plots import evaluate_nosofsky1988, evaluate_levering2020, evaluate_nosofsk
 #     evaluate_smith1998(env_name=env_model_name, noises=[0.0], beta=beta, shuffles=[True], num_runs=num_runs, num_eval_tasks=64, num_trials=num_trials, num_blocks=num_blocks, synthetic=True, nonlinear=nonlinear, run=run)
 
 ## RMC model simulations
-env_model_name = 'env=rmc_tasks_dim3_data100_tasks11499_model=transformer_num_episodes500000_num_hidden=256_lr0.0003_num_layers=6_d_model=64_num_head=8s'
-dim = 3 
-beta = 0.6340 # mean fitted values from Badham et al. 2017
-run, num_runs = 1, 50 
-num_trials_per_block = 16
-num_blocks = 16
-shuffle = True 
-rmc = True
-evaluate_nosofsky1994(env_name=env_model_name, tasks=np.arange(1,7), beta=beta, noises=[0.0], shuffles=[shuffle], shuffle_evals=[False], experiment='shepard_categorisation', num_runs=num_runs, num_blocks=num_blocks, num_trials=num_trials_per_block*num_blocks, num_eval_tasks=64, rmc=rmc, run=run)
+# env_model_name = 'env=rmc_tasks_dim3_data100_tasks11499_model=transformer_num_episodes500000_num_hidden=256_lr0.0003_num_layers=6_d_model=64_num_head=8s'
+# dim = 3 
+# beta = 0.6340 # mean fitted values from Badham et al. 2017
+# run, num_runs = 1, 50 
+# num_trials_per_block = 16
+# num_blocks = 16
+# shuffle = True 
+# rmc = True
+# evaluate_nosofsky1994(env_name=env_model_name, tasks=np.arange(1,7), beta=beta, noises=[0.0], shuffles=[shuffle], shuffle_evals=[False], experiment='shepard_categorisation', num_runs=num_runs, num_blocks=num_blocks, num_trials=num_trials_per_block*num_blocks, num_eval_tasks=64, rmc=rmc, run=run)
 
 #---------------------------
 from plots import compare_metalearners
@@ -124,3 +124,19 @@ from plots import plot_data_stats_synthetic
 # data = data[data.trial_id<=min_trials] # keep only min_trials for all tasks for model fitting
 # plot_trial_by_trial_performance(df, burn_in, min_trials-burn_in, min_trials)
 
+#---------------------------
+from plots import model_comparison_badham2017, gcm_pm_fitted_simulations, model_comparison_devraj2022, simulate_shepard1961
+
+# model_comparison_badham2017()
+# gcm_pm_fitted_simulations()
+# model_comparison_devraj2022()
+models = ['humans',\
+          'env=claude_generated_tasks_paramsNA_dim3_data100_tasks11518_pversion4_model=transformer_num_episodes500000_num_hidden=256_lr0.0003_num_layers=6_d_model=64_num_head=8_noise0.0_shuffleTrue_run=3',\
+          'env=dim3synthetic_model=transformer_num_episodes500000_num_hidden=256_lr0.0003_num_layers=6_d_model=64_num_head=8_noise0.0_shuffleTrue_run=0_synthetic',\
+          #'env=rmc_tasks_dim3_data100_tasks11499_model=transformer_num_episodes500000_num_hidden=256_lr0.0003_num_layers=6_d_model=64_num_head=8_noise0.0_shuffleTrue_run=1_rmc',
+          ]
+betas = [None, 0.3, 0.1314] #ermi: 0.1856(run2) rmc: 0.6340
+num_trials_per_block = 16
+num_blocks = 16
+num_runs = 50
+simulate_shepard1961(models=models, betas=betas, num_runs=num_runs, num_blocks=num_blocks, num_trials=num_trials_per_block*num_blocks)

@@ -87,13 +87,13 @@ from plots import evaluate_nosofsky1988, evaluate_levering2020, evaluate_nosofsk
 #     num_blocks = 11
 #     evaluate_smith1998(env_name=env_model_name, noises=[0.0], beta=beta, shuffles=[True], num_runs=num_runs, num_eval_tasks=64, num_trials=num_trials, num_blocks=num_blocks, synthetic=True, nonlinear=nonlinear, run=run)
 
-## RMC
-env_model_name = 'dim3RMC_model=transformer_num_episodes500000_num_hidden=256_lr0.0003_num_layers=6_d_model=64_num_head=8'
+## RMC model simulations
+env_model_name = 'env=rmc_tasks_dim3_data100_tasks11499_model=transformer_num_episodes500000_num_hidden=256_lr0.0003_num_layers=6_d_model=64_num_head=8s'
 dim = 3 
-beta = 0.1856 
-run, num_runs = 0, 50 
+beta = 0.6340 # mean fitted values from Badham et al. 2017
+run, num_runs = 1, 50 
 num_trials_per_block = 16
-num_blocks = 10
+num_blocks = 16
 shuffle = True 
 rmc = True
 evaluate_nosofsky1994(env_name=env_model_name, tasks=np.arange(1,7), beta=beta, noises=[0.0], shuffles=[shuffle], shuffle_evals=[False], experiment='shepard_categorisation', num_runs=num_runs, num_blocks=num_blocks, num_trials=num_trials_per_block*num_blocks, num_eval_tasks=64, rmc=rmc, run=run)

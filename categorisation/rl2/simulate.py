@@ -107,6 +107,7 @@ if __name__  == '__main__':
     parser.add_argument('--experiment', type=str, required=True, help='task name')
     parser.add_argument('--model-name', type=str, required=True, help='model name')
     parser.add_argument('--beta', type=float, default=1., help='beta value for softmax')
+    parser.add_argument('--job-id', type=int, default=None, help='job id')
     parser.add_argument('--num-runs', type=int, default=1, help='number of runs')
 
     args = parser.parse_args()
@@ -121,5 +122,9 @@ if __name__  == '__main__':
         use_existing_stimuli = True
         #TODO: pass in use_existing_stimuli to simulate_task
     elif args.experiment == 'johanssen_categorisation':
-        simulate_task(model_name=args.model_name,  experiment=args.experiment, tasks=[2, 4, 8, 16, 24, 32], beta=beta, num_runs=args.num_runs, batch_size=68*10, num_trials=288, device=device)
-        # beta = 0.18564321475504575 (badham et al. 2018) 0.09495665880995116 (devraj et al. 2002)
+        if args.job_id is not None:
+            beta = args.job_id/10 
+        simulate_task(model_name=args.model_name,  experiment=args.experiment, tasks=[1, 2, 3, 4, 5, 6, 8, 16, 24, 32], beta=beta, num_runs=args.num_runs, batch_size=68*8, num_trials=288, device=device)
+        # batch_size = 68*10 [num_participants * num_times_transfer_stimuli_presented (set to 10>>7 transfer stimuli as we are sampling transfer stimuli in each block)] 
+        # beta = 0.18564321475504575 (badham et al. 2017), 0.09495665880995116 (devraj et al. 2002)
+        # task_blocks from the paper [2, 4, 8, 16, 24, 32]

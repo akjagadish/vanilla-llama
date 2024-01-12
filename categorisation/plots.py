@@ -1186,7 +1186,7 @@ def model_comparison(list_models=None, task_name = 'smithstask'):
         sns.despine()
 
 def model_comparison_badham2017(FIGSIZE=(6,5)):
-    models = ['badham2017_env=claude_generated_tasks_paramsNA_dim3_data100_tasks11518_pversion4_model=transformer_num_episodes500000_num_hidden=256_lr0.0003_num_layers=6_d_model=64_num_head=8_noise0.0_shuffleTrue_run=0_soft_sigmoid_differential_evolution',\
+    models = ['badham2017_env=claude_generated_tasks_paramsNA_dim3_data100_tasks11518_pversion4_model=transformer_num_episodes500000_num_hidden=256_lr0.0003_num_layers=6_d_model=64_num_head=8_noise0.0_shuffleTrue_run=3_soft_sigmoid_differential_evolution',\
               'badham2017_env=rmc_tasks_dim3_data100_tasks11499_model=transformer_num_episodes500000_num_hidden=256_lr0.0003_num_layers=6_d_model=64_num_head=8_noise0.0_shuffleTrue_run=1_rmc_soft_sigmoid_differential_evolution',
               'badham2017_env=dim3synthetic_model=transformer_num_episodes500000_num_hidden=256_lr0.0003_num_layers=6_d_model=64_num_head=8_noise0.0_shuffleTrue_run=0_syntheticnonlinear_soft_sigmoid_differential_evolution',\
               'badham2017_env=dim3synthetic_model=transformer_num_episodes500000_num_hidden=256_lr0.0003_num_layers=6_d_model=64_num_head=8_noise0.0_shuffleTrue_run=0_synthetic_soft_sigmoid_differential_evolution',\
@@ -1203,7 +1203,7 @@ def model_comparison_badham2017(FIGSIZE=(6,5)):
     num_trials = NUM_TRIALs*NUM_TASKS
     # FONTSIZE = 16
     # MODELS = ['ERMI', 'RMC-MI', 'L-MI', 'PFN-MI', 'GCM', 'Rulex', 'Rule',  'PM']
-    MODELS = ['ERMI', 'RMC-\nMI', 'L-MI', 'PFN-\nMI', 'GCM', 'Rulex', 'Rule',  'PM']
+    MODELS = ['ERMI', 'RMC', 'MI', 'PFN', 'GCM', 'Rulex', 'Rule',  'PM']
 
 
     for model_name in models:
@@ -1311,7 +1311,7 @@ def model_comparison_devraj2022(FIGSIZE=(6,5)):
     NUM_TRIALs = 616
     num_trials = NUM_TRIALs*NUM_TASKS
     # FONTSIZE = 16
-    MODELS = ['ERMI', 'L-MI', 'PFN-\nMI', 'GCM', 'PM', 'Rulex', 'Rule']
+    MODELS = ['ERMI', 'MI', 'PFN', 'GCM', 'PM', 'Rulex', 'Rule']
 
     for model_name in models:
         fits =  np.load(f'{SYS_PATH}/categorisation/data/model_comparison/{model_name}.npz')

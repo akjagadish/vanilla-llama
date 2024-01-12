@@ -1404,7 +1404,7 @@ def model_comparison_devraj2022(FIGSIZE=(6,5)):
 
 def gcm_pm_fitted_simulations():
 
-    models = ['ermi', 'synthetic', 'syntheticnonlinear']
+    models = ['human', 'ermi', 'synthetic',]# 'syntheticnonlinear']
     f, ax = plt.subplots(1, len(models), figsize=(5*len(models),5))
     colors = ['#173b4f', '#37761e']
     for idx, model in enumerate(models):

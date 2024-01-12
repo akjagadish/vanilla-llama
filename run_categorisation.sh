@@ -39,7 +39,7 @@ python query.py --llama-path /ptmp/mbinz/new --model 65B
 python generate_tasks.py --llama-path /ptmp/mbinz/new --model 7B
 python generate_tasks.py --llama-path /ptmp/mbinz/new --model 65B
 
-#srun --time=00:10:00  --cpus-per-task=20 --gres=gpu:a100:1 --mem=50G --pty bash
+#srun --time=00:10:00  --cpus-per-task=18 --gres=gpu:a100:1 --mem=50G --pty bash
 #srun --time=01:00:00  --cpus-per-task=18 --gres=gpu:a100:1 --mem=80G --pty bash
 #srun --time=00:10:00  --cpus-per-task=20 --gres=gpu:a100:4 --mem=240G --pty bash
 #srun --time=01:00:00  --cpus-per-task=20 --gres=gpu:a100:4 --mem=240G --pty bash

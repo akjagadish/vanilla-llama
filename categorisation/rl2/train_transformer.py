@@ -11,7 +11,7 @@ from tqdm import tqdm
 from evaluate import evaluate, evaluate_1d
 
 
-def run(env_name, restart_training, restart_episode_id, num_episodes, synthetic, nonlinear, rmc, num_dims, max_steps, sample_to_match_max_steps, noise, shuffle, shuffle_features, print_every, save_every, num_hidden, num_layers, d_model, num_head, save_dir, device, lr, batch_size=64):
+def run(env_name, restart_training, num_episodes, synthetic, nonlinear, rmc, num_dims, max_steps, sample_to_match_max_steps, noise, shuffle, shuffle_features, print_every, save_every, num_hidden, num_layers, d_model, num_head, save_dir, device, lr, batch_size=64):
 
     writer = SummaryWriter('runs/' + save_dir)
     if synthetic:
@@ -26,8 +26,8 @@ def run(env_name, restart_training, restart_episode_id, num_episodes, synthetic,
     if restart_training and os.path.exists(save_dir):
         t, model = torch.load(save_dir)
         model = model.to(device)
-        print(f'Loaded model from {save_dir}')
-        start_id = restart_episode_id
+        print(f'Loaded model from {save_dir} at episode {t}')
+        start_id = t
     else:
         model = TransformerDecoder(num_input=env.num_dims, num_output=env.num_choices, num_hidden=num_hidden, num_layers=num_layers, d_model=d_model, num_head=num_head, max_steps=max_steps, device=device).to(device)
         start_id = 0
@@ -94,7 +94,7 @@ if __name__ == "__main__":
     parser.add_argument('--model-name', default='transformer', help='name of the model')
     parser.add_argument('--sample-to-match-max-steps', action='store_true', default=False, help='sample to match max steps')
     parser.add_argument('--restart-training', action='store_true', default=False, help='restart training')
-    parser.add_argument('--restart-episode-id', type=int, default=0, help='restart episode id')
+    # parser.add_argument('--restart-episode-id', type=int, default=0, help='restart episode id')
     # parser.add_argument('--eval', default='categorisation', help='what to eval your meta-learner on')
 
     args = parser.parse_args()
@@ -112,4 +112,4 @@ if __name__ == "__main__":
             save_dir = save_dir.replace('.pt', f'_rmc.pt')
         save_dir = save_dir.replace('.pt', '_test.pt') if args.test else save_dir
         
-        run(env_name, args.restart_training, args.restart_episode_id, args.num_episodes, args.synthetic, args.nonlinear, args.rmc, args.num_dims, args.max_steps, args.sample_to_match_max_steps, args.noise, args.shuffle, args.shuffle_features, args.print_every, args.save_every, args.num_hidden, args.num_layers, args.d_model, args.num_head, save_dir, device, args.lr, args.batch_size)
+        run(env_name, args.restart_training, args.num_episodes, args.synthetic, args.nonlinear, args.rmc, args.num_dims, args.max_steps, args.sample_to_match_max_steps, args.noise, args.shuffle, args.shuffle_features, args.print_every, args.save_every, args.num_hidden, args.num_layers, args.d_model, args.num_head, save_dir, device, args.lr, args.batch_size)

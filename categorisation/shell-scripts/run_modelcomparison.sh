@@ -54,11 +54,10 @@ export OMP_NUM_THREADS=${SLURM_CPUS_PER_TASK}
 # optimizer
 
 ## badham2017
-# python model_comparison/fit.py --model-name env=claude_generated_tasks_paramsNA_dim3_data100_tasks11518_pversion4_model=transformer_num_episodes500000_num_hidden=256_lr0.0003_num_layers=6_d_model=64_num_head=8_noise0.0_shuffleTrue_run=1 --task-name badham2017 --optimizer
+python model_comparison/fit.py --model-name env=claude_generated_tasks_paramsNA_dim3_data100_tasks11518_pversion4_model=transformer_num_episodes500000_num_hidden=256_lr0.0003_num_layers=6_d_model=64_num_head=8_noise0.0_shuffleTrue_run=3 --task-name badham2017 --optimizer
 # python model_comparison/fit.py --model-name env=dim3synthetic_model=transformer_num_episodes500000_num_hidden=256_lr0.0003_num_layers=6_d_model=64_num_head=8_noise0.0_shuffleTrue_run=0_synthetic  --task-name badham2017 --optimizer
 # python model_comparison/fit.py --model-name env=dim3synthetic_model=transformer_num_episodes500000_num_hidden=256_lr0.0003_num_layers=6_d_model=64_num_head=8_noise0.0_shuffleTrue_run=0_syntheticnonlinear  --task-name badham2017 --optimizer
-# python model_comparison/fit.py --model-name env=dim3RMC_model=transformer_num_episodes500000_num_hidden=256_lr0.0003_num_layers=6_d_model=64_num_head=8_noise0.0_shuffleTrue_run=0_rmc  --task-name badham2017 --optimizer
-python model_comparison/fit.py --model-name env=rmc_tasks_dim3_data100_tasks11499_model=transformer_num_episodes500000_num_hidden=256_lr0.0003_num_layers=6_d_model=64_num_head=8_noise0.0_shuffleTrue_run=1_rmc  --task-name badham2017 --optimizer
+# python model_comparison/fit.py --model-name env=rmc_tasks_dim3_data100_tasks11499_model=transformer_num_episodes500000_num_hidden=256_lr0.0003_num_layers=6_d_model=64_num_head=8_noise0.0_shuffleTrue_run=1_rmc  --task-name badham2017 --optimizer
 
 
 ## devraj2022

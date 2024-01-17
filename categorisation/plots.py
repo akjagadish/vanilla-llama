@@ -14,6 +14,7 @@ from utils import probability_same_target_vs_distance
 from envs import NosofskysTask
 import json
 from collections import Counter
+from groupBMC.groupBMC import GroupBMC
 
 # set plotting parameters
 COLORS = {'a':'#117733', 
@@ -1295,6 +1296,10 @@ def model_comparison_badham2017(FIGSIZE=(6,5)):
     f.tight_layout()
     plt.show()   
 
+    task_name = 'Badham et al. (2017)'
+    posterior_model_frequency(np.array(bics), MODELS, task_name=task_name)
+    exceedance_probability(np.array(bics), MODELS, task_name=task_name)
+
 def model_comparison_devraj2022(FIGSIZE=(6,5)):
     models = ['devraj2022_env=claude_generated_tasks_paramsNA_dim6_data500_tasks12910_pversion5_stage2_model=transformer_num_episodes500000_num_hidden=256_lr0.0003_num_layers=6_d_model=64_num_head=8_noise0.0_shuffleTrue_run=1_soft_sigmoid_differential_evolution', \
               'devraj2022_env=dim6synthetic_model=transformer_num_episodes500000_num_hidden=256_lr0.0003_num_layers=6_d_model=64_num_head=8_noise0.0_shuffleTrue_run=2_synthetic_soft_sigmoid_differential_evolution', \
@@ -1401,6 +1406,10 @@ def model_comparison_devraj2022(FIGSIZE=(6,5)):
     sns.despine()
     f.tight_layout()
     plt.show() 
+
+    task_name = 'Devraj et al. (2022)'
+    posterior_model_frequency(np.array(bics), MODELS, task_name=task_name)
+    exceedance_probability(np.array(bics), MODELS, task_name=task_name)
 
 def gcm_pm_fitted_simulations():
 
@@ -1588,4 +1597,74 @@ def model_comparison_johanssen2002():
     sns.despine()
     plt.show()
 
-    fig.savefig(f'{SYS_PATH}/categorisation/figures/ermi_vs_mi_vs_human_generalisation_task_block={task_block}.svg', bbox_inches='tight', dpi=300)
+def posterior_model_frequency(bics, models, horizontal=True, FIGSIZE=(5,5), FONTSIZE=25, task_name=None):
+    result = {}
+    LogEvidence = np.stack(-bics/2)
+    result['composed'] = GroupBMC(LogEvidence).get_result()
+
+    # rename models for plot
+    colors = ['#173b4f', '#8b9da7', '#5d7684', '#2f4a5a', '#0d2c3d', '#4d6a75', '#748995']
+
+    f, ax = plt.subplots(1, 1, figsize=FIGSIZE)
+
+    if horizontal:
+        # composed
+        ax.barh(np.arange(len(models)), result['composed'].frequency_mean, xerr=result['composed'].frequency_var, align='center', color=colors, height=0.6)#, edgecolor='k')#, hatch='//', label='Compostional Subtask')
+        # plt.legend(fontsize=FONTSIZE-4, frameon=False)
+        ax.set_ylabel('Models', fontsize=FONTSIZE)
+        # ax.set_xlim(0, 0.7)
+        ax.set_xlabel('Posterior model frequency', fontsize=FONTSIZE) 
+        plt.yticks(ticks=np.arange(len(models)), labels=models, fontsize=FONTSIZE-3.)
+        ax.set_xticks(np.arange(0, result['composed'].frequency_mean.max(), 0.1))
+        plt.xticks(fontsize=FONTSIZE-4)
+    else:
+        # composed
+        ax.bar( np.arange(len(models))-0.22, result['composed'].frequency_mean, align='center', color='w', width=0.4, edgecolor='k', hatch='//', label='Compostional Subtask')
+        ax.errorbar(np.arange(len(models))-0.22, result['composed'].frequency_mean, result['composed'].frequency_var, c='red',fmt='.r', lw=3)
+        # plt.legend(fontsize=FONTSIZE, frameon=False)
+        ax.set_xlabel('Models', fontsize=FONTSIZE)
+        ax.set_ylim(0, 0.7)
+        ax.set_ylabel('Posterior model frequency', fontsize=FONTSIZE) 
+        plt.xticks(ticks=np.arange(len(models)), labels=models, fontsize=FONTSIZE-3.)#, rotation=45)
+        plt.yticks(fontsize=FONTSIZE-4)
+
+    ax.set_title(f'{task_name}', fontsize=FONTSIZE-5)
+    sns.despine()
+    f.tight_layout()
+    f.savefig(f'{SYS_PATH}/categorisation/figures/posterior_model_frequency_{task_name}.svg', bbox_inches='tight', dpi=300)
+    plt.show()
+
+def exceedance_probability(bics, models, horizontal=True, FIGSIZE=(5,5), FONTSIZE=25, task_name=None):
+    result = {}
+    LogEvidence = np.stack(-bics/2)
+    result['composed'] = GroupBMC(LogEvidence).get_result()
+
+    # rename models for plot
+    colors = ['#173b4f', '#8b9da7', '#5d7684', '#2f4a5a', '#0d2c3d', '#4d6a75', '#748995']
+
+    f, ax = plt.subplots(1, 1, figsize=FIGSIZE)
+    if horizontal:
+        # composed
+        ax.barh(np.arange(len(models)), result['composed'].exceedance_probability, align='center', color=colors, height=0.6)#, hatch='//', label='Compostional Subtask')
+        # plt.legend(fontsize=FONTSIZE-4, frameon=False)
+        ax.set_ylabel('Models', fontsize=FONTSIZE)
+        # ax.set_xlim(0, 0.7)
+        ax.set_xlabel('Exceedance probability', fontsize=FONTSIZE) 
+        plt.yticks(ticks=np.arange(len(models)), labels=models, fontsize=FONTSIZE-3.)
+        # ax.set_xticks(np.arange(0, result['composed'].exceedance_probability.max(), 0.1))
+        plt.xticks(fontsize=FONTSIZE-4)
+    else:
+        # composed
+        ax.bar( np.arange(len(models))-0.22, result['composed'].exceedance_probability, align='center', color=colors, width=0.4, edgecolor='k')#, hatch='//', label='Compostional Subtask')
+        # plt.legend(fontsize=FONTSIZE, frameon=False)
+        ax.set_xlabel('Models', fontsize=FONTSIZE)
+        ax.set_ylim(0, 0.7)
+        ax.set_ylabel('Exceedance probability', fontsize=FONTSIZE) 
+        plt.xticks(ticks=np.arange(len(models)), labels=models, fontsize=FONTSIZE-5.5)#, rotation=45)
+        plt.yticks(fontsize=FONTSIZE-2)
+    
+    ax.set_title(f'{task_name}', fontsize=FONTSIZE-5)
+    sns.despine()
+    f.tight_layout()
+    f.savefig(f'{SYS_PATH}/categorisation/figures/exceedance_probability_{task_name}.svg', bbox_inches='tight', dpi=300)
+    plt.show()

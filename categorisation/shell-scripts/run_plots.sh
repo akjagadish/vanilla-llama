@@ -12,6 +12,7 @@ cd ~/vanilla-llama/categorisation/
 
 module purge
 module load anaconda/3/2023.03
+pip install groupBMC==1.0
 export OMP_NUM_THREADS=${SLURM_CPUS_PER_TASK}
 
 python generate_plots.py

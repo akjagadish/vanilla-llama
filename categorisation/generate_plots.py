@@ -125,11 +125,11 @@ from plots import plot_data_stats_synthetic
 # plot_trial_by_trial_performance(df, burn_in, min_trials-burn_in, min_trials)
 
 #---------------------------
-from plots import model_comparison_badham2017, gcm_pm_fitted_simulations, model_comparison_devraj2022, simulate_shepard1961, model_comparison_johanssen2002
+from plots import model_comparison_badham2017, model_simulations_smith1998, model_comparison_devraj2022, simulate_shepard1961, model_comparison_johanssen2002
 
-model_comparison_badham2017()
-# gcm_pm_fitted_simulations()
-model_comparison_devraj2022()
+# model_comparison_badham2017()
+model_simulations_smith1998()
+# model_comparison_devraj2022()
 # model_comparison_johanssen2002()
 # models = ['humans',\
 #           'env=claude_generated_tasks_paramsNA_dim3_data100_tasks11518_pversion4_model=transformer_num_episodes500000_num_hidden=256_lr0.0003_num_layers=6_d_model=64_num_head=8_noise0.0_shuffleTrue_run=3',\

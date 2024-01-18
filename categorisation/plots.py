@@ -1411,37 +1411,63 @@ def model_comparison_devraj2022(FIGSIZE=(6,5)):
     posterior_model_frequency(np.array(bics), MODELS, task_name=task_name)
     exceedance_probability(np.array(bics), MODELS, task_name=task_name)
 
-def gcm_pm_fitted_simulations():
+def model_simulations_smith1998():
 
-    models = ['human', 'ermi', 'synthetic',]# 'syntheticnonlinear']
+    models = ['smith1998', 'ermi', 'synthetic',]# 'human', 'syntheticnonlinear']
     f, ax = plt.subplots(1, len(models), figsize=(5*len(models),5))
     colors = ['#173b4f', '#37761e']
+    num_blocks = None
     for idx, model in enumerate(models):
-        fits_gcm = np.load(f'{SYS_PATH}/categorisation/data/fitted_simulation/devraj2022_gcm_runs=1_iters=10_blocks=11_loss=mse_transfer_model={model}.npz')
-        fits_pm = np.load(f'{SYS_PATH}/categorisation/data/fitted_simulation/devraj2022_pm_runs=1_iters=10_blocks=11_loss=mse_transfer_model={model}.npz')
+        if model=='smith1998':
+       
+            with open(f'{SYS_PATH}/categorisation/data/human/{model}.json') as file:
+                human_data = json.load(file)
 
-        # load mses
-        mses_gcm = fits_gcm['lls']
-        mses_pm = fits_pm['lls']
-        # mean mses across participants: mses are of shape (n_runs=1, n_participants, n_conditions=1, n_blocks)
-        mses_gcm = np.squeeze(mses_gcm)
-        mses_pm = np.squeeze(mses_pm)
-        # std error of mean across participants
-        stds_gcm = np.std(mses_gcm, axis=0)/np.sqrt(len(mses_gcm)-1)
-        stds_pm = np.std(mses_pm, axis=0)/np.sqrt(len(mses_pm)-1)
+            # human data procesing
+            fits_gcm, fits_pm = {}, {}
+            mses_gcm = np.array(human_data['exemplar']['y'])
+            mses_pm = np.array(human_data['prototype']['y'])
+            # std error of mean across participants set to 0.
+            stds_gcm = np.zeros_like(mses_gcm)
+            stds_pm = np.zeros_like(mses_pm)
+            # unsquezze to add a dimension for participants
+            mses_gcm = np.expand_dims(mses_gcm, axis=0)
+            mses_pm = np.expand_dims(mses_pm, axis=0)
+    
+        else:
+
+            fits_gcm = np.load(f'{SYS_PATH}/categorisation/data/fitted_simulation/devraj2022_gcm_runs=1_iters=10_blocks=11_loss=mse_transfer_model={model}.npz')
+            fits_pm = np.load(f'{SYS_PATH}/categorisation/data/fitted_simulation/devraj2022_pm_runs=1_iters=10_blocks=11_loss=mse_transfer_model={model}.npz')
+
+            # load mses
+            mses_gcm = fits_gcm['lls']
+            mses_pm = fits_pm['lls']
+            # mean mses across participants: mses are of shape (n_runs=1, n_participants, n_conditions=1, n_blocks)
+            mses_gcm = np.squeeze(mses_gcm)
+            mses_pm = np.squeeze(mses_pm)
+            # std error of mean across participants
+            stds_gcm = np.std(mses_gcm, axis=0)/np.sqrt(len(mses_gcm)-1)
+            stds_pm = np.std(mses_pm, axis=0)/np.sqrt(len(mses_pm)-1)
+             
+        # keep only the first num_blocks (useful when using smith1998 data)
+        num_blocks = 10 if 'smith1998' in models else 11
+        mses_gcm = mses_gcm[:, :num_blocks]
+        mses_pm = mses_pm[:, :num_blocks]
+        stds_gcm = stds_gcm[:num_blocks]
+        stds_pm = stds_pm[:num_blocks]
 
         # plot mean mses across participants for each trial segment for both models
-        sns.lineplot(x=np.arange(11)+1, y=np.mean(mses_pm, axis=0), ax=ax[idx], color=colors[0], label='PM')
-        sns.lineplot(x=np.arange(11)+1, y=np.mean(mses_gcm, axis=0), ax=ax[idx], color=colors[1], label='GCM')
+        sns.lineplot(x=np.arange(mses_pm.shape[1])+1, y=np.mean(mses_pm, axis=0), ax=ax[idx], color=colors[0], label='PM')
+        sns.lineplot(x=np.arange(mses_pm.shape[1])+1, y=np.mean(mses_gcm, axis=0), ax=ax[idx], color=colors[1], label='GCM')
         # add standard error of mean as error bars
-        ax[idx].fill_between(np.arange(11)+1, np.mean(mses_pm, axis=0)-stds_pm, np.mean(mses_pm, axis=0)+stds_pm, alpha=0.2, color=colors[0])
-        ax[idx].fill_between(np.arange(11)+1, np.mean(mses_gcm, axis=0)-stds_gcm, np.mean(mses_gcm, axis=0)+stds_gcm, alpha=0.2, color=colors[1])
+        ax[idx].fill_between(np.arange(mses_pm.shape[1])+1, np.mean(mses_pm, axis=0)-stds_pm, np.mean(mses_pm, axis=0)+stds_pm, alpha=0.2, color=colors[0])
+        ax[idx].fill_between(np.arange(mses_pm.shape[1])+1, np.mean(mses_gcm, axis=0)-stds_gcm, np.mean(mses_gcm, axis=0)+stds_gcm, alpha=0.2, color=colors[1])
         ax[idx].set_xlabel('Trial segment', fontsize=FONTSIZE)
         ax[idx].set_ylim([0, 1.])
-        ax[idx].set_xticks(np.arange(11)+1)
+        ax[idx].set_xticks(np.arange(mses_pm.shape[1])+1)
         # set y ticks font size
         ax[idx].tick_params(axis='y', labelsize=FONTSIZE-2)
-        ax[idx].set_xticklabels(np.arange(11)+1,fontsize=FONTSIZE-2)
+        ax[idx].set_xticklabels(np.arange(mses_pm.shape[1])+1,fontsize=FONTSIZE-2)
         if idx==0:
             ax[idx].set_ylabel('Error', fontsize=FONTSIZE)
             # remove bounding box around the legend
@@ -1453,7 +1479,7 @@ def gcm_pm_fitted_simulations():
     sns.despine()
     f.tight_layout()
     plt.show()
-    f.savefig(f'{SYS_PATH}/categorisation/figures/gcm_pm_fitted_simulations.svg', bbox_inches='tight', dpi=300)
+    f.savefig(f'{SYS_PATH}/categorisation/figures/model_simulations_smith1998.svg', bbox_inches='tight', dpi=300)
 
 def simulate_shepard1961(models=None, tasks=np.arange(1,7), betas=None, num_runs=5, num_trials=96, num_blocks=1, batch_size=64):
 

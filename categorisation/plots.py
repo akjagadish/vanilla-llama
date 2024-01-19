@@ -1481,23 +1481,41 @@ def model_simulations_smith1998():
     plt.show()
     f.savefig(f'{SYS_PATH}/categorisation/figures/model_simulations_smith1998.svg', bbox_inches='tight', dpi=300)
 
-def simulate_shepard1961(models=None, tasks=np.arange(1,7), betas=None, num_runs=5, num_trials=96, num_blocks=1, batch_size=64):
+def model_simulations_shepard1961(tasks=np.arange(1,7), batch_size=64):
 
+    models = ['humans',\
+              'env=claude_generated_tasks_paramsNA_dim3_data100_tasks11518_pversion4_model=transformer_num_episodes500000_num_hidden=256_lr0.0003_num_layers=6_d_model=64_num_head=8_noise0.0_shuffleTrue_run=0',
+              'env=dim3synthetic_model=transformer_num_episodes500000_num_hidden=256_lr0.0003_num_layers=6_d_model=64_num_head=8_noise0.0_shuffleTrue_run=0_synthetic',\
+             #'env=rmc_tasks_dim3_data100_tasks11499_model=transformer_num_episodes500000_num_hidden=256_lr0.0003_num_layers=6_d_model=64_num_head=8_noise0.0_shuffleTrue_run=1_rmc',
+             #'env=dim3synthetic_model=transformer_num_episodes500000_num_hidden=256_lr0.0003_num_layers=6_d_model=64_num_head=8_noise0.0_shuffleTrue_run=0_synthetic_nonlinear',\
+          ]
+    num_blocks = 15 # 16
+    num_trials_per_block = 16
+    num_trials = num_blocks*num_trials_per_block
+    num_runs = 1
+    betas = []
+    for model in models:
+        if model == 'humans':
+            betas.append(None)
+        else:
+            model_name = 'ermi' if 'claude' in models[1] else 'rmc' if 'rmc' in models[1] else 'pfn' if 'syntheticnonlinear' in models[1] else 'mi'
+            mse_distances, beta_range = np.load(f'{SYS_PATH}/categorisation/data/fitted_simulation/shepard1961_{model_name}_num_runs={num_runs}_num_blocks={num_blocks}_num_trials_per_block={num_trials_per_block}.npy', allow_pickle=True)
+            betas.append(beta_range[np.argmin(mse_distances)])
+
+    #betas = [None, 1, 1, ]
     corrects = np.ones((len(models), len(tasks), batch_size, num_trials))
     assert len(models)==len(betas), "Number of models and betas should be the same"
     for m_idx, (model_name, beta) in enumerate(zip(models, betas)):
         if model_name != 'humans':
             for t_idx, task in enumerate(tasks):
                 model_path = f"/u/ajagadish/vanilla-llama/categorisation/trained_models/{model_name}.pt"
-                corrects[m_idx, t_idx] = evaluate_metalearner(task, model_path, 'shepard_categorisation', beta=beta, shuffle_trials=True, num_trials=num_trials, num_runs=num_runs)
-            
-    # models = ['human', 1, 2]
-    # corrects = np.random.rand(3, 6, 64, 256)
-    # model_name = 'test'
-
+                corrects[m_idx, t_idx] = evaluate_metalearner(task, model_path, 'shepard_categorisation', beta=beta, shuffle_trials=True, num_trials=num_trials, num_runs=num_runs)      
     # compuate error rates across trials using corrects
     errors = 1. - corrects.mean(2)
 
+    # load json file containing the data
+    with open(f'{SYS_PATH}/categorisation/data/human/nosofsky1994.json') as json_file:
+        data = json.load(json_file)
 
     # compare the error rate over trials between different tasks meaned over noise levels, shuffles and shuffle_evals
     f, axes = plt.subplots(1, len(models), figsize=(6*len(models), 5))
@@ -1508,14 +1526,11 @@ def simulate_shepard1961(models=None, tasks=np.arange(1,7), betas=None, num_runs
     for idx, ax in enumerate(axes):
 
         if models[idx]=='humans':
-            # load json file containing the data
-            with open('/u/ajagadish/vanilla-llama/categorisation/data/human/nosofsky1994.json') as json_file:
-                data = json.load(json_file)
             for i, rule in enumerate(data.keys()):
-                ax.plot(np.arange(len(data[rule]['y']))+1, data[rule]['y'], label=f'Type {i+1}', lw=3, color=colors[i], marker=markers[i], markersize=8)
+                ax.plot(np.arange(len(data[rule]['y'][:num_blocks]))+1, data[rule]['y'][:num_blocks], label=f'Type {i+1}', lw=3, color=colors[i], marker=markers[i], markersize=8)
         else:
             for t_idx, task in enumerate(tasks):
-                block_errors = np.stack(np.split(errors[idx, t_idx], num_blocks)).mean(1)
+                block_errors = np.stack(np.split(errors[idx, t_idx], num_blocks)).mean(1)                
                 ax.plot(np.arange(1, num_blocks+1), block_errors, label=f'Type {task}', lw=3, color=colors[t_idx], marker=markers[t_idx], markersize=8)
 
         ax.set_xticks(np.arange(1, num_blocks+1))
@@ -1526,7 +1541,7 @@ def simulate_shepard1961(models=None, tasks=np.arange(1,7), betas=None, num_runs
         locs, labels = ax.get_xticks(), ax.get_xticklabels()
         # Set new x-tick locations and labels
         ax.set_xticks(locs[::2])
-        ax.set_xticklabels(np.arange(1, num_blocks+1)[::2]+1, fontsize=FONTSIZE-2)
+        ax.set_xticklabels(np.arange(1, num_blocks+1)[::2], fontsize=FONTSIZE-2)
         ax.tick_params(axis='y', labelsize=FONTSIZE-2)
 
     # add legend that spans across all subplots, in one row, at the center for the subplots, and place it outside the plot 
@@ -1535,7 +1550,36 @@ def simulate_shepard1961(models=None, tasks=np.arange(1,7), betas=None, num_runs
     sns.despine()
     f.tight_layout()
     plt.show()
-    f.savefig(f'{SYS_PATH}/categorisation/figures/shepard1961_comparison.svg', bbox_inches='tight', dpi=300)
+    f.savefig(f'{SYS_PATH}/categorisation/figures/model_simulations_shepard1961.svg', bbox_inches='tight', dpi=300)
+    
+
+def simulate_shepard1961(models=None, tasks=np.arange(1,7), betas=None, num_runs=5, num_trials=96, num_blocks=1, batch_size=64):
+
+    corrects = np.ones((len(models), len(tasks), batch_size, num_trials))
+    assert len(models)==len(betas), "Number of models and betas should be the same"
+    for m_idx, (model_name, beta) in enumerate(zip(models, betas)):
+        if model_name != 'humans':
+            for t_idx, task in enumerate(tasks):
+                model_path = f"/u/ajagadish/vanilla-llama/categorisation/trained_models/{model_name}.pt"
+                corrects[m_idx, t_idx] = evaluate_metalearner(task, model_path, 'shepard_categorisation', beta=beta, shuffle_trials=True, num_trials=num_trials, num_runs=num_runs)
+            
+    # compuate error rates across trials using corrects
+    errors = 1. - corrects.mean(2)
+
+    # load json file containing the data
+    with open(f'{SYS_PATH}/categorisation/data/human/nosofsky1994.json') as json_file:
+        data = json.load(json_file)
+
+    mse_distance = np.zeros((len(models),))
+
+    for idx in np.arange(len(models)):
+        for t_idx, rule in enumerate(data.keys()):
+            block_errors = np.stack(np.split(errors[idx, t_idx], num_blocks)).mean(1)
+            human_block_error = data[rule]['y'][:num_blocks]
+            # compute mse between human and model error rates for a model summed across tasks
+            mse_distance[idx] += np.mean((block_errors-human_block_error)**2)
+            
+    return mse_distance
 
 def model_comparison_johanssen2002():
     # choose  params for ermi simulations

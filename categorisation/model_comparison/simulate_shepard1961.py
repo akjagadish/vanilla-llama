@@ -8,10 +8,10 @@ sys.path.append(f'{SYS_PATH}/categorisation/data')
 sys.path.append(f'{SYS_PATH}/categorisation/rl2')
 from plots import simulate_shepard1961
 
-def compute_distance_between_model_and_humans(models):
+def compute_mse(models):
     num_blocks = 15 # 16
     num_trials_per_block = 16
-    num_runs = 1
+    num_runs = 50
     min_mse_distance = np.inf
     mse_distances = []
     beta_range = np.arange(0., 1.0, 0.1)
@@ -30,22 +30,26 @@ def compute_distance_between_model_and_humans(models):
 
 if __name__ == '__main__':
 
-    models = ['humans',\
-          'env=dim3synthetic_model=transformer_num_episodes500000_num_hidden=256_lr0.0003_num_layers=6_d_model=64_num_head=8_noise0.0_shuffleTrue_run=0_synthetic',\
-          ]
-    compute_distance_between_model_and_humans(models)
+      # humans and MI
+      models = ['humans',\
+            'env=dim3synthetic_model=transformer_num_episodes500000_num_hidden=256_lr0.0003_num_layers=6_d_model=64_num_head=8_noise0.0_shuffleTrue_run=0_synthetic',\
+            ]
+      compute_mse(models)
 
-    models = ['humans',\
-          'env=claude_generated_tasks_paramsNA_dim3_data100_tasks11518_pversion4_model=transformer_num_episodes500000_num_hidden=256_lr0.0003_num_layers=6_d_model=64_num_head=8_noise0.0_shuffleTrue_run=0',
-          ]
-    compute_distance_between_model_and_humans(models)
+      # humans and ERMI
+      models = ['humans',\
+            'env=claude_generated_tasks_paramsNA_dim3_data100_tasks11518_pversion4_model=transformer_num_episodes500000_num_hidden=256_lr0.0003_num_layers=6_d_model=64_num_head=8_noise0.0_shuffleTrue_run=0',
+            ]
+      compute_mse(models)
 
-    models = ['humans',\
-          'env=rmc_tasks_dim3_data100_tasks11499_model=transformer_num_episodes500000_num_hidden=256_lr0.0003_num_layers=6_d_model=64_num_head=8_noise0.0_shuffleTrue_run=1_rmc',
-          ]
-    compute_distance_between_model_and_humans(models)
+      # humans and RMC
+      models = ['humans',\
+            'env=rmc_tasks_dim3_data100_tasks11499_model=transformer_num_episodes500000_num_hidden=256_lr0.0003_num_layers=6_d_model=64_num_head=8_noise0.0_shuffleTrue_run=1_rmc',
+            ]
+      compute_mse(models)
 
-    models = ['humans',\
-          'env=dim3synthetic_model=transformer_num_episodes500000_num_hidden=256_lr0.0003_num_layers=6_d_model=64_num_head=8_noise0.0_shuffleTrue_run=0_syntheticnonlinear',\
-          ]
-    compute_distance_between_model_and_humans(models)
+      # humans and PFN
+      models = ['humans',\
+            'env=dim3synthetic_model=transformer_num_episodes500000_num_hidden=256_lr0.0003_num_layers=6_d_model=64_num_head=8_noise0.0_shuffleTrue_run=0_syntheticnonlinear',\
+            ]
+      compute_mse(models)

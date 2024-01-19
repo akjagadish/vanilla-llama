@@ -125,19 +125,10 @@ from plots import plot_data_stats_synthetic
 # plot_trial_by_trial_performance(df, burn_in, min_trials-burn_in, min_trials)
 
 #---------------------------
-from plots import model_comparison_badham2017, model_simulations_smith1998, model_comparison_devraj2022, simulate_shepard1961, model_comparison_johanssen2002
+from plots import model_comparison_badham2017, model_simulations_smith1998, model_simulations_shepard1961, model_comparison_devraj2022, simulate_shepard1961, model_comparison_johanssen2002
 
 # model_comparison_badham2017()
-model_simulations_smith1998()
+# model_simulations_smith1998()
 # model_comparison_devraj2022()
+model_simulations_shepard1961()
 # model_comparison_johanssen2002()
-# models = ['humans',\
-#           'env=claude_generated_tasks_paramsNA_dim3_data100_tasks11518_pversion4_model=transformer_num_episodes500000_num_hidden=256_lr0.0003_num_layers=6_d_model=64_num_head=8_noise0.0_shuffleTrue_run=3',\
-#           'env=dim3synthetic_model=transformer_num_episodes500000_num_hidden=256_lr0.0003_num_layers=6_d_model=64_num_head=8_noise0.0_shuffleTrue_run=0_synthetic',\
-#           #'env=rmc_tasks_dim3_data100_tasks11499_model=transformer_num_episodes500000_num_hidden=256_lr0.0003_num_layers=6_d_model=64_num_head=8_noise0.0_shuffleTrue_run=1_rmc',
-#           ]
-# betas = [None, 0.1503, 0.1314] #ermi: 0.1856 (run1); ermi: 0.150285 (run3) rmc: 0.6340 mi: 0.1314
-# num_trials_per_block = 16
-# num_blocks = 16
-# num_runs = 50
-# simulate_shepard1961(models=models, betas=betas, num_runs=num_runs, num_blocks=num_blocks, num_trials=num_trials_per_block*num_blocks)

@@ -1492,7 +1492,7 @@ def model_simulations_shepard1961(tasks=np.arange(1,7), batch_size=64):
     num_blocks = 15 # 16
     num_trials_per_block = 16
     num_trials = num_blocks*num_trials_per_block
-    num_runs = 1
+    num_runs = 50
     betas = []
     for model in models:
         if model == 'humans':
@@ -1545,7 +1545,7 @@ def model_simulations_shepard1961(tasks=np.arange(1,7), batch_size=64):
         ax.tick_params(axis='y', labelsize=FONTSIZE-2)
 
     # add legend that spans across all subplots, in one row, at the center for the subplots, and place it outside the plot 
-    f.legend(loc='upper center', bbox_to_anchor=(0.5, 1.1), ncol=6, fontsize=FONTSIZE-2, frameon=False, labels=[f'Type {task}' for task in tasks])
+    f.legend(loc='upper center', bbox_to_anchor=(0.5, 1.1), ncol=6, fontsize=FONTSIZE-2, frameon=False, labels=[f'TYPE {task}' for task in tasks])
     #axes[int(len(models)/2)].legend(fontsize=FONTSIZE-4, frameon=False,  loc="upper center", bbox_to_anchor=(.5, 1.2), ncol=6)  # place legend outside the plot
     sns.despine()
     f.tight_layout()

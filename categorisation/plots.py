@@ -1848,3 +1848,143 @@ def exceedance_probability(bics, models, horizontal=False, FIGSIZE=(5,5), task_n
     f.tight_layout()
     f.savefig(f'{SYS_PATH}/categorisation/figures/exceedance_probability_{task_name}.svg', bbox_inches='tight', dpi=300)
     plt.show()
+
+def plot_dataset_statistics(mode=0):
+
+    from sklearn.preprocessing import PolynomialFeatures
+    import statsmodels.api as sm
+    if mode == 0:
+        env_name = f'{SYS_PATH}/categorisation/data/claude_generated_tasks_paramsNA_dim4_data650_tasks8950_pversion5_stage1'
+        color_stats = '#173b4f'
+    elif mode == 1:
+        env_name = f'{SYS_PATH}/categorisation/data/linear_data'
+        color_stats = '#5d7684'
+    elif mode == 2:
+        env_name = f'{SYS_PATH}/categorisation/data/real_data'
+        color_stats = '#8b9da7'
+
+    def gini_compute(x):
+        mad = np.abs(np.subtract.outer(x, x)).mean()
+        rmad = mad/np.mean(x)
+        return 0.5 * rmad
+
+    def return_data_stats(data, poly_degree=2):
+
+        df = data.copy()
+        max_tasks = 400
+        max_trial = 50
+        all_corr, all_bics_linear, all_bics_quadratic, gini_coeff, all_accuraries_linear, all_accuraries_polynomial = [], [], [], [], [], []
+        for i in range(0, max_tasks):
+            df_task = df[df['task_id'] == i]
+            if len(df_task) > 50: # arbitary data size threshold
+                y = df_task['target'].to_numpy()
+                y = np.unique(y, return_inverse=True)[1]
+
+                X = df_task["input"].to_numpy()
+                X = np.stack(X)
+                X = (X - X.min())/(X.max() - X.min())
+
+                all_corr.append(np.corrcoef(X[:, 0], X[:, 1])[0, 1])
+                all_corr.append(np.corrcoef(X[:, 0], X[:, 2])[0, 1])
+                all_corr.append(np.corrcoef(X[:, 1], X[:, 2])[0, 1])
+
+
+                if (y == 0).all() or (y == 1).all():
+                    pass
+                else:
+                    X_linear = PolynomialFeatures(1).fit_transform(X)
+                    log_reg = sm.Logit(y, X_linear).fit(method='bfgs', maxiter=10000, disp=0)
+
+                    gini = gini_compute(np.abs(log_reg.params[1:]))
+                    gini_coeff.append(gini)
+
+                    X_poly = PolynomialFeatures(poly_degree).fit_transform(X)
+                    log_reg_quadratic = sm.Logit(y, X_poly).fit(method='bfgs', maxiter=10000, disp=0)
+
+                    all_bics_linear.append(log_reg.bic)
+                    all_bics_quadratic.append(log_reg_quadratic.bic)
+
+                    if X.shape[0] < max_trial:
+                        pass
+                    else:
+                        task_accuraries_linear = []
+                        task_accuraries_polynomial = []
+                        for trial in range(max_trial):
+                            X_linear_uptotrial = X_linear[:trial]
+                            #X_poly_uptotrial = X_poly[:trial]
+                            y_uptotrial = y[:trial]
+
+                            if (y_uptotrial == 0).all() or (y_uptotrial == 1).all() or trial == 0:
+                                task_accuraries_linear.append(0.5)
+                                #task_accuraries_polynomial.append(0.5)
+                            else:
+                                log_reg = sm.Logit(y_uptotrial, X_linear_uptotrial).fit(method='bfgs', maxiter=10000, disp=0)
+                                #log_reg_quadratic = sm.Logit(y_uptotrial, X_poly_uptotrial).fit(method='bfgs', maxiter=10000, disp=0)
+
+                                y_linear_trial = log_reg.predict(X_linear[trial])
+                                #y_poly_trial = log_reg_quadratic.predict(X_poly[trial])
+
+                                task_accuraries_linear.append(float((y_linear_trial.round() == y[trial]).item()))
+                                #task_accuraries_polynomial.append(float((y_poly_trial.round() == y[trial]).item()))
+
+                    all_accuraries_linear.append(task_accuraries_linear)
+                    #all_accuraries_polynomial.append(task_accuraries_polynomial)
+        all_accuraries_linear = np.array(all_accuraries_linear).mean(0)
+        #all_accuraries_polynomial = np.array(all_accuraries_polynomial).mean(0)
+
+        logprobs = torch.from_numpy(-0.5 * np.stack((all_bics_linear, all_bics_quadratic), -1))
+        joint_logprob = logprobs + torch.log(torch.ones([]) /logprobs.shape[1])
+        marginal_logprob = torch.logsumexp(joint_logprob, dim=1, keepdim=True)
+        posterior_logprob = joint_logprob - marginal_logprob
+
+        return all_corr, gini_coeff, posterior_logprob, all_accuraries_linear, all_accuraries_polynomial
+
+
+    all_corr, gini_coeff, posterior_logprob, all_accuraries_linear, all_accuraries_polynomial = return_data_stats(data)
+
+    gini_coeff = np.array(gini_coeff)
+    gini_coeff = gini_coeff[~np.isnan(gini_coeff)]
+    bin_max = np.max(gini_coeff)
+
+    posterior_logprob = posterior_logprob[:, 0].exp().detach().numpy()
+
+    FONTSIZE=8
+
+    fig, axs = plt.subplots(1, 4,  figsize=(6.75, 1.5))
+    axs[0].plot(all_accuraries_linear, color=color_stats, alpha=0.7)
+    #axs[0].plot(all_accuraries_polynomial, alpha=0.7)
+    sns.histplot(np.array(all_corr), ax=axs[1], bins=11, binrange=(-1., 1.), stat='probability', edgecolor='w', linewidth=1, color=color_stats, alpha=0.7)
+    sns.histplot(gini_coeff, ax=axs[2], bins=11, binrange=(0, bin_max), stat='probability', edgecolor='w', linewidth=1, color=color_stats, alpha=0.7)
+    sns.histplot(posterior_logprob, ax=axs[3], bins=5, binrange=(0.0, 1.), stat='probability', edgecolor='w', linewidth=1, color=color_stats, alpha=0.7)
+    axs[1].set_xlim(-1, 1)
+
+    axs[0].set_ylim(0.45, 1.05)
+    axs[1].set_ylim(0, 0.4)
+    axs[2].set_xlim(0., 0.76)
+    axs[3].set_xlim(0., 1.05)
+
+    axs[0].set_yticks(np.arange(0.5, 1.05, 0.25))
+    axs[1].set_yticks(np.arange(0, 0.45, 0.2))
+    axs[2].set_yticks(np.arange(0, 0.4, 0.1))
+    axs[3].set_yticks(np.arange(0, 1.05, 0.2))
+
+    # set tick size
+    axs[0].tick_params(axis='both', which='major', labelsize=FONTSIZE-2)
+    axs[1].tick_params(axis='both', which='major', labelsize=FONTSIZE-2)
+    axs[2].tick_params(axis='both', which='major', labelsize=FONTSIZE-2)
+    axs[3].tick_params(axis='both', which='major', labelsize=FONTSIZE-2)
+
+    axs[0].set_ylabel('Percentage', fontsize=FONTSIZE)
+    axs[1].set_ylabel('')
+    axs[2].set_ylabel('')
+    axs[3].set_ylabel('')
+
+    axs[0].set_xlabel('Performance (accuracy)', fontsize=FONTSIZE)
+    axs[1].set_xlabel('Input correlation', fontsize=FONTSIZE)
+    axs[2].set_xlabel('Sparsity', fontsize=FONTSIZE)
+    axs[3].set_xlabel('Linearity', fontsize=FONTSIZE)
+
+    plt.tight_layout()
+    sns.despine()
+    plt.savefig(f'{SYS_PATH}/categorisation/figures/stats_' + str(mode) + '.pdf', bbox_inches='tight')
+    plt.show()

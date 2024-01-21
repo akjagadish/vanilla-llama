@@ -1481,8 +1481,72 @@ def model_simulations_smith1998():
     plt.show()
     f.savefig(f'{SYS_PATH}/categorisation/figures/model_simulations_smith1998.svg', bbox_inches='tight', dpi=300)
 
-def model_simulations_shepard1961(tasks=np.arange(1,7), batch_size=64):
+def model_simulations_shepard1961(models=None, tasks=np.arange(1,7)):
 
+    models = ['humans',\
+              'env=claude_generated_tasks_paramsNA_dim3_data100_tasks11518_pversion4_model=transformer_num_episodes500000_num_hidden=256_lr0.0003_num_layers=6_d_model=64_num_head=8_noise0.0_shuffleTrue_run=0',
+              'env=dim3synthetic_model=transformer_num_episodes500000_num_hidden=256_lr0.0003_num_layers=6_d_model=64_num_head=8_noise0.0_shuffleTrue_run=0_synthetic',\
+              #'env=rmc_tasks_dim3_data100_tasks11499_model=transformer_num_episodes500000_num_hidden=256_lr0.0003_num_layers=6_d_model=64_num_head=8_noise0.0_shuffleTrue_run=1_rmc',
+              #'env=dim3synthetic_model=transformer_num_episodes500000_num_hidden=256_lr0.0003_num_layers=6_d_model=64_num_head=8_noise0.0_shuffleTrue_run=0_synthetic_nonlinear',\
+          ] if models is None else models
+    num_blocks = 15 # 16 blocks doesn't work for current ERMI model
+    num_trials_per_block = 16
+    num_runs = 50
+    betas = []
+    errors = np.ones((len(models), len(tasks), num_blocks))
+    for m_idx, model in enumerate(models):
+        if model == 'humans':
+            betas.append(None)
+        else:
+            model_name = 'ermi' if 'claude' in models[m_idx] else 'rmc' if 'rmc' in models[m_idx] else 'pfn' if 'syntheticnonlinear' in models[m_idx] else 'mi'
+            mse_distances, beta_range = np.load(f'{SYS_PATH}/categorisation/data/fitted_simulation/shepard1961_{model_name}_num_runs={num_runs}_num_blocks={num_blocks}_num_trials_per_block={num_trials_per_block}.npy', allow_pickle=True)
+            block_errors = np.load(f'{SYS_PATH}/categorisation/data/fitted_simulation/shepard1961_{model_name}_num_runs={num_runs}_num_blocks={num_blocks}_num_trials_per_block={num_trials_per_block}_block_errors.npy', allow_pickle=True)
+            betas.append(beta_range[np.argmin(mse_distances)])
+            # the block errors contain distance between humans and another model hence consider only idx==1
+            errors[m_idx] = block_errors[np.argmin(mse_distances), 1]
+    
+    assert len(models)==len(betas), "Number of models and betas should be the same"
+    # load json file containing the human data
+    with open(f'{SYS_PATH}/categorisation/data/human/nosofsky1994.json') as json_file:
+        data = json.load(json_file)
+
+    # compare the error rate over trials between different tasks meaned over noise levels, shuffles and shuffle_evals
+    f, axes = plt.subplots(1, len(models), figsize=(6*len(models), 5))
+    colors = ['#E0E1DD', '#B6B9B9', '#8C9295', '#616A72','#37434E','#0D1B2A']
+    # markers for the six types of rules in the plot: circle, cross, plus, inverted triangle, asterisk, triangle
+    markers = ['o', 'x', '+', '*', 'v', '^']
+
+    for idx, ax in enumerate(axes):
+
+        if models[idx]=='humans':
+            assert idx==0, "Humans should be the first model"
+            for i, rule in enumerate(data.keys()):
+                ax.plot(np.arange(len(data[rule]['y'][:num_blocks]))+1, data[rule]['y'][:num_blocks], label=f'Type {i+1}', lw=3, color=colors[i], marker=markers[i], markersize=8)
+        else:
+            for t_idx, task in enumerate(tasks):
+                block_errors = errors[idx, t_idx]         
+                ax.plot(np.arange(1, num_blocks+1), block_errors, label=f'Type {task}', lw=3, color=colors[t_idx], marker=markers[t_idx], markersize=8)
+
+        ax.set_xticks(np.arange(1, num_blocks+1))
+        ax.set_xlabel('Block', fontsize=FONTSIZE)
+        if idx==0:
+            ax.set_ylabel('Error rate', fontsize=FONTSIZE)
+        ax.set_ylim([-0.01, .55])
+        locs, labels = ax.get_xticks(), ax.get_xticklabels()
+        # Set new x-tick locations and labels
+        ax.set_xticks(locs[::2])
+        ax.set_xticklabels(np.arange(1, num_blocks+1)[::2], fontsize=FONTSIZE-2)
+        ax.tick_params(axis='y', labelsize=FONTSIZE-2)
+
+    # add legend that spans across all subplots, in one row, at the center for the subplots, and place it outside the plot 
+    f.legend(loc='upper center', bbox_to_anchor=(0.5, 1.1), ncol=6, fontsize=FONTSIZE-2, frameon=False, labels=[f'TYPE {task}' for task in tasks])
+    sns.despine()
+    f.tight_layout()
+    plt.show()
+    f.savefig(f'{SYS_PATH}/categorisation/figures/model_simulations_shepard1961.svg', bbox_inches='tight', dpi=300)
+    
+def model_simulations_shepard1961_deprecated(tasks=np.arange(1,7), batch_size=64):
+    # deprecated version of model_simulations_shepard1961 where we rerun the model for given number of runs using the fitted beta
     models = ['humans',\
               'env=claude_generated_tasks_paramsNA_dim3_data100_tasks11518_pversion4_model=transformer_num_episodes500000_num_hidden=256_lr0.0003_num_layers=6_d_model=64_num_head=8_noise0.0_shuffleTrue_run=0',
               'env=dim3synthetic_model=transformer_num_episodes500000_num_hidden=256_lr0.0003_num_layers=6_d_model=64_num_head=8_noise0.0_shuffleTrue_run=0_synthetic',\

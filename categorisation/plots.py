@@ -32,7 +32,7 @@ COLORS = {'a':'#117733',
           'people2': '#748995',
           'metal2': '#173b4f'
           }
-FONTSIZE=20
+FONTSIZE=22
 
 SYS_PATH = '/u/ajagadish/vanilla-llama' #f'/raven/u/ajagadish/vanilla-llama
 
@@ -1469,8 +1469,8 @@ def model_simulations_smith1998():
         stds_pm = stds_pm[:num_blocks]
 
         # plot mean mses across participants for each trial segment for both models
-        sns.lineplot(x=np.arange(mses_pm.shape[1])+1, y=np.mean(mses_pm, axis=0), ax=ax[idx], color=colors[0], label='PM')
-        sns.lineplot(x=np.arange(mses_pm.shape[1])+1, y=np.mean(mses_gcm, axis=0), ax=ax[idx], color=colors[1], label='GCM')
+        sns.lineplot(x=np.arange(mses_pm.shape[1])+1, y=np.mean(mses_pm, axis=0), ax=ax[idx], color=colors[0], label='Protype-based', lw=3)
+        sns.lineplot(x=np.arange(mses_pm.shape[1])+1, y=np.mean(mses_gcm, axis=0), ax=ax[idx], color=colors[1], label='Exemplar-based', lw=3)
         # add standard error of mean as error bars
         ax[idx].fill_between(np.arange(mses_pm.shape[1])+1, np.mean(mses_pm, axis=0)-stds_pm, np.mean(mses_pm, axis=0)+stds_pm, alpha=0.2, color=colors[0])
         ax[idx].fill_between(np.arange(mses_pm.shape[1])+1, np.mean(mses_gcm, axis=0)-stds_gcm, np.mean(mses_gcm, axis=0)+stds_gcm, alpha=0.2, color=colors[1])
@@ -1484,7 +1484,13 @@ def model_simulations_smith1998():
             ax[idx].set_ylabel('Error', fontsize=FONTSIZE)
             # remove bounding box around the legend
             ax[idx].legend(frameon=False, fontsize=FONTSIZE-2)
-        else:
+            ax[idx].set_title('Human', fontsize=FONTSIZE)
+        elif idx==1:
+            ax[idx].set_title('ERMI', fontsize=FONTSIZE)
+        elif idx==2:
+            ax[idx].set_title('MI', fontsize=FONTSIZE)
+        
+        if idx!=0:
             # remove legend
             ax[idx].legend([], frameon=False, fontsize=FONTSIZE-2)
         
@@ -1534,24 +1540,35 @@ def model_simulations_shepard1961(models=None, tasks=np.arange(1,7)):
             assert idx==0, "Humans should be the first model"
             for i, rule in enumerate(data.keys()):
                 ax.plot(np.arange(len(data[rule]['y'][:num_blocks]))+1, data[rule]['y'][:num_blocks], label=f'Type {i+1}', lw=3, color=colors[i], marker=markers[i], markersize=8)
+            if idx==0:
+                ax.set_title('Human', fontsize=FONTSIZE)
         else:
             for t_idx, task in enumerate(tasks):
                 block_errors = errors[idx, t_idx]         
                 ax.plot(np.arange(1, num_blocks+1), block_errors, label=f'Type {task}', lw=3, color=colors[t_idx], marker=markers[t_idx], markersize=8)
-
+            model_name = 'ermi' if 'claude' in models[idx] else 'rmc' if 'rmc' in models[idx] else 'pfn' if 'syntheticnonlinear' in models[idx] else 'mi'
+            if model_name=='ermi':
+                ax.set_title('ERMI', fontsize=FONTSIZE)
+            elif model_name =='rmc':
+                ax.set_title('RMC', fontsize=FONTSIZE)
+            elif model_name =='pfn':
+                ax.set_title('PFN', fontsize=FONTSIZE)
+            elif model_name =='mi':
+                ax.set_title('MI', fontsize=FONTSIZE)
+        
         ax.set_xticks(np.arange(1, num_blocks+1))
         ax.set_xlabel('Block', fontsize=FONTSIZE)
         if idx==0:
             ax.set_ylabel('Error rate', fontsize=FONTSIZE)
         ax.set_ylim([-0.01, .55])
-        locs, labels = ax.get_xticks(), ax.get_xticklabels()
+        # locs, labels = ax.get_xticks(), ax.get_xticklabels()
         # Set new x-tick locations and labels
-        ax.set_xticks(locs[::2])
+        ax.set_xticks(np.arange(1, num_blocks+1)[::2])
         ax.set_xticklabels(np.arange(1, num_blocks+1)[::2], fontsize=FONTSIZE-2)
-        ax.tick_params(axis='y', labelsize=FONTSIZE-2)
+        ax.tick_params(axis='y', labelsize=FONTSIZE-2)       
 
     # add legend that spans across all subplots, in one row, at the center for the subplots, and place it outside the plot 
-    f.legend(loc='upper center', bbox_to_anchor=(0.5, 1.1), ncol=6, fontsize=FONTSIZE-2, frameon=False, labels=[f'TYPE {task}' for task in tasks])
+    # f.legend(loc='upper center', bbox_to_anchor=(0.5, 1.1), ncol=6, fontsize=FONTSIZE-2, frameon=False, labels=[f'TYPE {task}' for task in tasks])
     sns.despine()
     f.tight_layout()
     plt.show()

@@ -1753,6 +1753,9 @@ def model_comparison_johanssen2002():
     ax[0].set_ylim([0, 1.0])
     ax[1].set_ylim([0, 1.0])
     ax[2].set_ylim([0, 1.0])
+    ax[0].set_title('Human', fontsize=FONTSIZE)
+    ax[1].set_title('ERMI', fontsize=FONTSIZE)
+    ax[2].set_title('MI', fontsize=FONTSIZE)
     # draw a horizontal line at y=0.5
     ax[0].axhline(y=0.5, linestyle='--', color='black')
     ax[1].axhline(y=0.5, linestyle='--', color='black')

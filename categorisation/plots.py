@@ -1187,7 +1187,7 @@ def model_comparison(list_models=None, task_name = 'smithstask'):
         sns.despine()
 
 def model_comparison_badham2017(FIGSIZE=(6,5)):
-    models = ['badham2017_env=claude_generated_tasks_paramsNA_dim3_data100_tasks11518_pversion4_model=transformer_num_episodes500000_num_hidden=256_lr0.0003_num_layers=6_d_model=64_num_head=8_noise0.0_shuffleTrue_run=3_soft_sigmoid_differential_evolution',\
+    models = ['badham2017_env=claude_generated_tasks_paramsNA_dim3_data100_tasks11518_pversion4_model=transformer_num_episodes500000_num_hidden=256_lr0.0003_num_layers=6_d_model=64_num_head=8_noise0.0_shuffleTrue_run=0_soft_sigmoid_differential_evolution',\
               'badham2017_env=rmc_tasks_dim3_data100_tasks11499_model=transformer_num_episodes500000_num_hidden=256_lr0.0003_num_layers=6_d_model=64_num_head=8_noise0.0_shuffleTrue_run=1_rmc_soft_sigmoid_differential_evolution',
               'badham2017_env=dim3synthetic_model=transformer_num_episodes500000_num_hidden=256_lr0.0003_num_layers=6_d_model=64_num_head=8_noise0.0_shuffleTrue_run=0_syntheticnonlinear_soft_sigmoid_differential_evolution',\
               'badham2017_env=dim3synthetic_model=transformer_num_episodes500000_num_hidden=256_lr0.0003_num_layers=6_d_model=64_num_head=8_noise0.0_shuffleTrue_run=0_synthetic_soft_sigmoid_differential_evolution',\
@@ -1241,7 +1241,13 @@ def model_comparison_badham2017(FIGSIZE=(6,5)):
     MODELS = MODELS[:len(nlls)]
     # set colors depending on number of models in MODELS
     colors = ['#173b4f', '#8b9da7', '#5d7684', '#2f4a5a', '#0d2c3d', '#4d6a75', '#748995', '#a2c0a9'][:len(nlls)]
-
+    # sort bics in ascending order
+    # bics = np.array(bics)
+    # bics = bics[np.argsort(bics.mean(1))]
+    # MODELS = np.array(MODELS)[np.argsort(bics.mean(1))]
+    # colors = np.array(colors)[np.argsort(bics.mean(1))]
+    # nlls = np.array(nlls)[np.argsort(bics.mean(1))]
+    # r2s = np.array(r2s)[np.argsort(bics.mean(1))]
 
     # compare mean nlls across models in a bar plot
     f, ax = plt.subplots(1, 1, figsize=FIGSIZE)
@@ -1297,8 +1303,8 @@ def model_comparison_badham2017(FIGSIZE=(6,5)):
     plt.show()   
 
     task_name = 'Badham et al. (2017)'
-    posterior_model_frequency(np.array(bics), MODELS, task_name=task_name)
-    exceedance_probability(np.array(bics), MODELS, task_name=task_name)
+    posterior_model_frequency(np.array(bics), MODELS, task_name=task_name, FIGSIZE=(7.5,5))
+    exceedance_probability(np.array(bics), MODELS, task_name=task_name, FIGSIZE=(7.5,5))
 
 def model_comparison_devraj2022(FIGSIZE=(6,5)):
     models = ['devraj2022_env=claude_generated_tasks_paramsNA_dim6_data500_tasks12910_pversion5_stage2_model=transformer_num_episodes500000_num_hidden=256_lr0.0003_num_layers=6_d_model=64_num_head=8_noise0.0_shuffleTrue_run=1_soft_sigmoid_differential_evolution', \
@@ -1352,7 +1358,13 @@ def model_comparison_devraj2022(FIGSIZE=(6,5)):
     MODELS = MODELS[:len(nlls)]
     # set colors depending on number of models in MODELS
     colors = ['#173b4f', '#8b9da7', '#5d7684', '#2f4a5a', '#0d2c3d', '#4d6a75', '#748995', '#a2c0a9'][:len(nlls)]
-
+    # sort bics in ascending order
+    # bics = np.array(bics)
+    # bics = bics[np.argsort(bics.mean(1))]
+    # MODELS = np.array(MODELS)[np.argsort(bics.mean(1))]
+    # colors = np.array(colors)[np.argsort(bics.mean(1))]
+    # nlls = np.array(nlls)[np.argsort(bics.mean(1))]
+    # r2s = np.array(r2s)[np.argsort(bics.mean(1))]
 
     # compare mean nlls across models in a bar plot
     f, ax = plt.subplots(1, 1, figsize=FIGSIZE)
@@ -1408,8 +1420,8 @@ def model_comparison_devraj2022(FIGSIZE=(6,5)):
     plt.show() 
 
     task_name = 'Devraj et al. (2022)'
-    posterior_model_frequency(np.array(bics), MODELS, task_name=task_name)
-    exceedance_probability(np.array(bics), MODELS, task_name=task_name)
+    posterior_model_frequency(np.array(bics), MODELS, task_name=task_name, FIGSIZE=(7.5,5))
+    exceedance_probability(np.array(bics), MODELS, task_name=task_name, FIGSIZE=(7.5,5))
 
 def model_simulations_smith1998():
 

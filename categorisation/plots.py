@@ -1682,7 +1682,8 @@ def model_comparison_johanssen2002():
     ermi_meta_learner_generalisation = ermi_meta_learner_generalisation[human_generalisation.index]
     mi_meta_learner_generalisation = (1-mi_transfer_data.groupby('stimulus_id')['choice'].mean())
     mi_meta_learner_generalisation = mi_meta_learner_generalisation[human_generalisation.index] # keep the same order of the stimulus_ids for both human_generalisation and meta_learner_generalisation
-
+    # set the index of the human_generalisation to T1, T2, T3, T4, T5, T6, T7
+    human_generalisation.index = [f'T{i+1}' for i in range(len(human_generalisation))]
     # compare the meta_learner_generalisation with human_generalisation in two subplots side by side
     fig, ax = plt.subplots(1, 3, figsize=(5*3, 5))
     # plot the human_generalisation in the left subplot
@@ -1697,8 +1698,8 @@ def model_comparison_johanssen2002():
     ax[2].set_xticks(np.arange(mi_meta_learner_generalisation.shape[0]))
     # set the x-tick labels for both subplots
     ax[0].set_xticklabels(human_generalisation.index, rotation=0)
-    ax[1].set_xticklabels(ermi_meta_learner_generalisation.index, rotation=0)
-    ax[2].set_xticklabels(mi_meta_learner_generalisation.index, rotation=0)
+    ax[1].set_xticklabels(human_generalisation.index, rotation=0)
+    ax[2].set_xticklabels(human_generalisation.index, rotation=0)
     # set the y-ticks for both subplotsand only keep alternating y-tick labels
     y_ticks = np.round(np.arange(0, 1.1, 0.1)[::2],1)
     ax[0].set_yticks(y_ticks)
@@ -1730,6 +1731,7 @@ def model_comparison_johanssen2002():
     fig.tight_layout()
     sns.despine()
     plt.show()
+    fig.savefig(f'{SYS_PATH}/categorisation/figures/model_comparison_johanssen2002.svg', bbox_inches='tight', dpi=300)
 
 def posterior_model_frequency(bics, models, horizontal=False, FIGSIZE=(5,5), task_name=None):
     result = {}

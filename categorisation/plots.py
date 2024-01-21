@@ -1731,73 +1731,85 @@ def model_comparison_johanssen2002():
     sns.despine()
     plt.show()
 
-def posterior_model_frequency(bics, models, horizontal=True, FIGSIZE=(5,5), FONTSIZE=25, task_name=None):
+def posterior_model_frequency(bics, models, horizontal=False, FIGSIZE=(5,5), task_name=None):
     result = {}
     LogEvidence = np.stack(-bics/2)
-    result['composed'] = GroupBMC(LogEvidence).get_result()
+    result = GroupBMC(LogEvidence).get_result()
 
     # rename models for plot
-    colors = ['#173b4f', '#8b9da7', '#5d7684', '#2f4a5a', '#0d2c3d', '#4d6a75', '#748995']
+    colors = ['#173b4f', '#8b9da7', '#5d7684', '#2f4a5a', '#0d2c3d', '#4d6a75', '#748995', '#a2c0a9']
+    # sort result in descending order
+    sort_order = np.argsort(result.frequency_mean)[::-1]
+    result.frequency_mean = result.frequency_mean[sort_order]
+    result.frequency_var = result.frequency_var[sort_order]
+    models = np.array(models)[sort_order]
+    colors = np.array(colors)[sort_order]
 
     f, ax = plt.subplots(1, 1, figsize=FIGSIZE)
-
+    
     if horizontal:
         # composed
-        ax.barh(np.arange(len(models)), result['composed'].frequency_mean, xerr=result['composed'].frequency_var, align='center', color=colors, height=0.6)#, edgecolor='k')#, hatch='//', label='Compostional Subtask')
+        ax.barh(np.arange(len(models)), result.frequency_mean, xerr=np.sqrt(result.frequency_var), align='center', color=colors, height=0.6)#, edgecolor='k')#, hatch='//', label='Compostional Subtask')
         # plt.legend(fontsize=FONTSIZE-4, frameon=False)
         ax.set_ylabel('Models', fontsize=FONTSIZE)
         # ax.set_xlim(0, 0.7)
         ax.set_xlabel('Posterior model frequency', fontsize=FONTSIZE) 
-        plt.yticks(ticks=np.arange(len(models)), labels=models, fontsize=FONTSIZE-3.)
-        ax.set_xticks(np.arange(0, result['composed'].frequency_mean.max(), 0.1))
-        plt.xticks(fontsize=FONTSIZE-4)
+        plt.yticks(ticks=np.arange(len(models)), labels=models, fontsize=FONTSIZE-2)
+        ax.set_xticks(np.arange(0, result.frequency_mean.max(), 0.1))
+        plt.xticks(fontsize=FONTSIZE-2)
     else:
-        # composed
-        ax.bar( np.arange(len(models))-0.22, result['composed'].frequency_mean, align='center', color='w', width=0.4, edgecolor='k', hatch='//', label='Compostional Subtask')
-        ax.errorbar(np.arange(len(models))-0.22, result['composed'].frequency_mean, result['composed'].frequency_var, c='red',fmt='.r', lw=3)
-        # plt.legend(fontsize=FONTSIZE, frameon=False)
+        bar_positions = np.arange(len(result.frequency_mean))*0.5
+        ax.bar(bar_positions, result.frequency_mean, color=colors, width=0.4)
+        ax.errorbar(bar_positions, result.frequency_mean, yerr= np.sqrt(result.frequency_var), c='k', lw=3, fmt="o")
         ax.set_xlabel('Models', fontsize=FONTSIZE)
-        ax.set_ylim(0, 0.7)
-        ax.set_ylabel('Posterior model frequency', fontsize=FONTSIZE) 
-        plt.xticks(ticks=np.arange(len(models)), labels=models, fontsize=FONTSIZE-3.)#, rotation=45)
-        plt.yticks(fontsize=FONTSIZE-4)
+        ax.set_ylabel('Posterior model frequency', fontsize=FONTSIZE)
+        ax.set_xticks(bar_positions)  # Set x-tick positions to bar_positions
+        ax.set_xticklabels(models, fontsize=FONTSIZE-2)  # Assign category names to x-tick labels
+        plt.yticks(fontsize=FONTSIZE-2)
 
-    ax.set_title(f'{task_name}', fontsize=FONTSIZE-5)
+    ax.set_title(f'Model Comparison', fontsize=FONTSIZE)
     sns.despine()
     f.tight_layout()
     f.savefig(f'{SYS_PATH}/categorisation/figures/posterior_model_frequency_{task_name}.svg', bbox_inches='tight', dpi=300)
     plt.show()
 
-def exceedance_probability(bics, models, horizontal=True, FIGSIZE=(5,5), FONTSIZE=25, task_name=None):
+def exceedance_probability(bics, models, horizontal=False, FIGSIZE=(5,5), task_name=None):
     result = {}
     LogEvidence = np.stack(-bics/2)
-    result['composed'] = GroupBMC(LogEvidence).get_result()
+    result = GroupBMC(LogEvidence).get_result()
 
     # rename models for plot
-    colors = ['#173b4f', '#8b9da7', '#5d7684', '#2f4a5a', '#0d2c3d', '#4d6a75', '#748995']
+    colors = ['#173b4f', '#8b9da7', '#5d7684', '#2f4a5a', '#0d2c3d', '#4d6a75', '#748995', '#a2c0a9']
+    # sort result in descending order
+    sort_order = np.argsort(result.exceedance_probability)[::-1]
+    result.exceedance_probability = result.exceedance_probability[sort_order]
+    models = np.array(models)[sort_order]
+    colors = np.array(colors)[sort_order]
 
     f, ax = plt.subplots(1, 1, figsize=FIGSIZE)
     if horizontal:
         # composed
-        ax.barh(np.arange(len(models)), result['composed'].exceedance_probability, align='center', color=colors, height=0.6)#, hatch='//', label='Compostional Subtask')
+        ax.barh(np.arange(len(models)), result.exceedance_probability, align='center', color=colors, height=0.6)#, hatch='//', label='Compostional Subtask')
         # plt.legend(fontsize=FONTSIZE-4, frameon=False)
         ax.set_ylabel('Models', fontsize=FONTSIZE)
         # ax.set_xlim(0, 0.7)
         ax.set_xlabel('Exceedance probability', fontsize=FONTSIZE) 
         plt.yticks(ticks=np.arange(len(models)), labels=models, fontsize=FONTSIZE-3.)
-        # ax.set_xticks(np.arange(0, result['composed'].exceedance_probability.max(), 0.1))
+        # ax.set_xticks(np.arange(0, result.exceedance_probability.max(), 0.1))
         plt.xticks(fontsize=FONTSIZE-4)
     else:
         # composed
-        ax.bar( np.arange(len(models))-0.22, result['composed'].exceedance_probability, align='center', color=colors, width=0.4, edgecolor='k')#, hatch='//', label='Compostional Subtask')
+        bar_positions = np.arange(len(result.exceedance_probability))*0.5
+        ax.bar(bar_positions, result.exceedance_probability, color=colors, width=0.4)
         # plt.legend(fontsize=FONTSIZE, frameon=False)
         ax.set_xlabel('Models', fontsize=FONTSIZE)
-        ax.set_ylim(0, 0.7)
+        # ax.set_ylim(0, 0.7)
         ax.set_ylabel('Exceedance probability', fontsize=FONTSIZE) 
-        plt.xticks(ticks=np.arange(len(models)), labels=models, fontsize=FONTSIZE-5.5)#, rotation=45)
+        ax.set_xticks(bar_positions)  # Set x-tick positions to bar_positions
+        ax.set_xticklabels(models, fontsize=FONTSIZE-2)  # Assign category names to x-tick labels
         plt.yticks(fontsize=FONTSIZE-2)
     
-    ax.set_title(f'{task_name}', fontsize=FONTSIZE-5)
+    ax.set_title(f'Model Comparison', fontsize=FONTSIZE)
     sns.despine()
     f.tight_layout()
     f.savefig(f'{SYS_PATH}/categorisation/figures/exceedance_probability_{task_name}.svg', bbox_inches='tight', dpi=300)

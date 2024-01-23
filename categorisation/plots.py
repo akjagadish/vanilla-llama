@@ -1853,16 +1853,7 @@ def plot_dataset_statistics(mode=0):
 
     from sklearn.preprocessing import PolynomialFeatures
     import statsmodels.api as sm
-    if mode == 0:
-        env_name = f'{SYS_PATH}/categorisation/data/claude_generated_tasks_paramsNA_dim4_data650_tasks8950_pversion5_stage1'
-        color_stats = '#173b4f'
-    elif mode == 1:
-        env_name = f'{SYS_PATH}/categorisation/data/linear_data'
-        color_stats = '#5d7684'
-    elif mode == 2:
-        env_name = f'{SYS_PATH}/categorisation/data/real_data'
-        color_stats = '#8b9da7'
-
+    
     def gini_compute(x):
         mad = np.abs(np.subtract.outer(x, x)).mean()
         rmad = mad/np.mean(x)
@@ -1939,6 +1930,21 @@ def plot_dataset_statistics(mode=0):
 
         return all_corr, gini_coeff, posterior_logprob, all_accuraries_linear, all_accuraries_polynomial
 
+    # set env_name and color_stats based on mode
+    if mode == 0:
+        env_name = f'{SYS_PATH}/categorisation/data/claude_generated_tasks_paramsNA_dim4_data650_tasks8950_pversion5_stage1'
+        color_stats = '#173b4f'
+    elif mode == 1:
+        env_name = f'{SYS_PATH}/categorisation/data/linear_data'
+        color_stats = '#5d7684'
+    elif mode == 2:
+        env_name = f'{SYS_PATH}/categorisation/data/real_data'
+        color_stats = '#8b9da7'
+
+    # load data
+    data = pd.read_csv(f'{env_name}.csv')
+    data = data.groupby(['task_id']).filter(lambda x: len(x['target'].unique()) == 2) # check if data has only two values for target in each task
+    data.input = data['input'].apply(lambda x: np.array(eval(x)))
 
     all_corr, gini_coeff, posterior_logprob, all_accuraries_linear, all_accuraries_polynomial = return_data_stats(data)
 
@@ -1988,3 +1994,6 @@ def plot_dataset_statistics(mode=0):
     sns.despine()
     plt.savefig(f'{SYS_PATH}/categorisation/figures/stats_' + str(mode) + '.pdf', bbox_inches='tight')
     plt.show()
+
+    # save corr, gini, posterior_logprob, and all_accuraries_linear for each mode in one .npz file
+    np.savez(f'{SYS_PATH}/categorisation/data/stats/stats_{str(mode)}.npz', all_corr=all_corr, gini_coeff=gini_coeff, posterior_logprob=posterior_logprob, all_accuraries_linear=all_accuraries_linear)

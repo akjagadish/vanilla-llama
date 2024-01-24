@@ -1522,12 +1522,13 @@ def model_simulations_shepard1961(models=None, tasks=np.arange(1,7)):
             betas.append(beta_range[np.argmin(mse_distances)])
             # the block errors contain distance between humans and another model hence consider only idx==1
             errors[m_idx] = block_errors[np.argmin(mse_distances), 1]
+            # print min mse distance and corresponding beta
+            print(f'{model_name} min mse distance and beta: {np.min(mse_distances)}, {beta_range[np.argmin(mse_distances)]}')
     
     assert len(models)==len(betas), "Number of models and betas should be the same"
     # load json file containing the human data
     with open(f'{SYS_PATH}/categorisation/data/human/nosofsky1994.json') as json_file:
         data = json.load(json_file)
-
     # compare the error rate over trials between different tasks meaned over noise levels, shuffles and shuffle_evals
     f, axes = plt.subplots(1, len(models), figsize=(6*len(models), 5))
     colors = ['#E0E1DD', '#B6B9B9', '#8C9295', '#616A72','#37434E','#0D1B2A']
@@ -1802,6 +1803,10 @@ def posterior_model_frequency(bics, models, horizontal=False, FIGSIZE=(5,5), tas
         plt.yticks(fontsize=FONTSIZE-2)
 
     ax.set_title(f'Model Comparison', fontsize=FONTSIZE)
+    # print model names, mean frequencies and std error of mean frequencies
+    for i, model in enumerate(models):
+        print(f'{model}: {result.frequency_mean[i]} +- {np.sqrt(result.frequency_var[i])}')
+
     sns.despine()
     f.tight_layout()
     f.savefig(f'{SYS_PATH}/categorisation/figures/posterior_model_frequency_{task_name}.svg', bbox_inches='tight', dpi=300)

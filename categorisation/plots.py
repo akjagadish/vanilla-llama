@@ -1675,12 +1675,13 @@ def simulate_shepard1961(models=None, tasks=np.arange(1,7), betas=None, num_runs
             
     return mse_distance
 
-def model_comparison_johanssen2002():
+def model_comparison_johanssen2002(task_block=32):
+
     # choose  params for ermi simulations
-    ermi_beta = 0.9
-    mi_beta = 0.1
+    ermi_beta = np.load(f'{SYS_PATH}/categorisation/data/meta_learner/johanssen_categorisation_ermi_{task_block}_best_beta.npy')
+    mi_beta = np.load(f'{SYS_PATH}/categorisation/data/meta_learner/johanssen_categorisation_mi_{task_block}_best_beta.npy')
+    task_block = task_block
     num_runs = 1
-    task_block = 32 # chose task block from ERMI to compare with human data
 
     data = pd.read_csv(f'{SYS_PATH}/categorisation/data/meta_learner/johanssen_categorisation__tasks8950_pversion5_stage1_model=transformer_num_episodes500000_num_hidden=256_lr0.0003_num_layers=6_d_model=64_num_head=8_noise0.0_shuffleTrue_run=1_beta={ermi_beta}_num_trials=288_num_runs={num_runs}.csv')
     transfer_stimulus_ids = data[data['stimulus_id'].str.contains('T')]['stimulus_id']

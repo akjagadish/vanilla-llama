@@ -28,9 +28,9 @@ export OMP_NUM_THREADS=${SLURM_CPUS_PER_TASK}
 # python rl2/simulate.py --experiment johanssen_categorisation --num-runs 1 --beta 0.4 --model-name env=dim4synthetic_model=transformer_num_episodes500000_num_hidden=256_lr0.0003_num_layers=6_d_model=64_num_head=8_noise0.0_shuffleTrue_run=0_synthetic 
 
 ## run them in parallel using slurm
-# python rl2/simulate.py --job-id ${SLURM_ARRAY_TASK_ID} --experiment johanssen_categorisation --num-runs 5 --model-name env=claude_generated_tasks_paramsNA_dim4_data650_tasks8950_pversion5_stage1_model=transformer_num_episodes500000_num_hidden=256_lr0.0003_num_layers=6_d_model=64_num_head=8_noise0.0_shuffleTrue_run=1
-python rl2/simulate.py --job-id ${SLURM_ARRAY_TASK_ID} --experiment johanssen_categorisation --num-runs 1 --model-name env=dim4synthetic_model=transformer_num_episodes500000_num_hidden=256_lr0.0003_num_layers=6_d_model=64_num_head=8_noise0.0_shuffleTrue_run=1_synthetic 
-# python rl2/simulate.py --job-id ${SLURM_ARRAY_TASK_ID} --experiment johanssen_categorisation --num-runs 1 --model-name env=dim4synthetic_model=transformer_num_episodes500000_num_hidden=256_lr0.0003_num_layers=6_d_model=64_num_head=8_noise0.0_shuffleTrue_run=1_syntheticnonlinear
+python rl2/simulate.py --job-id ${SLURM_ARRAY_TASK_ID} --experiment johanssen_categorisation --num-runs 1 --model-name env=claude_generated_tasks_paramsNA_dim4_data650_tasks8950_pversion5_stage1_model=transformer_num_episodes500000_num_hidden=256_lr0.0003_num_layers=6_d_model=64_num_head=8_noise0.0_shuffleTrue_run=0
+# python rl2/simulate.py --job-id ${SLURM_ARRAY_TASK_ID} --experiment johanssen_categorisation --num-runs 1 --model-name env=dim4synthetic_model=transformer_num_episodes500000_num_hidden=256_lr0.0003_num_layers=6_d_model=64_num_head=8_noise0.0_shuffleTrue_run=1_synthetic 
+#python rl2/simulate.py --job-id ${SLURM_ARRAY_TASK_ID} --experiment johanssen_categorisation --num-runs 1 --model-name env=dim4synthetic_model=transformer_num_episodes500000_num_hidden=256_lr0.0003_num_layers=6_d_model=64_num_head=8_noise0.0_shuffleTrue_run=1_syntheticnonlinear
 
 ## smith task
 # python rl2/simulate.py --experiment smith_categorisation --num-runs 10 --beta 0.  --model-name env=claude_generated_tasks_paramsNA_dim6_data500_tasks12910_pversion5_stage2_model=transformer_num_episodes500000_num_hidden=256_lr0.0003_num_layers=6_d_model=64_num_head=8_noise0.0_shuffleTrue_run=1

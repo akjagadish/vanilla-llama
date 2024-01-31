@@ -12,6 +12,7 @@ from evaluate import evaluate_1d, evaluate_metalearner
 from utils import evaluate_data_against_baselines, bin_data_points
 from utils import probability_same_target_vs_distance
 from envs import NosofskysTask
+import os
 import json
 from collections import Counter
 from groupBMC.groupBMC import GroupBMC
@@ -1548,7 +1549,7 @@ def model_simulations_shepard1961(plot='main', num_blocks=15, tasks=np.arange(1,
             for t_idx, task in enumerate(tasks):
                 block_errors = errors[idx, t_idx]         
                 ax.plot(np.arange(1, num_blocks+1), block_errors, label=f'Type {task}', lw=3, color=colors[t_idx], marker=markers[t_idx], markersize=8)
-            model_name = 'ermi' if 'claude' in models[idx] else 'rmc' if 'rmc' in models[idx] else 'pfn' if 'syntheticnonlinear' in models[idx] else 'mi'
+            model_name = 'ermi' if 'claude' in models[idx] else 'rmc' if 'rmc' in models[idx] else 'pfn' if 'synthetic_nonlinear' in models[idx] else 'mi'
             if model_name=='ermi':
                 ax.set_title('ERMI', fontsize=FONTSIZE)
             elif model_name =='rmc':
@@ -1956,31 +1957,32 @@ def plot_dataset_statistics(mode=0):
     # set env_name and color_stats based on mode
     if mode == 0:
         env_name = f'{SYS_PATH}/categorisation/data/claude_generated_tasks_paramsNA_dim4_data650_tasks8950_pversion5_stage1'
-        color_stats = '#173b4f'
-    elif mode == 1:
+        color_stats = '#2F4A5A'# '#173b4f'
+    elif mode == 1:#last plot
         env_name = f'{SYS_PATH}/categorisation/data/linear_data'
-        color_stats = '#5d7684'
-    elif mode == 2:
+        color_stats = '#5d7684'# '#5d7684'
+    elif mode == 2:#first plot
         env_name = f'{SYS_PATH}/categorisation/data/real_data'
-        color_stats = '#8b9da7'
+        color_stats = '#0D2C3D' #'#8b9da7'
 
     # load data
     data = pd.read_csv(f'{env_name}.csv')
     data = data.groupby(['task_id']).filter(lambda x: len(x['target'].unique()) == 2) # check if data has only two values for target in each task
     data.input = data['input'].apply(lambda x: np.array(eval(x)))
 
-    all_corr, gini_coeff, posterior_logprob, all_accuraries_linear, all_accuraries_polynomial = return_data_stats(data)
+    if os.path.exists(f'{SYS_PATH}/categorisation/data/stats/stats_{str(mode)}.npz'):
+        stats = np.load(f'{SYS_PATH}/categorisation/data/stats/stats_{str(mode)}.npz', allow_pickle=True)
+        all_corr, gini_coeff, posterior_logprob, all_accuraries_linear = stats['all_corr'], stats['gini_coeff'], stats['posterior_logprob'], stats['all_accuraries_linear']
+    else:
+        all_corr, gini_coeff, posterior_logprob, all_accuraries_linear, all_accuraries_polynomial = return_data_stats(data)
+        gini_coeff = np.array(gini_coeff)
+        gini_coeff = gini_coeff[~np.isnan(gini_coeff)]
+        posterior_logprob = posterior_logprob[:, 0].exp().detach().numpy()
 
-    gini_coeff = np.array(gini_coeff)
-    gini_coeff = gini_coeff[~np.isnan(gini_coeff)]
+    FONTSIZE=22 #8
     bin_max = np.max(gini_coeff)
-
-    posterior_logprob = posterior_logprob[:, 0].exp().detach().numpy()
-
-    FONTSIZE=8
-
-    fig, axs = plt.subplots(1, 4,  figsize=(6.75, 1.5))
-    axs[0].plot(all_accuraries_linear, color=color_stats, alpha=0.7)
+    fig, axs = plt.subplots(1, 4,  figsize = (6*4,4))#figsize=(6.75, 1.5))
+    axs[0].plot(all_accuraries_linear, color=color_stats, alpha=0.7, lw=3)
     #axs[0].plot(all_accuraries_polynomial, alpha=0.7)
     sns.histplot(np.array(all_corr), ax=axs[1], bins=11, binrange=(-1., 1.), stat='probability', edgecolor='w', linewidth=1, color=color_stats, alpha=0.7)
     sns.histplot(gini_coeff, ax=axs[2], bins=11, binrange=(0, bin_max), stat='probability', edgecolor='w', linewidth=1, color=color_stats, alpha=0.7)
@@ -1994,8 +1996,8 @@ def plot_dataset_statistics(mode=0):
 
     axs[0].set_yticks(np.arange(0.5, 1.05, 0.25))
     axs[1].set_yticks(np.arange(0, 0.45, 0.2))
-    axs[2].set_yticks(np.arange(0, 0.4, 0.1))
-    axs[3].set_yticks(np.arange(0, 1.05, 0.2))
+    axs[2].set_yticks(np.arange(0, 0.4, 0.15))
+    axs[3].set_yticks(np.arange(0, 1.05, 0.5))
 
     # set tick size
     axs[0].tick_params(axis='both', which='major', labelsize=FONTSIZE-2)
@@ -2003,20 +2005,29 @@ def plot_dataset_statistics(mode=0):
     axs[2].tick_params(axis='both', which='major', labelsize=FONTSIZE-2)
     axs[3].tick_params(axis='both', which='major', labelsize=FONTSIZE-2)
 
-    axs[0].set_ylabel('Percentage', fontsize=FONTSIZE)
-    axs[1].set_ylabel('')
+    axs[0].set_ylabel('Accuracy', fontsize=FONTSIZE)
+    axs[1].set_ylabel('Proportion', fontsize=FONTSIZE)
     axs[2].set_ylabel('')
     axs[3].set_ylabel('')
 
-    axs[0].set_xlabel('Performance (accuracy)', fontsize=FONTSIZE)
-    axs[1].set_xlabel('Input correlation', fontsize=FONTSIZE)
-    axs[2].set_xlabel('Sparsity', fontsize=FONTSIZE)
-    axs[3].set_xlabel('Linearity', fontsize=FONTSIZE)
+    if mode == 1:
+        axs[0].set_xlabel('Trials', fontsize=FONTSIZE)
+        axs[1].set_xlabel('Pearson\'s r', fontsize=FONTSIZE)
+        axs[2].set_xlabel('Gini Coefficient', fontsize=FONTSIZE)
+        axs[3].set_xlabel('Posterior probability ', fontsize=FONTSIZE)
+
+    #set title
+    if mode == 2:
+        axs[0].set_title('Performance', fontsize=FONTSIZE)
+        axs[1].set_title('Input correlation', fontsize=FONTSIZE)
+        axs[2].set_title('Sparsity', fontsize=FONTSIZE)
+        axs[3].set_title('Linearity', fontsize=FONTSIZE)
 
     plt.tight_layout()
     sns.despine()
-    plt.savefig(f'{SYS_PATH}/categorisation/figures/stats_' + str(mode) + '.pdf', bbox_inches='tight')
+    plt.savefig(f'{SYS_PATH}/categorisation/figures/stats_' + str(mode) + '.svg', bbox_inches='tight')
     plt.show()
 
     # save corr, gini, posterior_logprob, and all_accuraries_linear for each mode in one .npz file
-    np.savez(f'{SYS_PATH}/categorisation/data/stats/stats_{str(mode)}.npz', all_corr=all_corr, gini_coeff=gini_coeff, posterior_logprob=posterior_logprob, all_accuraries_linear=all_accuraries_linear)
+    if not os.path.exists(f'{SYS_PATH}/categorisation/data/stats/stats_{str(mode)}.npz'):
+        np.savez(f'{SYS_PATH}/categorisation/data/stats/stats_{str(mode)}.npz', all_corr=all_corr, gini_coeff=gini_coeff, posterior_logprob=posterior_logprob, all_accuraries_linear=all_accuraries_linear)

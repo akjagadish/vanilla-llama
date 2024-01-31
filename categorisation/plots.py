@@ -1423,11 +1423,11 @@ def model_comparison_devraj2022(FIGSIZE=(6,5)):
     posterior_model_frequency(np.array(bics), MODELS, task_name=task_name, FIGSIZE=(7.5,5))
     exceedance_probability(np.array(bics), MODELS, task_name=task_name, FIGSIZE=(7.5,5))
 
-def model_simulations_smith1998():
+def model_simulations_smith1998(plot='main'):
 
-    models = ['smith1998', 'ermi', 'synthetic',]# 'human', 'syntheticnonlinear']
+    models = ['smith1998', 'ermi', 'synthetic',] if plot == 'main' else ['smith1998', 'ermi', 'syntheticnonlinear']#'human'
     f, ax = plt.subplots(1, len(models), figsize=(5*len(models),5))
-    colors = ['#173b4f', '#37761e']
+    colors = ['#173b4f', '#5d7684']
     num_blocks = None
     for idx, model in enumerate(models):
         if model=='smith1998':
@@ -1499,14 +1499,15 @@ def model_simulations_smith1998():
     plt.show()
     f.savefig(f'{SYS_PATH}/categorisation/figures/model_simulations_smith1998.svg', bbox_inches='tight', dpi=300)
 
-def model_simulations_shepard1961(models=None, tasks=np.arange(1,7)):
+def model_simulations_shepard1961(plot='main', tasks=np.arange(1,7)):
 
     models = ['humans',\
               'env=claude_generated_tasks_paramsNA_dim3_data100_tasks11518_pversion4_model=transformer_num_episodes500000_num_hidden=256_lr0.0003_num_layers=6_d_model=64_num_head=8_noise0.0_shuffleTrue_run=0',
               'env=dim3synthetic_model=transformer_num_episodes500000_num_hidden=256_lr0.0003_num_layers=6_d_model=64_num_head=8_noise0.0_shuffleTrue_run=0_synthetic',\
-              #'env=rmc_tasks_dim3_data100_tasks11499_model=transformer_num_episodes500000_num_hidden=256_lr0.0003_num_layers=6_d_model=64_num_head=8_noise0.0_shuffleTrue_run=1_rmc',
-              #'env=dim3synthetic_model=transformer_num_episodes500000_num_hidden=256_lr0.0003_num_layers=6_d_model=64_num_head=8_noise0.0_shuffleTrue_run=0_synthetic_nonlinear',\
-          ] if models is None else models
+               ] if plot == 'main' else ['humans',\
+              'env=rmc_tasks_dim3_data100_tasks11499_model=transformer_num_episodes500000_num_hidden=256_lr0.0003_num_layers=6_d_model=64_num_head=8_noise0.0_shuffleTrue_run=1_rmc',
+              'env=dim3synthetic_model=transformer_num_episodes500000_num_hidden=256_lr0.0003_num_layers=6_d_model=64_num_head=8_noise0.0_shuffleTrue_run=0_synthetic_nonlinear',\
+               ] 
     num_blocks = 15 # 16 blocks doesn't work for current ERMI model
     num_trials_per_block = 16
     num_runs = 50
@@ -1675,11 +1676,12 @@ def simulate_shepard1961(models=None, tasks=np.arange(1,7), betas=None, num_runs
             
     return mse_distance
 
-def model_comparison_johanssen2002(task_block=32):
+def model_comparison_johanssen2002(plot='main', task_block=32):
 
     # choose  params for ermi simulations
     ermi_beta = np.load(f'{SYS_PATH}/categorisation/data/meta_learner/johanssen_categorisation_ermi_{task_block}_best_beta.npy')
     mi_beta = np.load(f'{SYS_PATH}/categorisation/data/meta_learner/johanssen_categorisation_mi_{task_block}_best_beta.npy')
+    pfn_beta = np.load(f'{SYS_PATH}/categorisation/data/meta_learner/johanssen_categorisation_pfn_{task_block}_best_beta.npy')
     task_block = task_block
     num_runs = 1
 
@@ -1694,6 +1696,12 @@ def model_comparison_johanssen2002(task_block=32):
     mi_transfer_data = mi_data[mi_data['stimulus_id'].isin(mi_transfer_stimulus_ids)]
     # choose a subset of the transfer_data dataframe where the task_feature is equal to 1
     mi_transfer_data = mi_transfer_data[mi_transfer_data['task_feature'] == task_block]
+
+    pfn_data = pd.read_csv(f'{SYS_PATH}/categorisation/data/meta_learner/johanssen_categorisation_500000_num_hidden=256_lr0.0003_num_layers=6_d_model=64_num_head=8_noise0.0_shuffleTrue_run=1_syntheticnonlinear_beta={pfn_beta}_num_trials=288_num_runs={num_runs}.csv')
+    pfn_transfer_stimulus_ids = pfn_data[pfn_data['stimulus_id'].str.contains('T')]['stimulus_id']
+    pfn_transfer_data = pfn_data[pfn_data['stimulus_id'].isin(pfn_transfer_stimulus_ids)]
+    # choose a subset of the transfer_data dataframe where the task_feature is equal to 1
+    pfn_transfer_data = pfn_transfer_data[pfn_transfer_data['task_feature'] == task_block]
 
     import json
     with open(f'{SYS_PATH}/categorisation/data/human/johanssen2002.json') as f:
@@ -1712,7 +1720,10 @@ def model_comparison_johanssen2002(task_block=32):
     ermi_meta_learner_generalisation = (1-transfer_data.groupby('stimulus_id')['choice'].mean())
     ermi_meta_learner_generalisation = ermi_meta_learner_generalisation[human_generalisation.index]
     mi_meta_learner_generalisation = (1-mi_transfer_data.groupby('stimulus_id')['choice'].mean())
-    mi_meta_learner_generalisation = mi_meta_learner_generalisation[human_generalisation.index] # keep the same order of the stimulus_ids for both human_generalisation and meta_learner_generalisation
+    mi_meta_learner_generalisation = mi_meta_learner_generalisation[human_generalisation.index] # keep the same order of the stimulus_ids for both human_generalisation and mi model
+    pfn_meta_learner_generalisation = (1-pfn_transfer_data.groupby('stimulus_id')['choice'].mean())
+    pfn_meta_learner_generalisation = pfn_meta_learner_generalisation[human_generalisation.index] # keep the same order of the stimulus_ids for both human_generalisation and pfn model
+
     # set the index of the human_generalisation to T1, T2, T3, T4, T5, T6, T7
     human_generalisation.index = [f'T{i+1}' for i in range(len(human_generalisation))]
     # compare the meta_learner_generalisation with human_generalisation in two subplots side by side
@@ -1721,12 +1732,18 @@ def model_comparison_johanssen2002(task_block=32):
     human_generalisation.plot(kind='bar', ax=ax[0], color='#8b9da7', width=0.8)
     # plot the meta_learner_generalisation in the right subplot
     ermi_meta_learner_generalisation.plot(kind='bar', ax=ax[1], color='#173b4f', width=0.8)
-    mi_meta_learner_generalisation.plot(kind='bar', ax=ax[2], color='#5d7684', width=0.8)
+    if plot == 'main':
+        mi_meta_learner_generalisation.plot(kind='bar', ax=ax[2], color='#5d7684', width=0.8)
+    else:
+        pfn_meta_learner_generalisation.plot(kind='bar', ax=ax[2], color='#5d7684', width=0.8)
 
     # set the x-ticks for both subplots
     ax[0].set_xticks(np.arange(human_generalisation.shape[0]))
     ax[1].set_xticks(np.arange(ermi_meta_learner_generalisation.shape[0]))
-    ax[2].set_xticks(np.arange(mi_meta_learner_generalisation.shape[0]))
+    if plot == 'main':
+        ax[2].set_xticks(np.arange(mi_meta_learner_generalisation.shape[0]))
+    else:
+        ax[2].set_xticks(np.arange(pfn_meta_learner_generalisation.shape[0]))
     # set the x-tick labels for both subplots
     ax[0].set_xticklabels(human_generalisation.index, rotation=0)
     ax[1].set_xticklabels(human_generalisation.index, rotation=0)
@@ -1757,7 +1774,7 @@ def model_comparison_johanssen2002(task_block=32):
     ax[2].set_ylim([0, 1.0])
     ax[0].set_title('Human', fontsize=FONTSIZE)
     ax[1].set_title('ERMI', fontsize=FONTSIZE)
-    ax[2].set_title('MI', fontsize=FONTSIZE)
+    ax[2].set_title('MI' if plot == "main" else 'PFN', fontsize=FONTSIZE)
     # draw a horizontal line at y=0.5
     ax[0].axhline(y=0.5, linestyle='--', color='black')
     ax[1].axhline(y=0.5, linestyle='--', color='black')

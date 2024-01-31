@@ -40,7 +40,7 @@ def simulate_shepard1961(models=None, tasks=np.arange(1,7), betas=None, num_runs
     return mse_distance, mi_block_errors
 
 def compute_mse(models):
-    num_blocks = 15 # 16
+    num_blocks = 10 # 16
     num_trials_per_block = 16
     num_runs = 50
     min_mse_distance = np.inf

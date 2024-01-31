@@ -1499,7 +1499,7 @@ def model_simulations_smith1998(plot='main'):
     plt.show()
     f.savefig(f'{SYS_PATH}/categorisation/figures/model_simulations_smith1998.svg', bbox_inches='tight', dpi=300)
 
-def model_simulations_shepard1961(plot='main', tasks=np.arange(1,7)):
+def model_simulations_shepard1961(plot='main', num_blocks=15, tasks=np.arange(1,7)):
 
     models = ['humans',\
               'env=claude_generated_tasks_paramsNA_dim3_data100_tasks11518_pversion4_model=transformer_num_episodes500000_num_hidden=256_lr0.0003_num_layers=6_d_model=64_num_head=8_noise0.0_shuffleTrue_run=0',
@@ -1508,7 +1508,7 @@ def model_simulations_shepard1961(plot='main', tasks=np.arange(1,7)):
               'env=rmc_tasks_dim3_data100_tasks11499_model=transformer_num_episodes500000_num_hidden=256_lr0.0003_num_layers=6_d_model=64_num_head=8_noise0.0_shuffleTrue_run=1_rmc',
               'env=dim3synthetic_model=transformer_num_episodes500000_num_hidden=256_lr0.0003_num_layers=6_d_model=64_num_head=8_noise0.0_shuffleTrue_run=0_synthetic_nonlinear',\
                ] 
-    num_blocks = 15 # 16 blocks doesn't work for current ERMI model
+    #num_blocks = 15 # 16 blocks doesn't work for current ERMI model
     num_trials_per_block = 16
     num_runs = 50
     betas = []
@@ -1517,7 +1517,7 @@ def model_simulations_shepard1961(plot='main', tasks=np.arange(1,7)):
         if model == 'humans':
             betas.append(None)
         else:
-            model_name = 'ermi' if 'claude' in models[m_idx] else 'rmc' if 'rmc' in models[m_idx] else 'pfn' if 'syntheticnonlinear' in models[m_idx] else 'mi'
+            model_name = 'ermi' if 'claude' in models[m_idx] else 'rmc' if 'rmc' in models[m_idx] else 'pfn' if 'synthetic_nonlinear' in models[m_idx] else 'mi'
             mse_distances, beta_range = np.load(f'{SYS_PATH}/categorisation/data/fitted_simulation/shepard1961_{model_name}_num_runs={num_runs}_num_blocks={num_blocks}_num_trials_per_block={num_trials_per_block}.npy', allow_pickle=True)
             block_errors = np.load(f'{SYS_PATH}/categorisation/data/fitted_simulation/shepard1961_{model_name}_num_runs={num_runs}_num_blocks={num_blocks}_num_trials_per_block={num_trials_per_block}_block_errors.npy', allow_pickle=True)
             betas.append(beta_range[np.argmin(mse_distances)])

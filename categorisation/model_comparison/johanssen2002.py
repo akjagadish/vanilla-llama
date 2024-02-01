@@ -48,13 +48,13 @@ def grid_search_beta(model='ermi', task_block=32):
     human_data_df = human_data_df[human_data_df['stimulus_id'].str.contains('T')]
     human_generalisation = human_data_df['human_choice'].sort_values()
 
-    num_runs = 5
+    num_runs = 1
     min_distance = np.inf
     for beta in [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]:
         if model == 'mi':
             data = pd.read_csv(f'{SYS_PATH}/categorisation/data/meta_learner/johanssen_categorisation_500000_num_hidden=256_lr0.0003_num_layers=6_d_model=64_num_head=8_noise0.0_shuffleTrue_run=1_synthetic_beta={beta}_num_trials=288_num_runs={num_runs}.csv')
         elif model == 'ermi': 
-            data = pd.read_csv(f'{SYS_PATH}/categorisation/data/meta_learner/johanssen_categorisation__tasks8950_pversion5_stage1_model=transformer_num_episodes500000_num_hidden=256_lr0.0003_num_layers=6_d_model=64_num_head=8_noise0.0_shuffleTrue_run=0_beta={beta}_num_trials=288_num_runs={num_runs}.csv')
+            data = pd.read_csv(f'{SYS_PATH}/categorisation/data/meta_learner/johanssen_categorisation__tasks8950_pversion5_stage1_model=transformer_num_episodes500000_num_hidden=256_lr0.0003_num_layers=6_d_model=64_num_head=8_noise0.0_shuffleTrue_run=1_beta={beta}_num_trials=288_num_runs={num_runs}.csv')
         elif model == 'pfn':
             data = pd.read_csv(f'{SYS_PATH}/categorisation/data/meta_learner/johanssen_categorisation_500000_num_hidden=256_lr0.0003_num_layers=6_d_model=64_num_head=8_noise0.0_shuffleTrue_run=1_syntheticnonlinear_beta={beta}_num_trials=288_num_runs={num_runs}.csv')
         transfer_stimulus_ids = data[data['stimulus_id'].str.contains('T')]['stimulus_id']
@@ -91,4 +91,4 @@ if __name__ == '__main__':
     # compute_distance_transfer_stimulus(idx=5)
     # grid_search_beta(model='mi', task_block=32)
     grid_search_beta(model='ermi', task_block=32)
-    # grid_search_beta(model='pfn', task_block=32)
+    #grid_search_beta(model='pfn', task_block=32)

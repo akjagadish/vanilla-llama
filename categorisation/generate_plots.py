@@ -125,13 +125,25 @@ from plots import plot_data_stats_synthetic
 # plot_trial_by_trial_performance(df, burn_in, min_trials-burn_in, min_trials)
 
 #---------------------------
-from plots import model_comparison_badham2017, model_simulations_smith1998, model_simulations_shepard1961, model_comparison_devraj2022, model_comparison_johanssen2002, plot_dataset_statistics
+from plots import model_comparison_badham2017, model_simulations_smith1998, model_simulations_shepard1961, model_comparison_devraj2022, model_comparison_johanssen2002, plot_dataset_statistics, plot_frequency_tasklabels
 
-plot_dataset_statistics(0)
-plot_dataset_statistics(1)
-plot_dataset_statistics(2)
-model_simulations_shepard1961()
-model_comparison_badham2017()
-model_simulations_smith1998()
-model_comparison_devraj2022()
-model_comparison_johanssen2002()
+## main plots
+# plot_dataset_statistics(0)
+# plot_dataset_statistics(1)
+# plot_dataset_statistics(2)
+# model_simulations_shepard1961('main', num_blocks=15)
+# model_comparison_badham2017()
+# model_simulations_smith1998('main')
+# model_comparison_devraj2022()
+#model_comparison_johanssen2002('main')
+
+## supplementary plots
+# plot_frequency_tasklabels('claude_generated_tasklabels_paramsNA_dim3_tasks23421_pversion5', feature_names=False, pairs=False)
+# plot_frequency_tasklabels('claude_generated_tasklabels_paramsNA_dim3_tasks23421_pversion5', feature_names=True, pairs=False)
+# plot_frequency_tasklabels('claude_generated_tasklabels_paramsNA_dim4_tasks20690_pversion5', feature_names=False, pairs=False)
+# plot_frequency_tasklabels('claude_generated_tasklabels_paramsNA_dim4_tasks20690_pversion5', feature_names=True, pairs=False)
+# plot_frequency_tasklabels('claude_generated_tasklabels_paramsNA_dim6_tasks13693_pversion5', feature_names=False, pairs=False)
+# plot_frequency_tasklabels('claude_generated_tasklabels_paramsNA_dim6_tasks13693_pversion5', feature_names=True, pairs=False)
+#model_simulations_shepard1961('supplementary', num_blocks=15)
+model_simulations_smith1998('supplementary')
+#model_comparison_johanssen2002('supplementary')

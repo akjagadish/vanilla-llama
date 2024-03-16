@@ -1428,7 +1428,8 @@ def model_simulations_smith1998(plot='main'):
 
     models = ['smith1998', 'ermi', 'synthetic',] if plot == 'main' else ['smith1998', 'ermi', 'syntheticnonlinear']#'human'
     f, ax = plt.subplots(1, len(models), figsize=(5*len(models),5))
-    colors = ['#173b4f', '#5d7684']
+    colors = ['#173b4f', '#748995']##5d7684']
+    # colors = ['#173b4f', '#4d6a75', '#5d7684', '#748995','#4d6a75', '#0d2c3d', '#a2c0a9', '#2f4a5a', '#8b9da7']
     num_blocks = None
     for idx, model in enumerate(models):
         if model=='smith1998':
@@ -1475,7 +1476,6 @@ def model_simulations_smith1998(plot='main'):
         # add standard error of mean as error bars
         ax[idx].fill_between(np.arange(mses_pm.shape[1])+1, np.mean(mses_pm, axis=0)-stds_pm, np.mean(mses_pm, axis=0)+stds_pm, alpha=0.2, color=colors[0])
         ax[idx].fill_between(np.arange(mses_pm.shape[1])+1, np.mean(mses_gcm, axis=0)-stds_gcm, np.mean(mses_gcm, axis=0)+stds_gcm, alpha=0.2, color=colors[1])
-        ax[idx].set_xlabel('Trial segment', fontsize=FONTSIZE)
         ax[idx].set_ylim([0, 1.])
         ax[idx].set_xticks(np.arange(mses_pm.shape[1])+1)
         # set y ticks font size
@@ -1486,10 +1486,11 @@ def model_simulations_smith1998(plot='main'):
             # remove bounding box around the legend
             ax[idx].legend(frameon=False, fontsize=FONTSIZE-2)
             ax[idx].set_title('Human', fontsize=FONTSIZE)
+            ax[idx].set_xlabel('Block', fontsize=FONTSIZE) #Trial segment
         elif idx==1:
             ax[idx].set_title('ERMI', fontsize=FONTSIZE)
         elif idx==2:
-            ax[idx].set_title('MI', fontsize=FONTSIZE)
+            ax[idx].set_title('MI' if plot == "main" else 'PFN', fontsize=FONTSIZE)
         
         if idx!=0:
             # remove legend
@@ -1560,9 +1561,9 @@ def model_simulations_shepard1961(plot='main', num_blocks=15, tasks=np.arange(1,
                 ax.set_title('MI', fontsize=FONTSIZE)
         
         ax.set_xticks(np.arange(1, num_blocks+1))
-        ax.set_xlabel('Block', fontsize=FONTSIZE)
         if idx==0:
-            ax.set_ylabel('Error rate', fontsize=FONTSIZE)
+            ax.set_xlabel('Block', fontsize=FONTSIZE)
+            ax.set_ylabel('P(Error)', fontsize=FONTSIZE)
         ax.set_ylim([-0.01, .55])
         # locs, labels = ax.get_xticks(), ax.get_xticklabels()
         # Set new x-tick locations and labels
@@ -1703,7 +1704,7 @@ def model_comparison_johanssen2002(plot='main', task_block=32):
     pfn_transfer_data = pfn_data[pfn_data['stimulus_id'].isin(pfn_transfer_stimulus_ids)]
     # choose a subset of the transfer_data dataframe where the task_feature is equal to 1
     pfn_transfer_data = pfn_transfer_data[pfn_transfer_data['task_feature'] == task_block]
-
+    print
     import json
     with open(f'{SYS_PATH}/categorisation/data/human/johanssen2002.json') as f:
         human_data = json.load(f)
@@ -1730,13 +1731,13 @@ def model_comparison_johanssen2002(plot='main', task_block=32):
     # compare the meta_learner_generalisation with human_generalisation in two subplots side by side
     fig, ax = plt.subplots(1, 3, figsize=(5*3, 5))
     # plot the human_generalisation in the left subplot
-    human_generalisation.plot(kind='bar', ax=ax[0], color='#8b9da7', width=0.8)
+    human_generalisation.plot(kind='bar', ax=ax[0], color='#173B4F', width=0.8)
     # plot the meta_learner_generalisation in the right subplot
-    ermi_meta_learner_generalisation.plot(kind='bar', ax=ax[1], color='#173b4f', width=0.8)
+    ermi_meta_learner_generalisation.plot(kind='bar', ax=ax[1], color='#405A63', width=0.8)
     if plot == 'main':
-        mi_meta_learner_generalisation.plot(kind='bar', ax=ax[2], color='#5d7684', width=0.8)
+        mi_meta_learner_generalisation.plot(kind='bar', ax=ax[2], color='#66828F', width=0.8)
     else:
-        pfn_meta_learner_generalisation.plot(kind='bar', ax=ax[2], color='#5d7684', width=0.8)
+        pfn_meta_learner_generalisation.plot(kind='bar', ax=ax[2], color='#66828F', width=0.8)
 
     # set the x-ticks for both subplots
     ax[0].set_xticks(np.arange(human_generalisation.shape[0]))
@@ -1791,7 +1792,11 @@ def posterior_model_frequency(bics, models, horizontal=False, FIGSIZE=(5,5), tas
     result = GroupBMC(LogEvidence).get_result()
 
     # rename models for plot
-    colors = ['#173b4f', '#8b9da7', '#5d7684', '#2f4a5a', '#0d2c3d', '#4d6a75', '#748995', '#a2c0a9']
+    
+    if task_name == 'Badham et al. (2017)':
+        colors = ['#173b4f', '#4d6a75','#5d7684', '#748995','#4d6a75', '#0d2c3d', '#a2c0a9', '#2f4a5a', '#8b9da7']
+    elif task_name == 'Devraj et al. (2022)':
+        colors = ['#173b4f', '#8b9da7', '#5d7684', '#2f4a5a', '#0d2c3d', '#4d6a75', '#748995', '#a2c0a9']
     # sort result in descending order
     sort_order = np.argsort(result.frequency_mean)[::-1]
     result.frequency_mean = result.frequency_mean[sort_order]
@@ -1816,10 +1821,14 @@ def posterior_model_frequency(bics, models, horizontal=False, FIGSIZE=(5,5), tas
         ax.bar(bar_positions, result.frequency_mean, color=colors, width=0.4)
         ax.errorbar(bar_positions, result.frequency_mean, yerr= np.sqrt(result.frequency_var), c='k', lw=3, fmt="o")
         ax.set_xlabel('Models', fontsize=FONTSIZE)
-        ax.set_ylabel('Posterior model frequency', fontsize=FONTSIZE)
+        ax.set_ylabel('Model frequency', fontsize=FONTSIZE)
         ax.set_xticks(bar_positions)  # Set x-tick positions to bar_positions
         ax.set_xticklabels(models, fontsize=FONTSIZE-2)  # Assign category names to x-tick labels
         plt.yticks(fontsize=FONTSIZE-2)
+        # start bar plot from 0
+        ax.set_ylim([-0.01, .55]) if task_name == 'Badham et al. (2017)' else ax.set_ylim([-0.01, .40])
+        # y ticks at 0.1 interval
+        ax.set_yticks(np.arange(0.0, .65, 0.1)) if task_name == 'Badham et al. (2017)' else ax.set_yticks(np.arange(0.0, .50, 0.1))
 
     ax.set_title(f'Model Comparison', fontsize=FONTSIZE)
     # print model names, mean frequencies and std error of mean frequencies
@@ -1957,13 +1966,13 @@ def plot_dataset_statistics(mode=0):
     # set env_name and color_stats based on mode
     if mode == 0:
         env_name = f'{SYS_PATH}/categorisation/data/claude_generated_tasks_paramsNA_dim4_data650_tasks8950_pversion5_stage1'
-        color_stats = '#2F4A5A'# '#173b4f'
+        color_stats = '#405A63' #'#2F4A5A'# '#173b4f'
     elif mode == 1:#last plot
         env_name = f'{SYS_PATH}/categorisation/data/linear_data'
-        color_stats = '#5d7684'# '#5d7684'
+        color_stats = '#66828F' #5d7684'# '#5d7684'
     elif mode == 2:#first plot
         env_name = f'{SYS_PATH}/categorisation/data/real_data'
-        color_stats = '#0D2C3D' #'#8b9da7'
+        color_stats = '#173b4f'#'#0D2C3D' #'#8b9da7'
 
     # load data
     data = pd.read_csv(f'{env_name}.csv')
@@ -1982,11 +1991,11 @@ def plot_dataset_statistics(mode=0):
     FONTSIZE=22 #8
     bin_max = np.max(gini_coeff)
     fig, axs = plt.subplots(1, 4,  figsize = (6*4,4))#figsize=(6.75, 1.5))
-    axs[0].plot(all_accuraries_linear, color=color_stats, alpha=0.7, lw=3)
+    axs[0].plot(all_accuraries_linear, color=color_stats, alpha=1., lw=3)
     #axs[0].plot(all_accuraries_polynomial, alpha=0.7)
-    sns.histplot(np.array(all_corr), ax=axs[1], bins=11, binrange=(-1., 1.), stat='probability', edgecolor='w', linewidth=1, color=color_stats, alpha=0.7)
-    sns.histplot(gini_coeff, ax=axs[2], bins=11, binrange=(0, bin_max), stat='probability', edgecolor='w', linewidth=1, color=color_stats, alpha=0.7)
-    sns.histplot(posterior_logprob, ax=axs[3], bins=5, binrange=(0.0, 1.), stat='probability', edgecolor='w', linewidth=1, color=color_stats, alpha=0.7)
+    sns.histplot(np.array(all_corr), ax=axs[1], bins=11, binrange=(-1., 1.), stat='probability', edgecolor='w', linewidth=1, color=color_stats, alpha=1.)
+    sns.histplot(gini_coeff, ax=axs[2], bins=11, binrange=(0, bin_max), stat='probability', edgecolor='w', linewidth=1, color=color_stats, alpha=1.)
+    sns.histplot(posterior_logprob, ax=axs[3], bins=5, binrange=(0.0, 1.), stat='probability', edgecolor='w', linewidth=1, color=color_stats, alpha=1.)
     axs[1].set_xlim(-1, 1)
 
     axs[0].set_ylim(0.45, 1.05)

@@ -21,3 +21,5 @@ export OMP_NUM_THREADS=${SLURM_CPUS_PER_TASK}
 # python simulate_data.py --num-tasks 5000 --num-dims 3 --max-steps 100  --rmc
 # python simulate_data.py --num-tasks 5000 --num-dims 3 --max-steps 100  --rmc --batch-size 100
 python simulate_data.py --num-tasks 6518 --num-dims 3 --max-steps 100  --rmc --batch-size 100
+# python simulate_data.py --num-tasks 12911 --num-dims 6 --max-steps 600  --rmc --batch-size 100
+ython simulate_data.py --num-tasks 8950 --num-dims 4 --max-steps 300  --rmc --batch-size 100

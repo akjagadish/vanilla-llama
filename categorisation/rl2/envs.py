@@ -765,12 +765,13 @@ class RMCTask(nn.Module):
         super(RMCTask, self).__init__()
 
         self.device = torch.device(device)
-        data = pd.read_csv(data)
-        data = data.groupby('task_id').filter(lambda x: len(x)<=max_steps)
-        data = data.groupby('task_id').filter(lambda x: len(x['target'].unique()) == num_categories)
-        data['target'] = data.groupby('task_id')['target'].apply(lambda x: x.replace(x.unique(), ['A', 'B']))
-        data['task_id'] = data.groupby('task_id').ngroup()  # reset task_ids based on number of unique task_id
-        self.data = data
+        if data is not None:
+            data = pd.read_csv(data) 
+            data = data.groupby('task_id').filter(lambda x: len(x)<=max_steps)
+            data = data.groupby('task_id').filter(lambda x: len(x['target'].unique()) == num_categories)
+            data['target'] = data.groupby('task_id')['target'].apply(lambda x: x.replace(x.unique(), ['A', 'B']))
+            data['task_id'] = data.groupby('task_id').ngroup()  # reset task_ids based on number of unique task_id
+            self.data = data
         self.online = online
         self.num_tasks = num_tasks
         self.num_choices = 1 
@@ -932,6 +933,10 @@ class RMCTask(nn.Module):
             
             # update last task id
             last_task_id = data['task_id'].max()+1
+
+            # save data to csv file
+            data.to_csv(f'{SYS_PATH}/categorisation/data/rmc_tasks_dim{self.num_dims}_data{self.max_steps}_tasks{num_tasks}_interim2.csv', index=False)
+        
         
         # save data to csv file
         data.to_csv(f'{SYS_PATH}/categorisation/data/rmc_tasks_dim{self.num_dims}_data{self.max_steps}_tasks{num_tasks}.csv', index=False)

@@ -5,7 +5,7 @@ import torch
 def simulate(num_tasks, rmc, nonlinear, num_dims, max_steps, noise, shuffle, device, batch_size=64):
 
     if rmc:
-        assert num_dims == 3, 'RMC only supports 3 dimensions'
+        #assert num_dims == 3, 'RMC only supports 3 dimensions'
         env = RMCTask(num_dims=num_dims, max_steps=max_steps, batch_size=batch_size, noise=noise, shuffle_trials=shuffle, device=device).to(device)
     else:
         env = SyntheticCategorisationTask(nonlinear=nonlinear, num_dims=num_dims, max_steps=max_steps, batch_size=batch_size, noise=noise, shuffle_trials=shuffle, device=device).to(device)
